@@ -17,6 +17,16 @@ These include
 ****
 endif::arc42help[]
 
+=== Participantes
+
+Pablo García Menéndez UO299834
+
+Elías Fernández Medina UO299673
+
+Sergio Espina Marcos UO301107
+
+Adrián Pérez Menéndez UO201188
+
 === Requirements Overview
 
 ifdef::arc42help[]
