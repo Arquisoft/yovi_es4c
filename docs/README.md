@@ -47,3 +47,13 @@ If we want to deploy it to GitHub pages, so it is accessible via [https://arquis
 If you check the `package.json` in this directory you can see how deploying is as easy as executing `gh-pages -d build`, which can be directly executed using `npm run deploy` in the docs directory.
 
 The `gh-pages` package is in charge of pushing the documentation generated directory (basically some htmls) to a special github branch called gh-pages. Everything pushed to this branch is accessible on the repository page. Note that we only want to push there the documentation. Also is important that the documentation build is not pushed to the other branches of the project.
+
+### Participantes
+
+Pablo García Menéndez UO299834
+
+Elías Fernández Medina UO299673
+
+Sergio Espina Marcos UO301107
+
+Adrián Pérez Menéndez UO201188
