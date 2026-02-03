@@ -31,6 +31,8 @@ pub use version::*;
 
 use crate::{GameYError, RandomBot, YBotRegistry, state::AppState};
 
+use tower_http::cors::CorsLayer;
+
 /// Creates the Axum router with the given state.
 ///
 /// This is useful for testing the API without binding to a network port.
@@ -41,7 +43,14 @@ pub fn create_router(state: AppState) -> axum::Router {
             "/{api_version}/ybot/choose/{bot_id}",
             axum::routing::post(choose::choose),
         )
+        .layer(CorsLayer::permissive())
+        .fallback(fallback)
         .with_state(state)
+}
+
+async fn fallback(uri: axum::http::Uri) -> impl axum::response::IntoResponse {
+    println!("No route matched for URI: {}", uri);
+    (axum::http::StatusCode::NOT_FOUND, "Not Found")
 }
 
 /// Creates the default application state with the standard bot registry.

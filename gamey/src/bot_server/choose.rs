@@ -48,6 +48,7 @@ pub async fn choose(
     Path(params): Path<ChooseParams>,
     Json(yen): Json<YEN>,
 ) -> Result<Json<MoveResponse>, Json<ErrorResponse>> {
+    println!("Received choose request: api_version={}, bot_id={}", params.api_version, params.bot_id);
     check_api_version(&params.api_version)?;
     let game_y = match GameY::try_from(yen) {
         Ok(game) => game,
