@@ -5,6 +5,12 @@ services:
     image: ghcr.io/arquisoft/yovi_0-users:latest
     ports:
       - "3000:3000"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASS=secret
+      - DB_NAME=yovi
     networks:
       - monitor-net
 
@@ -13,6 +19,7 @@ services:
       context: ./webapp
       args:
         - VITE_API_URL=http://localhost:3000
+        - VITE_GAMEY_URL=http://localhost:4000
     container_name: webapp
     image: ghcr.io/arquisoft/yovi_0-webapp:latest
     ports:
@@ -41,6 +48,19 @@ services:
     networks:
       - monitor-net
 
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+      - MYSQL_DATABASE=yovi
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - monitor-net
+
   grafana:
     image: grafana/grafana
     container_name: grafana
@@ -54,3 +74,7 @@ services:
 networks:
   monitor-net:
     driver: bridge
+
+volumes:
+  mysql-data:
+    driver: local

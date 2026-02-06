@@ -23,6 +23,23 @@ const Game: React.FC<GameProps> = ({ size = 5 }) => {
         return rows.join('/');
     };
 
+    // Envía al backend el layout (string) y si ganó el bot (true/false).
+    const saveGame = async (layoutStr: string, botWon: boolean) => {
+        const players = [
+            { userId: null, name: 'Azul', isWinner: !botWon },
+            { userId: null, name: 'Rojo', isWinner: botWon }
+        ];
+        try {
+            await fetch('http://localhost:3000/api/games', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ yen: layoutStr, players })
+            });
+        } catch (e) {
+            console.error('Failed to save game', e);
+        }
+    };
+
     useEffect(() => {
         setYen(prev => ({
             ...prev,
@@ -90,8 +107,11 @@ const Game: React.FC<GameProps> = ({ size = 5 }) => {
         const layoutAfterPlayer = rows.join('/');
 
         if (checkWinner(layoutAfterPlayer, yen.players[0])) {
-            setYen({ ...yen, layout: layoutAfterPlayer, turn: -1 });
+            const finalYen = { ...yen, layout: layoutAfterPlayer, turn: -1 };
+            setYen(finalYen);
             setStatus('¡HAS GANADO! (Azul)');
+            // Guardar partida: layout string, jugadores y si ganó el bot (false)
+            saveGame(finalYen.layout, false).catch(console.error);
             return;
         }
 
@@ -117,8 +137,11 @@ const Game: React.FC<GameProps> = ({ size = 5 }) => {
             const finalLayout = botRows.join('/');
 
             if (checkWinner(finalLayout, yen.players[1])) {
-                setYen({ ...yen, layout: finalLayout, turn: -1 });
+                const finalYen = { ...yen, layout: finalLayout, turn: -1 };
+                setYen(finalYen);
                 setStatus('El Bot ha ganado (Rojo)');
+                // Guardar partida: layout string, jugadores y si ganó el bot (true)
+                saveGame(finalYen.layout, true).catch(console.error);
             } else {
                 setYen({ ...yen, layout: finalLayout, turn: 0 });
                 setStatus('Tu turno (Azul)');
@@ -131,6 +154,8 @@ const Game: React.FC<GameProps> = ({ size = 5 }) => {
             setLoading(false);
         }
     };
+
+    
 
     const renderBoard = () => {
         const rows = yen.layout.split('/');
