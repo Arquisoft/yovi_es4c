@@ -17,15 +17,20 @@ These include
 ****
 endif::arc42help[]
 
+El proyecto Yovi es una propuesta planteada por la empresa de desarrollo de videojuegos Micrati, cuyo objetivo es desarrollar una aplicación web para 
+jugar al juego Y, permitiendo tanto la interacción de usuarios humanos como la integración de bots mediante una API externo.
+
 === Participantes
 
-Pablo García Menéndez UO299834
+El equipo está formado por:
 
-Elías Fernández Medina UO299673
+* _Pablo García Menéndez, UO299834_
 
-Sergio Espina Marcos UO301107
+* _Elías Fernández Medina, UO299673_
 
-Adrián Pérez Menéndez UO201188
+* _Sergio Espina Marcos, UO301107_
+
+* _Adrián Pérez Menéndez, UO201188_
 
 === Requirements Overview
 
@@ -55,6 +60,18 @@ See https://docs.arc42.org/section-1/[Introduction and Goals] in the arc42 docum
 ****
 endif::arc42help[]
 
+Los requisitos de este projecto Yovi son los siguientes:
+
+* _Los usuarios podrán jugar partidas desde la web al juego Y, por lo menos a la versión clásica del juego y contra una máquina._
+* _Los usuarios podrán elegir el tamaño del tablero, así como la estrategia que el bot rival empleará._
+* _Los usuarios podrán registrarse en el sistema y consultar el histórico de su participación: número de juegos realizados, estádisticas de 
+partidas ganadas/perdidas, etc._
+* _La aplicación dispondrá de una API que permita a los bots interactuar con ella._
+* _La API de la aplicación permitirá acceder y gestionar información de los usuarios y de las partidas._
+* _La API tendrá documentación._
+* _La API de la aplicación permitirá que un bot juegue contra la aplicación._
+
+
 === Quality Goals
 
 ifdef::arc42help[]
@@ -78,6 +95,14 @@ If you as an architect do not know how the quality of your work will be judged..
 A table with quality goals and concrete scenarios, ordered by priorities
 ****
 endif::arc42help[]
+
+[options="header",cols="1,3"]
+|===
+|Objetivo de calidad|Descripción
+| _**Usabilidad**_ | _La aplicación web deberá ser sencilla de usar e intuitiva, buscando que cualquier usuario pueda tener una buena experiencia jugando al juego Y._ 
+| _**Rápidez**_ | _Se buscarán que los tiempos de respuesta sean lo más cortos posibles, tanto en medio de la partida como en la navegación de la aplicación._ 
+| _**Mantenibilidad**_ | _La aplicación debería de ser fácil de mantener, con código limpio y fácil de cambiar y/o añadir funcionalidad, procurando seguir buenas prácticas del diseño del software durante el desarrollo._
+|===
 
 === Stakeholders
 
@@ -106,6 +131,10 @@ endif::arc42help[]
 [options="header",cols="1,2,2"]
 |===
 |Role/Name|Contact|Expectations
-| _<Role-1>_ | _<Contact-1>_ | _<Expectation-1>_
-| _<Role-2>_ | _<Contact-2>_ | _<Expectation-2>_
+| _Micrati_ | _Empresa de desarrollo de juegos Micatri_ | _Expera una entrega de la aplicación que cumpla todos
+ sus requisitos dados._
+| _Equipo de desarrolo_ | _Sergio Espina Marcos, Pablo García Menéndez, Elías Fernández Media, Adrián Pérez Menéndez_ 
+| _Expera desarrollar una aplicación web, poniendo en práctica sus conocimientos y hábilidades así como mejorarlas y aprender nuevas._
+| _Usuarios_ | _Persona que use la aplicación_ | _Expera poder divertirse jugando al juego Y._
+| _Profesor_ | _Jose Emilio Labra Gayo_ | _Expera asistir al equipo de desarrollo con el projecto asi como a evaluarlos._
 |===
