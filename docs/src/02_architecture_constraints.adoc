@@ -3,27 +3,35 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-architecture-constraints]]
 == Architecture Constraints
 
+=== Technical Constraints
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-Any requirement that constraints software architects in their freedom of design and implementation decisions or decision about the development process. These constraints sometimes go beyond individual systems and are valid for whole organizations and companies.
+[options="header",cols="1,3"]
+|===
+|Restricción | Descripción
+| Lenguaje frontend | La aplicación web debe desarrollarse utilizando TypeScript con React.
+| Módulo de lógica | El motor del juego debe implementarse en lenguaje introducido en seminarios Rust.
+| Comunicación | La comunicación entre el frontend y el módulo de lógica se realizará mediante servicios web usando JSON.
+| Notación YEN | Las partidas deberán representarse utilizando la notación YEN proporcionada.
+| API externa | El sistema debe exponer una API que permita la interacción con bots.
+| Despliegue web | La aplicación debe estar accesible a través de Internet (p.e VM de Azure).
+|===
 
-.Motivation
-Architects should know exactly where they are free in their design decisions and where they must adhere to constraints.
-Constraints must always be dealt with; they may be negotiable, though.
+=== Organizational Constraints
 
-.Form
-Simple tables of constraints with explanations.
-If needed you can subdivide them into
-technical constraints, organizational and political constraints and
-conventions (e.g. programming or versioning guidelines, documentation or naming conventions)
+[options="header",cols="1,3"]
+|===
+|Restricción | Descripción
+| Trabajo en equipo | El desarrollo se realiza en equipo, lo cual implica coordinación y reparto de tareas equitativo.
+| Evaluación académica | El proyecto será evaluado según los criterios establecidos.
+| Uso de GitHub | El repositorio debe mantenerse actualizado con un historial claro de commits, issues, actas y decisiones que se puedan tomar.
+|===
 
+=== Conventions
 
-.Further Information
-
-See https://docs.arc42.org/section-2/[Architecture Constraints] in the arc42 documentation.
-
-****
-endif::arc42help[]
+[options="header",cols="1,3"]
+|===
+|Convención | Descripción
+| PLantilla arc42 | Se seguirá la plantilla de arc42 para documentar la arquitectura.
+| Buenas prácticas | Se aplicarán principios de diseño limpio y mantenible.
+| Control de versiones | Se utilizará Git para el control de versiones.
+|===

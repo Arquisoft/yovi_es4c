@@ -3,25 +3,36 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-technical-risks]]
 == Risks and Technical Debts
 
+[cols="1,2,2", options="header"]
+|===
+|Risk / Technical Debt |Impact |Mitigation / Notes
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-A list of identified technical risks or technical debts, ordered by priority
+| Complejidad de la integración Frontend ↔ Backend
+| La comunicación JSON/YEN entre TypeScript/React y Rust puede generar errores de formato o inconsistencias.
+| Definir y validar estrictamente el formato YEN, comprobar e integrar todos los endpoints.
 
-.Motivation
-“Risk management is project management for grown-ups” (Tim Lister, Atlantic Systems Guild.) 
+| Evolución de las estrategias de juego
+| Medio: Añadir nuevas estrategias puede romper el motor de juego si no se diseña modularmente.
+| Diseñar motor de juego con interfaces claras; documentar cómo añadir nuevas estrategias.
 
-This should be your motto for systematic detection and evaluation of risks and technical debts in the architecture, which will be needed by management stakeholders (e.g. project managers, product owners) as part of the overall risk analysis and measurement planning.
+| Gestión de concurrencia en partidas multiusuario
+| Usuarios jugando simultáneamente pueden generar conflictos de estado e incoherencias.
+| Implementar control de acceso a partidas; usar bloqueos o transacciones en la persistencia.
 
-.Form
-List of risks and/or technical debts, probably including suggested measures to minimize, mitigate or avoid risks or reduce technical debts.
+| Dependencia de bots externos
+| Bots externos pueden enviar datos inválidos o malformateados.
+| Validación estricta de entradas y manejo de errores; definir contratos claros en la API.
 
+| Deuda técnica en el frontend
+| Código TypeScript con React puede no ser modular o adquierir acoplamiento que dificulte el mantenimiento o futuros cambios.
+| Revisiones de código, pruebas unitarias y refactorizaciones periódicas.
 
-.Further Information
+| Escalabilidad del backend
+| El API y la lógica deben soportar múltiples partidas simultáneas.
+| Planificar escalabilidad desde el inicio; monitorización y pruebas de carga.
 
-See https://docs.arc42.org/section-11/[Risks and Technical Debt] in the arc42 documentation.
+| Compatibilidad con variantes futuras del juego
+| Añadir variantes como Master Y o Holey Y puede requerir cambios en la lógica.
+| Diseñar motor de juego flexible y documentar cómo extender reglas.
 
-****
-endif::arc42help[]
+|===  

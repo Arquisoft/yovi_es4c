@@ -3,32 +3,40 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-solution-strategy]]
 == Solution Strategy
 
+El sistema Yovi se ha diseñado siguiendo principios de modularidad y separación de responsabilidades. 
+La estrategia general se basa en los siguientes aspectos:
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-A short summary and explanation of the fundamental decisions and solution strategies, that shape system architecture. It includes
+=== Top-Level Decomposition
 
-* technology decisions
-* decisions about the top-level decomposition of the system, e.g. usage of an architectural pattern or design pattern
-* decisions on how to achieve key quality goals
-* relevant organizational decisions, e.g. selecting a development process or delegating certain tasks to third parties.
+* **Frontend web (TypeScript/React)**: Se encarga de la interacción con los usuarios y la presentación del tablero de juego.
+* **API de la aplicación**: Expone los servicios para bots y comunicación interna entre frontend y módulo de lógica.
+* **Módulo de lógica del juego (Rust)**: Calcula el estado de la partida, determina movimientos y comprueba victorias.  
+  - Se comunica mediante JSON utilizando la notación YEN.
+* **Persistencia de datos (MySQL)**: Registro de usuarios, partidas e historial en la base de datos gestionada por la aplicación web.
 
-.Motivation
-These decisions form the cornerstones for your architecture. They are the foundation for many other detailed decisions or implementation rules.
+---
 
-.Form
-Keep the explanations of such key decisions short.
+=== Technology Decisions
 
-Motivate what was decided and why it was decided that way,
-based upon problem statement, quality goals and key constraints.
-Refer to details in the following sections.
+* Se utiliza **TypeScript con React** para la web por su tipado estático y facilidad de mantenimiento.
+* Se utiliza **Rust** para la lógica del juego por su rendimiento y seguridad.
+* Se usa **JSON + notación YEN** para comunicar los módulos y con los bots.
+* La API está basada en servicios web simples (HTTP) para facilitar la integración con bots y otros sistemas externos.
+* Se emplea **Git con GitHub** para control de versiones y seguimiento del proyecto.
 
+---
 
-.Further Information
+=== Key Quality Goals
 
-See https://docs.arc42.org/section-4/[Solution Strategy] in the arc42 documentation.
+* **Usabilidad**: Se prioriza una interfaz clara e intuitiva para el usuario.
+* **Rendimiento**: Respuesta rápida durante la partida y consultas al API.
+* **Mantenibilidad**: Código poco acoplado, cohesivo, modular y limpio que permite añadir estrategias o variantes del juego sin romper el sistema.
 
-****
-endif::arc42help[]
+---
+
+=== Group Decisions
+
+* El proyecto se desarrolla de forma colaborativa por el equipo indicado, con coordinación mediante reuniones telemáticas y/o presenciales, contacto por WhatsApp y el uso del GitHub.
+* Se sigue una metodología ágil ligera de tipo SCRUM como la aprendida en asignaturas pasadas como IPS.
+* La documentación sigue la plantilla **arc42**, pues es la indicada por el profesor.
+

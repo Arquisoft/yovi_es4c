@@ -3,42 +3,41 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-glossary]]
 == Glossary
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-The most important domain and technical terms that your stakeholders use when discussing the system.
-
-You can also see the glossary as source for translations if you work in multi-language teams.
-
-.Motivation
-You should clearly define your terms, so that all stakeholders
-
-* have an identical understanding of these terms
-* do not use synonyms and homonyms
-
-
-.Form
-
-A table with columns <Term> and <Definition>.
-
-Potentially more columns in case you need translations.
-
-
-.Further Information
-
-See https://docs.arc42.org/section-12/[Glossary] in the arc42 documentation.
-
-****
-endif::arc42help[]
-
 [cols="e,2e" options="header"]
 |===
 |Term |Definition
 
-|<Term-1>
-|<definition-1>
+| Yovi
+| Nombre del proyecto, plataforma web para jugar al juego Y y permitir la interacción de usuarios y bots.
 
-|<Term-2>
-|<definition-2>
-|===
+| Juego Y
+| Juego de tablero abstracto en el que dos jugadores intentan conectar lados opuestos del tablero siguiendo reglas específicas.
+
+| Notación YEN
+| Formato JSON utilizado para representar el estado de una partida, incluyendo tamaño de tablero, turno, disposición de jugadores y layout.
+
+| Bot
+| Programa que juega automáticamente contra la aplicación o contra otros usuarios, usando la API.
+
+| API (Application Programming Interface)
+| Conjunto de servicios web que permite la interacción de bots o módulos externos con la aplicación.
+
+| Frontend
+| Interfaz web implementada en TypeScript con React que permite a los usuarios jugar y consultar su historial.
+
+| Módulo de Lógica (Rust)
+| Componente encargado de calcular movimientos válidos, verificar victorias y sugerir estrategias usando la notación YEN.
+
+| Persistencia (MySQL)
+| Componente encargado de almacenar información de usuarios, partidas y estadísticas en la base de datos.
+
+| Estrategia
+| Algoritmo que define cómo el bot decide su siguiente movimiento en una partida.
+
+| Partida
+| Instancia de un juego Y entre dos jugadores, humanos o bots, con un tablero y un historial de movimientos.
+
+| Historial
+| Datos calculados sobre los jugadores y sus partidas, incluyendo victorias, derrotas y ranking.
+
+|===  
