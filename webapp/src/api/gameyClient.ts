@@ -17,7 +17,7 @@ export interface MoveResponse {
     coords: Coordinates;
 }
 
-const API_BASE_URL = (import.meta as any).env?.VITE_GAMEY_URL ?? 'http://localhost:4000';
+const API_BASE_URL = import.meta.env.VITE_GAMEY_URL ?? 'http://localhost:4000';
 
 export async function chooseMove(
     yen: YEN,

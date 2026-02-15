@@ -56,6 +56,7 @@ services:
       - MYSQL_DATABASE=yovi
     volumes:
       - mysql-data:/var/lib/mysql
+      - ./webapp/BDD/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     ports:
       - "3306:3306"
     networks:
@@ -70,7 +71,6 @@ services:
       - ./users/monitoring/grafana/provisioning:/etc/grafana/provisioning
     networks:
       - monitor-net
-
 networks:
   monitor-net:
     driver: bridge
