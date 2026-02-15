@@ -1,6 +1,7 @@
 import './App.css'
 import RegisterForm from './RegisterForm';
 import Game from './Game';
+import GameHistory from './GameHistory';
 import reactLogo from './assets/react.svg'
 
 function App() {
@@ -19,6 +20,8 @@ function App() {
       <RegisterForm />
       <hr style={{ margin: '20px 0' }} />
       <Game />
+      <hr style={{ margin: '20px 0' }} />
+      <GameHistory />
     </div>
   );
 }
