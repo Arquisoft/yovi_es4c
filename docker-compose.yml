@@ -63,6 +63,14 @@ services:
       - "3306:3306"
     networks:
       - monitor-net
+    deploy:
+      resources:
+        limits:
+          memory: 512M  # Ajusta esto según tu RAM total (ej. 512MB o 756MB)
+          cpus: '0.50'   # Limita al 50% de un núcleo de CPU
+    command: 
+      - --innodb-buffer-pool-size=256M # El valor por defecto es muy alto para una VM pequeña
+      - --performance-schema=OFF        # Ahorra mucha RAM desactivando métricas internas
 
   grafana:
     image: grafana/grafana
