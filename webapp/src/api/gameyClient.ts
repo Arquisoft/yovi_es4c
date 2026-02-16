@@ -17,6 +17,12 @@ export interface MoveResponse {
     coords: Coordinates;
 }
 
+export interface GameStateResponse {
+    yen: YEN;
+    status: 'Ongoing' | 'Finished';
+    winner?: number; // 0 o 1
+}
+
 const API_BASE_URL = import.meta.env.VITE_GAMEY_URL ?? 'http://localhost:4000';
 
 export async function chooseMove(
@@ -34,6 +40,33 @@ export async function chooseMove(
 
     if (!response.ok) {
         // Intentamos extraer el mensaje de error definido en error.rs
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `Error del servidor: ${response.statusText}`);
+    }
+
+    return response.json();
+}
+
+// NUEVA FUNCIÓN: Envía el movimiento del humano al servidor
+export async function makeHumanMove(
+    yen: YEN,
+    coords: { x: number, y: number, z: number },
+    playerIdx: number,
+    apiVersion: string = 'v1'
+): Promise<GameStateResponse> {
+    const response = await fetch(`${API_BASE_URL}/${apiVersion}/game/play`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            yen: yen,
+            coords: coords,
+            player_idx: playerIdx
+        }),
+    });
+
+    if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `Error del servidor: ${response.statusText}`);
     }

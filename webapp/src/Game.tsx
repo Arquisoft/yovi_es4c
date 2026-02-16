@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { type YEN, chooseMove } from './api/gameyClient';
+import { type YEN, chooseMove, makeHumanMove } from './api/gameyClient';
 
 interface GameProps {
     size?: number;
 }
 
 const Game: React.FC<GameProps> = ({ size = 5 }) => {
+    // Estado inicial
     const [yen, setYen] = useState<YEN>({
         size: size,
         turn: 0,
@@ -15,6 +16,7 @@ const Game: React.FC<GameProps> = ({ size = 5 }) => {
     const [status, setStatus] = useState<string>('Tu turno (Azul)');
     const [loading, setLoading] = useState<boolean>(false);
 
+    // Inicializa el string del tablero (solo visual inicial)
     const initializeLayout = (s: number): string => {
         let rows: string[] = [];
         for (let i = 1; i <= s; i++) {
@@ -23,7 +25,7 @@ const Game: React.FC<GameProps> = ({ size = 5 }) => {
         return rows.join('/');
     };
 
-    // Envía al backend el layout (string) y si ganó el bot (true/false).
+
     const saveGame = async (layoutStr: string, botWon: boolean) => {
         const players = [
             { userId: null, name: 'Azul', isWinner: !botWon },
@@ -35,115 +37,74 @@ const Game: React.FC<GameProps> = ({ size = 5 }) => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ yen: layoutStr, players })
             });
+            // Opcional: Recargar la página o avisar al historial
         } catch (e) {
             console.error('Failed to save game', e);
         }
     };
 
     useEffect(() => {
-        setYen(prev => ({
-            ...prev,
+        setYen({
             size: size,
+            turn: 0,
+            players: ['B', 'R'],
             layout: initializeLayout(size),
-            turn: 0
-        }));
+        });
         setStatus('Tu turno (Azul)');
     }, [size]);
 
-    // Lógica para verificar la victoria en el juego de Y
-    const checkWinner = (layout: string, player: string): boolean => {
-        const rows = layout.split('/');
-        const visited = new Set<string>();
-        const queue: [number, number][] = [];
-
-        // 1. Iniciamos la búsqueda desde cualquier celda del jugador en el Lado Izquierdo (col 0)
-        for (let r = 0; r < size; r++) {
-            if (rows[r][0] === player) {
-                queue.push([r, 0]);
-                visited.add(`${r},0`);
-            }
-        }
-
-        let touchesRight = false;
-        let touchesBottom = false;
-
-        while (queue.length > 0) {
-            const [r, c] = queue.shift()!;
-
-            // Verificar si la celda actual toca los otros bordes
-            if (c === r) touchesRight = true;          // Lado Derecho
-            if (r === size - 1) touchesBottom = true; // Lado Inferior
-
-            if (touchesRight && touchesBottom) return true; // Conexión de 3 lados detectada
-
-            // Vecinos en rejilla triangular (6 direcciones)
-            const neighbors = [
-                [r, c - 1], [r, c + 1],         // Misma fila
-                [r - 1, c - 1], [r - 1, c],     // Fila superior
-                [r + 1, c], [r + 1, c + 1]      // Fila inferior
-            ];
-
-            for (const [nr, nc] of neighbors) {
-                if (nr >= 0 && nr < size && nc >= 0 && nc <= nr &&
-                    rows[nr][nc] === player && !visited.has(`${nr},${nc}`)) {
-                    visited.add(`${nr},${nc}`);
-                    queue.push([nr, nc]);
-                }
-            }
-        }
-        return false;
+    // Conversión de coordenadas: (fila, columna) -> (x, y, z) para Rust
+    const toCubeCoords = (row: number, col: number, boardSize: number) => {
+        const x = boardSize - 1 - row;
+        const y = col;
+        const z = boardSize - 1 - x - y;
+        return { x, y, z };
     };
 
     const handleCellClick = async (row: number, col: number) => {
-        // Bloquear si no es el turno del jugador (0), si está cargando o si el juego terminó (-1)
+        // Bloqueos básicos
         if (yen.turn !== 0 || loading) return;
-
-        let rows = yen.layout.split('/');
+        const rows = yen.layout.split('/');
         if (rows[row][col] !== '.') return;
 
-        // 1. Movimiento del Jugador
-        let newRowStr = rows[row].substring(0, col) + yen.players[0] + rows[row].substring(col + 1);
-        rows[row] = newRowStr;
-        const layoutAfterPlayer = rows.join('/');
-
-        if (checkWinner(layoutAfterPlayer, yen.players[0])) {
-            const finalYen = { ...yen, layout: layoutAfterPlayer, turn: -1 };
-            setYen(finalYen);
-            setStatus('¡HAS GANADO! (Azul)');
-            // Guardar partida: layout string, jugadores y si ganó el bot (false)
-            saveGame(finalYen.layout, false).catch(console.error);
-            return;
-        }
-
-        const nextYen = { ...yen, turn: 1, layout: layoutAfterPlayer };
-        setYen(nextYen);
-        setStatus('El bot está pensando...');
         setLoading(true);
+        setStatus("Procesando movimiento...");
 
         try {
-            // 2. Movimiento del Bot
-            const botMove = await chooseMove(nextYen);
+            // 1. Convertir coordenadas para Rust
+            const coords = toCubeCoords(row, col, size);
 
-            if (!botMove || !botMove.coords) throw new Error("Respuesta inválida del bot");
+            // 2. ENVIAR MOVIMIENTO HUMANO A RUST (Puerto 4000)
+            // Aquí es donde Rust aplica la lógica de conexión y victoria
+            const humanResult = await makeHumanMove(yen, coords, 0); // 0 = Azul
 
-            // Conversión de coordenadas: x = size - 1 - row
-            const botRow = size - 1 - botMove.coords.x;
-            const botCol = botMove.coords.y;
+            // Actualizamos el tablero con la respuesta oficial del servidor
+            setYen(humanResult.yen);
 
-            let botRows = layoutAfterPlayer.split('/');
-            let targetRow = botRows[botRow];
-            let finalRowStr = targetRow.substring(0, botCol) + yen.players[1] + targetRow.substring(botCol + 1);
-            botRows[botRow] = finalRowStr;
-            const finalLayout = botRows.join('/');
+            // Verificamos si Rust dice que el juego terminó
+            if (humanResult.status === 'Finished') {
+                setStatus('¡HAS GANADO! (Azul)');
+                // Guardamos en el historial (Puerto 3000)
+                await saveGame(humanResult.yen.layout, false);
+                setLoading(false);
+                return;
+            }
 
-            if (checkWinner(finalLayout, yen.players[1])) {
-                const finalYen = { ...yen, layout: finalLayout, turn: -1 };
-                setYen(finalYen);
+            // 3. TURNO DEL BOT
+            setStatus('El bot está pensando...');
+
+            // A. Pedir al bot que elija coordenada
+            const botChoice = await chooseMove(humanResult.yen);
+
+            // B. Aplicar el movimiento del bot en el servidor Rust
+            const botResult = await makeHumanMove(humanResult.yen, botChoice.coords, 1); // 1 = Rojo
+
+            setYen(botResult.yen);
+
+            if (botResult.status === 'Finished') {
                 setStatus('El Bot ha ganado (Rojo)');
-                // Guardar partida: layout string, jugadores y si ganó el bot (true)
-                saveGame(finalYen.layout, true).catch(console.error);
+                await saveGame(botResult.yen.layout, true);
             } else {
-                setYen({ ...yen, layout: finalLayout, turn: 0 });
                 setStatus('Tu turno (Azul)');
             }
 
@@ -154,8 +115,6 @@ const Game: React.FC<GameProps> = ({ size = 5 }) => {
             setLoading(false);
         }
     };
-
-    
 
     const renderBoard = () => {
         const rows = yen.layout.split('/');
@@ -171,7 +130,7 @@ const Game: React.FC<GameProps> = ({ size = 5 }) => {
                             borderRadius: '50%',
                             backgroundColor: cell === 'B' ? '#3b82f6' : cell === 'R' ? '#ef4444' : '#e5e7eb',
                             margin: '3px',
-                            cursor: yen.turn === 0 ? 'pointer' : 'default',
+                            cursor: (cell === '.' && yen.turn === 0) ? 'pointer' : 'default',
                             border: '2px solid #374151',
                             transition: 'all 0.2s'
                         }}
@@ -194,7 +153,7 @@ const Game: React.FC<GameProps> = ({ size = 5 }) => {
             <div className="board" style={{ backgroundColor: '#f3f4f6', padding: '20px', borderRadius: '10px' }}>
                 {renderBoard()}
             </div>
-            {yen.turn === -1 && (
+            {(status.includes('GANADO') || status.includes('ganado')) && (
                 <button
                     onClick={() => window.location.reload()}
                     style={{ marginTop: '20px', padding: '10px 20px', cursor: 'pointer' }}

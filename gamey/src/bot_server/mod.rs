@@ -23,6 +23,7 @@ pub mod choose;
 pub mod error;
 pub mod state;
 pub mod version;
+pub mod play;
 use axum::response::IntoResponse;
 use std::sync::Arc;
 pub use choose::MoveResponse;
@@ -42,6 +43,10 @@ pub fn create_router(state: AppState) -> axum::Router {
         .route(
             "/{api_version}/ybot/choose/{bot_id}",
             axum::routing::post(choose::choose),
+        )
+        .route(
+            "/{api_version}/game/play",
+            axum::routing::post(play::play),
         )
         .layer(CorsLayer::permissive())
         .fallback(fallback)
