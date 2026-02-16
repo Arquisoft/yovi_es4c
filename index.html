@@ -1993,7 +1993,7 @@ Azure SQL Database gestiona la persistencia de datos.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Docker%20Host%20Deployment.png" alt="Docker Host Deployment" width="444" height="336">
+<img src="./images/Docker%20Host%20Deployment.png" alt="Docker Host Deployment" width="444" height="353">
 </div>
 </div>
 <div class="paragraph">
@@ -2301,44 +2301,69 @@ There you will find links and examples about ADR.</p>
 </div>
 <div class="sect2">
 <h3 id="_mysql_como_bbdd_del_proyecto">9.1. MySQL como BBDD del proyecto</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Estado</dt>
+<dd>
+<p>Aceptada.</p>
+</dd>
+<dt class="hdlist1">Contexto</dt>
+<dd>
+<p>Se requiere un sistema de persistencia para almacenar los datos de los usuarios, partidas y estado del juego.
+La solución debe ser flexible, integrarse correctamente con el ecosistema tecnológico elegido y facilitar el desarrollo y despliegue del proyecto.</p>
+</dd>
+<dt class="hdlist1">Alternativas consideradas</dt>
+<dd>
 <div class="ulist">
 <ul>
 <li>
-<p>Estado: Aceptada.</p>
+<p>Otras bases de datos relacionales.</p>
 </li>
 <li>
-<p>Contexto: Se requiere un sistema de persistencia para almacenar los datos de los usuarios, partidas y estado del juego. La solución debe ser flexible, integrarse correctamente con el ecosistema tecnológico elegido y facilitar el desarrollo y despliegue del proyecto.</p>
-</li>
-<li>
-<p>Alternativas: Otras bases de datos relacionales u bases de datos no relacionales.</p>
-</li>
-<li>
-<p>Justificación:</p>
-<div class="ulist">
-<ul>
-<li>
-<p>Modelo relacional: MySQL permite estructurar los datos en tablas normalizadas, ideal para usuarios, partidas y relaciones entre entidades del juego.</p>
-</li>
-<li>
-<p>Integridad de datos: Garantiza consistencia mediante claves primarias, foráneas y restricciones, evitando errores de duplicidad o pérdida de información.</p>
-</li>
-<li>
-<p>Madurez y soporte: MySQL es estable, ampliamente documentado y compatible con la mayoría de frameworks y lenguajes backend.</p>
-</li>
-<li>
-<p>Adopción del equipo de desarrollo: Es una técnologia que todo el equipo de desarrollador ha empleado en algún otro proyecto.</p>
-</li>
-<li>
-<p>Rendimiento: Adecuado para cargas moderadas, asegurando tiempos de respuesta rápidos en operaciones comunes.</p>
-</li>
-<li>
-<p>Facilidad de despliegue Compatible con Docker y entornos cloud, lo que facilita levantar instancias de forma reproducible.</p>
+<p>Bases de datos no relacionales.</p>
 </li>
 </ul>
 </div>
-</li>
-<li>
-<p>Consecuencias</p>
+</dd>
+<dt class="hdlist1">Justificación</dt>
+</dl>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Modelo relacional</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MySQL permite estructurar los datos en tablas normalizadas, ideal para usuarios, partidas y relaciones entre entidades del juego.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integridad de datos</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Garantiza consistencia mediante claves primarias, foráneas y restricciones, evitando errores de duplicidad o pérdida de información.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Madurez y soporte</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MySQL es estable, ampliamente documentado y compatible con la mayoría de frameworks y lenguajes backend.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adopción del equipo de desarrollo</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Es una tecnología que todo el equipo de desarrollador ha empleado en algún otro proyecto.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rendimiento</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adecuado para cargas moderadas, asegurando tiempos de respuesta rápidos en operaciones comunes.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Facilidad de despliegue</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compatible con Docker y entornos cloud, lo que facilita levantar instancias de forma reproducible.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Consecuencias</dt>
+<dd>
 <div class="ulist">
 <ul>
 <li>
@@ -2352,53 +2377,85 @@ There you will find links and examples about ADR.</p>
 </li>
 </ul>
 </div>
-</li>
-</ul>
+</dd>
+</dl>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_azure_como_infraestructura_de_despliegue_máquina_virtual">9.2. Azure como infraestructura de despliegue (Máquina Virtual)</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Estado</dt>
+<dd>
+<p>Aceptada.</p>
+</dd>
+<dt class="hdlist1">Contexto</dt>
+<dd>
+<p>Se requiere un entorno donde desplegar la aplicación backend, la base de datos y los servicios asociados, garantizando disponibilidad, escalabilidad y acceso remoto seguro.
+La solución debe integrarse fácilmente con el ecosistema tecnológico del proyecto y permitir un despliegue sencillo y controlado.</p>
+</dd>
+<dt class="hdlist1">Alternativas consideradas</dt>
+<dd>
 <div class="ulist">
 <ul>
 <li>
-<p>Estado: Aceptada.</p>
+<p>AWS EC2.</p>
 </li>
 <li>
-<p>Contexto: Se requiere un entorno donde desplegar la aplicación backend, la base de datos y los servicios asociados, garantizando disponibilidad, escalabilidad y acceso remoto seguro. La solución debe integrarse fácilmente con el ecosistema tecnológico del proyecto y permitir un despliegue sencillo y controlado.</p>
+<p>Google Compute Engine.</p>
 </li>
 <li>
-<p>Alternativas: AWS EC2, Google Compute Engine, servidores on-premise u otros proveedores cloud.</p>
+<p>Servidores on-premise.</p>
 </li>
 <li>
-<p>Justificación:</p>
-<div class="ulist">
-<ul>
-<li>
-<p>Adopción del equipo de desarrollo: Es una técnologia que todo el equipo de desarrollador ha empleado en algún otro proyecto.</p>
-</li>
-<li>
-<p>Infraestructura como servicio (IaaS): Azure permite crear y configurar máquinas virtuales con control total sobre el sistema operativo y el entorno de ejecución.</p>
-</li>
-<li>
-<p>Escalabilidad: Posibilidad de aumentar recursos (CPU, RAM, almacenamiento) según crezcan las necesidades del proyecto.</p>
-</li>
-<li>
-<p>Alta disponibilidad: Integración con servicios de red, copias de seguridad y monitorización dentro del ecosistema Azure.</p>
-</li>
-<li>
-<p>Integración con el entorno cloud: Compatible con Docker, CI/CD y otros servicios gestionados del ecosistema Azure.</p>
-</li>
-<li>
-<p>Seguridad: Configuración de redes virtuales, grupos de seguridad y control de acceso basado en roles.</p>
-</li>
-<li>
-<p>Flexibilidad: Permite alojar tanto la aplicación como la base de datos en un mismo entorno o separarlos en distintas máquinas virtuales según necesidades.</p>
+<p>Otros proveedores cloud.</p>
 </li>
 </ul>
 </div>
-</li>
-<li>
-<p>Consecuencias:</p>
+</dd>
+<dt class="hdlist1">Justificación</dt>
+</dl>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adopción del equipo de desarrollo</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Es una tecnología que todo el equipo de desarrollador ha empleado en algún otro proyecto.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Infraestructura como servicio (IaaS)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Azure permite crear y configurar máquinas virtuales con control total sobre el sistema operativo y el entorno de ejecución.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Escalabilidad</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Posibilidad de aumentar recursos (CPU, RAM, almacenamiento) según crezcan las necesidades del proyecto.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Alta disponibilidad</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integración con servicios de red, copias de seguridad y monitorización dentro del ecosistema Azure.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integración con el entorno cloud</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compatible con Docker, CI/CD y otros servicios gestionados del ecosistema Azure.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Seguridad</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Configuración de redes virtuales, grupos de seguridad y control de acceso basado en roles.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Flexibilidad</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Permite alojar tanto la aplicación como la base de datos en un mismo entorno o separarlos en distintas máquinas virtuales según necesidades.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Consecuencias</dt>
+<dd>
 <div class="ulist">
 <ul>
 <li>
@@ -2415,8 +2472,8 @@ There you will find links and examples about ADR.</p>
 </li>
 </ul>
 </div>
-</li>
-</ul>
+</dd>
+</dl>
 </div>
 <div style="page-break-after: always;"></div>
 </div>
@@ -2449,56 +2506,10 @@ concrete and measurable.</p>
 </div>
 <div class="sect2">
 <h3 id="_quality_tree">10.1. Quality Tree</h3>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Calidad del Sistema</strong></p>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Usabilidad</strong></p>
-<div class="ulist">
-<ul>
-<li>
-<p>Interfaz intuitiva y fácil de aprender.</p>
-</li>
-</ul>
+<div class="imageblock">
+<div class="content">
+<img src="./images/quality-tree.svg" alt="quality tree" width="1137" height="252">
 </div>
-</li>
-<li>
-<p><strong>Rendimiento</strong></p>
-<div class="ulist">
-<ul>
-<li>
-<p>Tiempo de respuesta bajo durante la partida.</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p><strong>Mantenibilidad</strong></p>
-<div class="ulist">
-<ul>
-<li>
-<p>Código modular y fácil de modificar o ampliar.</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p><strong>Fiabilidad</strong></p>
-<div class="ulist">
-<ul>
-<li>
-<p>Manejo adecuado de errores y mantenimiento de la coherencia del estado del juego ante fallos o situaciones inesperadas.</p>
-</li>
-</ul>
-</div>
-</li>
-</ul>
-</div>
-</li>
-</ul>
 </div>
 <div class="sidebarblock arc42help">
 <div class="content">
