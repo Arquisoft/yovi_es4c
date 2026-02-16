@@ -70,7 +70,7 @@ node "Máquina virtual Azure" {
         node "Contenedor - WebApp" as WebApp
         node "Contenedor - Users Service" as UsersService
         node "Contenedor - Gamey Engine" as Gamey
-        database "MySQL Database" as DB
+        database "MySQL DB" as DB
     }
 }
 WebApp --> UsersService: REST HTTP
@@ -123,19 +123,26 @@ Diagrama:
 [plantuml, "Docker Host Deployment", png]
 ----
 @startuml
+skinparam shadowing false
+skinparam linetype ortho
+
 node "Azure VM (Linux)" as VM {
     node "Docker Host" as DockerHost {
         component "WebApp (React + TS)" as WebApp
         component "Users Service (Node.js)" as UsersService
         component "Gamey Engine (Rust)" as Gamey
+        database "Database (MySQL)" as DB
     }
 }
-WebApp --> UsersService: REST HTTP
-WebApp --> Gamey: REST HTTP
-UsersService --> DB: Queries
-Gamey --> DB: Estado de juego
+
+WebApp --> UsersService : REST HTTP
+WebApp --> Gamey : REST HTTP
+UsersService --> DB : Queries
+Gamey --> DB : Estado de juego
+
 @enduml
 ----
+
 
 Todos los servicios backend y frontend se ejecutan en contenedores Docker sobre la misma VM.
 Cada contenedor está aislado, puede reiniciarse independientemente y comparte la red interna

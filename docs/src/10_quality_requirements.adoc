@@ -29,17 +29,20 @@ endif::arc42help[]
 
 === Quality Tree
 
-* *Calidad del Sistema*
-** *Usabilidad*
-*** Interfaz intuitiva y fácil de aprender.
-** *Rendimiento*
-*** Tiempo de respuesta bajo durante la partida.
-** *Mantenibilidad*
-*** Código modular y fácil de modificar o ampliar.
-** *Fiabilidad*
-*** Manejo adecuado de errores y mantenimiento de la coherencia del estado del juego ante fallos o situaciones inesperadas.
-
-
+[plantuml, quality-tree, svg]
+----
+@startmindmap
+* Calidad del Sistema
+** Usabilidad
+*** Interfaz intuitiva y fácil de aprender
+** Rendimiento
+*** Tiempo de respuesta bajo durante la partida
+** Mantenibilidad
+*** Código modular y fácil de modificar o ampliar
+** Fiabilidad
+*** Manejo adecuado de errores y mantenimiento de la coherencia del estado del juego ante fallos o situaciones inesperadas
+@endmindmap
+----
 
 ifdef::arc42help[]
 [role="arc42help"]
