@@ -29,6 +29,18 @@ endif::arc42help[]
 
 === Quality Tree
 
+* *Calidad del Sistema*
+** *Usabilidad*
+*** Interfaz intuitiva y fácil de aprender.
+** *Rendimiento*
+*** Tiempo de respuesta bajo durante la partida.
+** *Mantenibilidad*
+*** Código modular y fácil de modificar o ampliar.
+** *Fiabilidad*
+*** Manejo adecuado de errores y mantenimiento de la coherencia del estado del juego ante fallos o situaciones inesperadas.
+
+
+
 ifdef::arc42help[]
 [role="arc42help"]
 ****
@@ -77,3 +89,26 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 Tabular or free form text.
 ****
 endif::arc42help[]
+
+[cols="1,2,2", options="header"]
+|===
+|Atributo | Escenario | Comportamiento esperado 
+
+
+| Usabilidad
+| Un usuario accede por primera vez a la aplicación, sin conocimiento de la misma ni del juego, y comienza una partida.
+| El usuario entiende las reglas básicas y puede iniciar y jugar una partida sin necesidad de instrucciones externas.
+
+| Rendimiento
+| Un jugador realiza una acción durante la partida (por ejemplo, realizar un movimiento).
+| El sistema procesa la acción y actualiza el estado del juego inmediatamente o en un muy corto periodo de tiempo.
+
+| Mantenibilidad
+| Un desarrollador necesita añadir una nueva funcionalidad o modificar una regla del juego.
+| El cambio puede implementarse sin afectar a otras partes del sistema y sin introducir errores colaterales.
+
+| Fiabilidad
+| Durante una partida, el sistema enfrenta situaciones inesperadas (por ejemplo, entrada inválida, pérdida de conexión o error interno).
+| El sistema maneja el error de forma controlada, no se bloquea ni pierde el progreso del usuario, mantiene la coherencia del estado del juego y permite continuar o recuperarse sin corrupción de datos.
+
+|===

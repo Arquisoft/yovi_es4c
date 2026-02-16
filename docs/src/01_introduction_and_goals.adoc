@@ -35,6 +35,7 @@ Los requisitos del proyecto Yovi son los siguientes:
 | *Usabilidad* | La aplicación web deberá ser sencilla de usar e intuitiva, permitiendo que cualquier usuario tenga una buena experiencia jugando al juego Y.
 | *Rapidez* | Se buscará que los tiempos de respuesta sean lo más cortos posibles, tanto durante la partida como en la navegación de la aplicación.
 | *Mantenibilidad* | La aplicación deberá ser fácil de mantener, con código limpio y fácil de modificar o ampliar, siguiendo buenas prácticas de diseño de software.
+| *Fiablilidad* | La aplicación tendrá que ser fiable y funcionar correctamente ante cualquier situación llevada a cabo por los usuarios. También deberá de estar disponible el mayor tiempo posible.
 |===
 
 === Stakeholders

@@ -35,3 +35,40 @@ There you will find links and examples about ADR.
 
 ****
 endif::arc42help[]
+
+=== MySQL como BBDD del proyecto
+* Estado: Aceptada.
+* Contexto: Se requiere un sistema de persistencia para almacenar los datos de los usuarios, partidas y estado del juego. La solución debe ser flexible, integrarse correctamente con el ecosistema tecnológico elegido y facilitar el desarrollo y despliegue del proyecto.
+* Alternativas: Otras bases de datos relacionales u bases de datos no relacionales.
+* Justificación: 
+*** Modelo relacional: MySQL permite estructurar los datos en tablas normalizadas, ideal para usuarios, partidas y relaciones entre entidades del juego.  
+*** Integridad de datos: Garantiza consistencia mediante claves primarias, foráneas y restricciones, evitando errores de duplicidad o pérdida de información.  
+*** Madurez y soporte: MySQL es estable, ampliamente documentado y compatible con la mayoría de frameworks y lenguajes backend. 
+*** Adopción del equipo de desarrollo: Es una técnologia que todo el equipo de desarrollador ha empleado en algún otro proyecto. 
+*** Rendimiento: Adecuado para cargas moderadas, asegurando tiempos de respuesta rápidos en operaciones comunes.  
+*** Facilidad de despliegue Compatible con Docker y entornos cloud, lo que facilita levantar instancias de forma reproducible.
+* Consecuencias 
+*** Se adopta un esquema relacional que requiere planificación previa de las tablas y relaciones.  
+*** Cambios estructurales en el futuro pueden requerir migraciones más cuidadosas que en una base de datos NoSQL.  
+*** Se asegura integridad y consistencia de los datos, facilitando mantenimiento y auditorías.
+
+=== Azure como infraestructura de despliegue (Máquina Virtual)
+* Estado: Aceptada.
+* Contexto: Se requiere un entorno donde desplegar la aplicación backend, la base de datos y los servicios asociados, garantizando disponibilidad, escalabilidad y acceso remoto seguro. La solución debe integrarse fácilmente con el ecosistema tecnológico del proyecto y permitir un despliegue sencillo y controlado.
+* Alternativas: AWS EC2, Google Compute Engine, servidores on-premise u otros proveedores cloud.
+* Justificación:
+*** Adopción del equipo de desarrollo: Es una técnologia que todo el equipo de desarrollador ha empleado en algún otro proyecto.
+*** Infraestructura como servicio (IaaS): Azure permite crear y configurar máquinas virtuales con control total sobre el sistema operativo y el entorno de ejecución.
+*** Escalabilidad: Posibilidad de aumentar recursos (CPU, RAM, almacenamiento) según crezcan las necesidades del proyecto.
+*** Alta disponibilidad: Integración con servicios de red, copias de seguridad y monitorización dentro del ecosistema Azure.
+*** Integración con el entorno cloud: Compatible con Docker, CI/CD y otros servicios gestionados del ecosistema Azure.
+*** Seguridad: Configuración de redes virtuales, grupos de seguridad y control de acceso basado en roles.
+*** Flexibilidad: Permite alojar tanto la aplicación como la base de datos en un mismo entorno o separarlos en distintas máquinas virtuales según necesidades.
+* Consecuencias:
+*** Se asume la responsabilidad de la administración del sistema operativo, actualizaciones y configuración del servidor.
+*** Puede implicar costes variables en función del uso de recursos y tiempo de ejecución.
+*** Ofrece mayor control y personalización frente a soluciones PaaS, a cambio de una mayor gestión técnica.
+*** Facilita el escalado futuro y la integración con otros servicios del ecosistema Azure.
+
+
+

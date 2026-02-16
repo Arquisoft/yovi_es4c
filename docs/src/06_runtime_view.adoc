@@ -39,10 +39,10 @@ See https://docs.arc42.org/section-6/[Runtime View] in the arc42 documentation.
 ****
 endif::arc42help[]
 
-=== <Runtime Scenario 1>
+=== Resgistro del usuario
 
 
-* _<insert runtime diagram or textual description of the scenario>_
+* _El usuario entra en la página web e inicia el proceso de registrarse para poder echar unas partidas._
 * _<insert description of the notable aspects of the interactions between the
 building block instances depicted in this diagram.>_
 
@@ -60,8 +60,24 @@ Alice -> Bob: Another authentication Request
 Alice <-- Bob: another authentication Response
 ----
 
-=== <Runtime Scenario 2>
+=== Partida a Y
 
-=== ...
+* _El usuario comienza una nueva partida._
+* _<insert description of the notable aspects of the interactions between the
+building block instances depicted in this diagram.>_
+
+It is possible to use a sequence diagram:
+
+[plantuml,"Sequence diagram",png]
+----
+actor Alice
+actor Bob
+database Pod as "Bob's Pod"
+Alice -> Bob: Authentication Request
+Bob --> Alice: Authentication Response
+Alice  --> Pod: Store route
+Alice -> Bob: Another authentication Request
+Alice <-- Bob: another authentication Response
+----
 
 === <Runtime Scenario n>
