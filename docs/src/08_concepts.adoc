@@ -57,18 +57,60 @@ See https://docs.arc42.org/section-8/[Concepts] in the arc42 documentation.
 ****
 endif::arc42help[]
 
-=== _<Concept 1>_
 
-_<explanation>_
+=== Modelo de Dominio
 
+El sistema sigue un modelo de dominio centrado en la separación de responsabilidades:
+* **Usuarios:** gestión de cuentas, autenticación y autorización.
+* **Juego:** lógica de reglas, estado del juego y comportamiento de bots.
+* **Interacción Web:** comunicación entre frontend y backend mediante APIs REST.
+  
+Este modelo asegura consistencia en todo el sistema y permite mantener la integridad conceptual entre los diferentes servicios.
 
+=== Experiencia de Usuario (UX)
 
-=== _<Concept 2>_
+- La interfaz WebApp sigue el patrón SPA (Single Page Application) para ofrecer fluidez y rapidez.
+- Navegación intuitiva mediante rutas y vistas organizadas.
+- Formularios de registro y login que validan datos antes de enviarlos al backend.
+- Mensajes de error y éxito consistentes en toda la aplicación.
 
-_<explanation>_
+=== Seguridad y Autenticación
 
-...
+- Gestión de autenticación en Users Service con credenciales básicas.
+- Comunicación segura mediante HTTPS (recomendado en despliegues reales).
+- Validación de datos de entrada en frontend y backend para evitar errores o exploits comunes.
+- Roles de usuario potencialmente diferenciados para acceso a distintas funcionalidades del juego.
 
-=== _<Concept n>_
+=== Patrones de Arquitectura y Diseño
 
-_<explanation>_
+- Arquitectura **modular por servicios**:
+  - WebApp: presentación.
+  - Users Service: backend REST.
+  - Gamey Engine: lógica del juego.
+- Separación de responsabilidades para facilitar mantenimiento y despliegue independiente.
+- Uso de **MVC simplificado** en Users Service (Rutas → Controladores → Modelos).
+- Patrón **cliente‑servidor** para comunicación WebApp ↔ Backend.
+- Contenerización con **Docker** para aislar servicios y garantizar reproducibilidad.
+
+=== Detalles Técnicos (“Under-the-hood”)
+
+- WebApp utiliza React + TypeScript + Vite.
+- Users Service implementado en Node.js + Express.
+- Gamey Engine implementado en Rust, siguiendo estructura modular (core, bot, web).
+- Comunicación entre servicios mediante JSON sobre HTTP.
+- Docker Compose como orquestador de los contenedores para facilitar despliegue local y pruebas.
+
+=== Conceptos de Desarrollo
+
+- Uso de npm y Cargo para gestión de dependencias y scripts de compilación.
+- Estructura de carpetas consistente para mantener claridad y escalabilidad.
+- Pruebas unitarias básicas en frontend y backend.
+- Separación de configuración y código para facilitar cambios de entorno.
+  
+=== Conceptos Operativos
+
+- Cada servicio corre de manera independiente en contenedores Docker.
+- Red interna de Docker para comunicación entre servicios.
+- Posibilidad de despliegue independiente de WebApp, Users Service o Gamey Engine.
+- Logs y errores manejados por cada servicio de forma local; integrable con sistemas de logging centralizados en el futuro.
+

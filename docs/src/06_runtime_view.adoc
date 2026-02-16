@@ -41,43 +41,52 @@ endif::arc42help[]
 
 === Resgistro del usuario
 
+Caso::
+- El usuario entra en la página web e inicia el proceso de registrarse para poder echar unas partidas.
 
-* _El usuario entra en la página web e inicia el proceso de registrarse para poder echar unas partidas._
-* _<insert description of the notable aspects of the interactions between the
-building block instances depicted in this diagram.>_
 
-It is possible to use a sequence diagram:
+* La WebApp envía los datos del formulario al Users Service para validación y creación de la cuenta.
+* Users Service valida los datos, crea al usuario y devuelve la confirmación.
 
-[plantuml,"Sequence diagram",png]
+
+[plantuml,"Registro de Usuario",png]
 ----
-actor Alice
-actor Bob
-database Pod as "Bob's Pod"
-Alice -> Bob: Authentication Request
-Bob --> Alice: Authentication Response
-Alice  --> Pod: Store route
-Alice -> Bob: Another authentication Request
-Alice <-- Bob: another authentication Response
+actor Usuario
+participant "WebApp (React)" as WebApp
+participant "Users Service (Node.js)" as UsersService
+database "Base de datos" as DB
+
+Usuario -> WebApp: Completa formulario de registro
+WebApp -> UsersService: POST /users/createuser
+UsersService -> DB: Guardar datos de usuario
+DB --> UsersService: Confirmación guardado
+UsersService --> WebApp: Respuesta éxito/fracaso
+WebApp --> Usuario: Mensaje de confirmación
 ----
 
 === Partida a Y
 
-* _El usuario comienza una nueva partida._
-* _<insert description of the notable aspects of the interactions between the
-building block instances depicted in this diagram.>_
+Caso::
+- El usuario comienza una nueva partida.
+* La WebApp solicita al Gamey Engine que cree una nueva sesión de juego.
+* Gamey Engine inicializa el estado de la partida y registra los bots necesarios.
+* Gamey Engine devuelve a la WebApp el estado inicial de la partida.
+* La WebApp muestra al usuario el tablero o interfaz de juego lista para interactuar.
 
-It is possible to use a sequence diagram:
+Diagrama de secuencia representativo:
 
-[plantuml,"Sequence diagram",png]
+[plantuml,"Inicio de Partida",png]
 ----
-actor Alice
-actor Bob
-database Pod as "Bob's Pod"
-Alice -> Bob: Authentication Request
-Bob --> Alice: Authentication Response
-Alice  --> Pod: Store route
-Alice -> Bob: Another authentication Request
-Alice <-- Bob: another authentication Response
+actor Usuario
+participant "WebApp (React)" as WebApp
+participant "Gamey Engine (Rust)" as Gamey
+database "Estado de juego" as GameDB
+
+Usuario -> WebApp: Solicita nueva partida
+WebApp -> Gamey: POST /game/start
+Gamey -> GameDB: Inicializar estado de partida
+GameDB --> Gamey: Confirmación estado inicial
+Gamey --> WebApp: Estado inicial de la partida
+WebApp --> Usuario: Interfaz de juego lista
 ----
 
-=== <Runtime Scenario n>

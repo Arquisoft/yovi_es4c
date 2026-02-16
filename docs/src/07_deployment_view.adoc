@@ -62,17 +62,48 @@ endif::arc42help[]
 
 _**<Overview Diagram>**_
 
+[plantuml, deployment-overview, png]
+----
+@startuml
+node "Máquina virtual Azure" {
+    cloud "Docker" {
+        node "Contenedor - WebApp" as WebApp
+        node "Contenedor - Users Service" as UsersService
+        node "Contenedor - Gamey Engine" as Gamey
+        database "MySQL Database" as DB
+    }
+}
+WebApp --> UsersService: REST HTTP
+WebApp --> Gamey: REST HTTP
+UsersService --> DB: Queries
+Gamey --> DB: Estado de juego
+@enduml
+----
+
 Motivation::
 
-_<explanation in text form>_
+La infraestructura usa una máquina virtual en Azure que ejecuta Docker para aislar y contener
+los servicios. Esto permite un control completo sobre la ejecución de contenedores, facilita
+el despliegue reproducible y permite escalar cada contenedor independientemente en la misma VM.
+Azure SQL Database gestiona la persistencia de datos.
 
 Quality and/or Performance Features::
 
-_<explanation in text form>_
+- Contenedores aislados mediante Docker dentro de la VM.
+- Fácil gestión de actualizaciones y despliegues mediante CI/CD.
+- Red interna de baja latencia entre contenedores.
+- Persistencia gestionada con Azure SQL Database (replicación y backups automáticos).
+- Seguridad: firewall de VM y conexión segura a base de datos.
 
 Mapping of Building Blocks to Infrastructure::
-_<description of the mapping>_
-
+[cols="1,2", options="header"]
+|===
+| Bloque de Construcción | Elemento de Infraestructura
+| WebApp | Contenedor Docker dentro de la VM Azure
+| Users Service | Contenedor Docker dentro de la VM Azure
+| Gamey Engine | Contenedor Docker dentro de la VM Azure
+| Base de Datos | MySQL Database
+|===
 
 === Infrastructure Level 2
 
@@ -85,16 +116,28 @@ Please copy the structure from level 1 for each selected element.
 ****
 endif::arc42help[]
 
-==== _<Infrastructure Element 1>_
+==== Docker Host en VM Azure
 
-_<diagram + explanation>_
+Diagrama:
 
-==== _<Infrastructure Element 2>_
+[plantuml, "Docker Host Deployment", png]
+----
+@startuml
+node "Azure VM (Linux)" as VM {
+    node "Docker Host" as DockerHost {
+        component "WebApp (React + TS)" as WebApp
+        component "Users Service (Node.js)" as UsersService
+        component "Gamey Engine (Rust)" as Gamey
+    }
+}
+WebApp --> UsersService: REST HTTP
+WebApp --> Gamey: REST HTTP
+UsersService --> DB: Queries
+Gamey --> DB: Estado de juego
+@enduml
+----
 
-_<diagram + explanation>_
+Todos los servicios backend y frontend se ejecutan en contenedores Docker sobre la misma VM.
+Cada contenedor está aislado, puede reiniciarse independientemente y comparte la red interna
+para comunicación rápida entre servicios.
 
-...
-
-==== _<Infrastructure Element n>_
-
-_<diagram + explanation>_

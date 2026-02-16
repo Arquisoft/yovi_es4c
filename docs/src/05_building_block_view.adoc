@@ -67,18 +67,45 @@ In the best case you will get away with examples or simple signatures.
 ****
 endif::arc42help[]
 
-_**<Overview Diagram>**_
+_**Diagrama**_
+
+[plantuml, building-block-overview, png]
+----
+@startuml
+package "Yovi" {
+  [WebApp (React + TS)] --> [Users Service (Node + Express)]
+  [WebApp (React + TS)] --> [Gamey Engine (Rust)]
+  [Users Service (Node + Express)] --> [Gamey Engine (Rust)]
+}
+@enduml
+----
 
 Motivation::
 
-_<text explanation>_
+El sistema se descompone en servicios independientes (microservicios) para separar claramente
+la capa de presentación, la gestión de usuarios y la lógica principal del juego.
+Esta modularización mejora la mantenibilidad, la escalabilidad y permite el
+despliegue independiente de cada componente mediante contenedores Docker.
 
 
 Contained Building Blocks::
-_<Description of contained building block (black boxes)>_
+
+[cols="1,2", options="header"]
+|===
+| **Name** | **Responsibility**
+| WebApp | Aplicación SPA que proporciona la interfaz de usuario y se comunica con los servicios backend.
+| Users Service | API REST responsable de la gestión de usuarios y lógica de autenticación.
+| Gamey Engine | Motor principal que implementa la lógica del juego y la gestión de bots.
+| Documentation | Documentación arquitectónica y técnica del sistema basada en arc42.
+|===
 
 Important Interfaces::
-_<Description of important interfaces>_
+
+- Comunicación REST HTTP entre WebApp y Users Service.
+- Comunicación REST HTTP entre WebApp y Gamey Engine.
+- Comunicación interna entre servicios mediante red Docker.
+- Intercambio de datos en formato JSON.
+
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -102,7 +129,16 @@ Its headline is the name of the black box.
 ****
 endif::arc42help[]
 
-==== <Name black box 1>
+[cols="1,2" options="header"]
+|===
+| **Name** | **Responsibility**
+| WebApp | Frontend SPA que proporciona la interfaz de usuario y comunica con los servicios backend.
+| Users Service | Backend REST responsable de la gestión de usuarios y autenticación.
+| Gamey Engine | Motor del juego que implementa la lógica y gestión de bots.
+| Documentation | Contiene la documentación arquitectónica y técnica del sistema.
+|===
+
+==== WebApp
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -120,37 +156,39 @@ according the the following black box template:
 ****
 endif::arc42help[]
 
-_<Purpose/Responsibility>_
+Interfaces::
+- Consume los endpoints REST expuestos por Users Service.
+- Se comunica con Gamey Engine para operaciones relacionadas con el juego.
+- Utiliza HTTP y JSON como protocolo y formato de intercambio.
 
-_<Interface(s)>_
+Localización::
+- /webapp
 
-_<(Optional) Quality/Performance Characteristics>_
+==== Users Service
 
-_<(Optional) Directory/File Location>_
+Interfaces::
+- Expone endpoints REST (por ejemplo, creación y consulta de usuarios).
+- Comunicación mediante HTTP y JSON.
 
-_<(Optional) Fulfilled Requirements>_
+Localización::
+- /users
 
-_<(optional) Open Issues/Problems/Risks>_
+==== Gamey Engine
 
+Interfaces::
+- Expone endpoints HTTP para operaciones del juego.
+- Intercambio de datos estructurados en JSON.
 
+Localización::
+- /gamey
 
+==== Documentation
 
-==== <Name black box 2>
+Interfaces::
+- Archivos estáticos en formato AsciiDoc.
 
-_<black box template>_
-
-==== <Name black box n>
-
-_<black box template>_
-
-
-==== <Name interface 1>
-
-...
-
-==== <Name interface m>
-
-
+Localización::
+- /docs
 
 === Level 2
 
@@ -165,8 +203,6 @@ Leave out normal, simple, boring or standardized parts of your system
 ****
 endif::arc42help[]
 
-==== White Box _<building block 1>_
-
 ifdef::arc42help[]
 [role="arc42help"]
 ****
@@ -174,21 +210,61 @@ ifdef::arc42help[]
 ****
 endif::arc42help[]
 
-_<white box template>_
+==== White Box WebApp
+La WebApp sigue la estructura típica de una SPA basada en React.
 
-==== White Box _<building block 2>_
+[cols="1,2", options="header"]
+|===
+| Componente | Responsabilidad
+| App.tsx | Punto de entrada de la aplicación y configuración de rutas.
+| Views | Componentes de nivel página.
+| Components | Componentes reutilizables de interfaz.
+| Services | Lógica de comunicación con APIs backend.
+|===
+
+Interaction::
+
+- Los componentes llaman a la capa Services.
+- Services realiza peticiones HTTP a los servicios backend.
 
 
-_<white box template>_
+==== White Box Users Service
 
-...
-
-==== White Box _<building block m>_
+API REST basada en Express estructurada por rutas y controladores.
 
 
-_<white box template>_
+[cols="1,2", options="header"]
+|===
+| Componente | Responsabilidad
+| Server | Configuración e inicialización del servidor Express.
+| Routes | Definición de endpoints REST.
+| Controllers | Lógica de gestión de peticiones.
+| Models | Estructuras de datos de usuario.
+|===
 
+Interaction::
 
+- Las rutas delegan en los controladores.
+- Los controladores procesan la lógica y devuelven respuestas JSON.
+
+==== White Box Gamey Engine
+
+Proyecto en Rust estructurado siguiendo convenciones de Cargo.
+
+[cols="1,2", options="header"]
+|===
+| Componente | Responsabilidad
+| main.rs | Punto de entrada de la aplicación.
+| core | Lógica de reglas y estado del juego.
+| bot | Gestión y comportamiento de bots.
+| web | Capa de exposición HTTP.
+|===
+
+Interaction::
+
+- La capa web expone endpoints HTTP.
+- El módulo core ejecuta la lógica del juego.
+- El módulo bot integra comportamiento automatizado.
 
 === Level 3
 
@@ -202,8 +278,6 @@ part of arc42 for additional levels.
 ****
 endif::arc42help[]
 
-==== White Box <_building block x.1_>
-
 ifdef::arc42help[]
 [role="arc42help"]
 ****
@@ -211,15 +285,31 @@ Specifies the internal structure of _building block x.1_.
 ****
 endif::arc42help[]
 
-_<white box template>_
+==== White Box Gamey Engine Core
+
+El módulo core encapsula las reglas del juego y la gestión del estado.
+
+- Representación del estado del juego.
+- Validación de reglas.
+- Transiciones de estado.
+- Gestión de errores.
+
+Responsabilidad::
+
+Garantizar la ejecución determinista de la lógica del juego de forma independiente a la interfaz web.
 
 
-==== White Box <_building block x.2_>
+==== White Box WebApp Services Layer
 
-_<white box template>_
+Capa encargada de encapsular toda la comunicación HTTP.
 
 
+- Cliente de API.
+- Llamadas fetch/axios.
+- Gestión de errores.
 
-==== White Box <_building block y.1_>
+Responsabilidad::
 
-_<white box template>_
+Desacoplar los componentes de interfaz de los detalles de comunicación con el backend.
+
+
