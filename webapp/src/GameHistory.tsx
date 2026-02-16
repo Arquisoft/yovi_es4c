@@ -28,8 +28,7 @@ export default function GameHistory() {
     try {
       setLoading(true);
       setError(null);
-      console.log('Fetching from http://localhost:3000/api/games');
-      const response = await fetch('http://localhost:3000/api/games', {
+      const response = await fetch(`${window.location.origin}/api/games`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -56,7 +55,7 @@ export default function GameHistory() {
   const seedDatabase = async () => {
     try {
       console.log('Seeding database...');
-      const response = await fetch('http://localhost:3000/api/games/seed', {
+      const response = await fetch(`${window.location.origin}/api/games/seed`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -23,7 +23,7 @@ export interface GameStateResponse {
     winner?: number; // 0 o 1
 }
 
-const API_BASE_URL = import.meta.env.VITE_GAMEY_URL;
+const API_BASE_URL = import.meta.env.VITE_GAMEY_URL ?? 'http://localhost:4000';
 
 export async function chooseMove(
     yen: YEN,
