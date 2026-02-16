@@ -30,7 +30,7 @@ export default function GameHistory() {
       setError(null);
       console.log('Fetching from http://localhost:3000/api/games');
 
-      const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+      const API_URL = import.meta.env.VITE_API_URL;
       const response = await fetch(`${API_URL}/api/games`, {
         method: 'GET',
         headers: {
