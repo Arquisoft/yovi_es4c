@@ -32,7 +32,7 @@ const Game: React.FC<GameProps> = ({ size = 5 }) => {
             { userId: null, name: 'Rojo', isWinner: botWon }
         ];
         try {
-            await fetch('http://localhost:3000/api/games', {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/games`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ yen: layoutStr, players })
