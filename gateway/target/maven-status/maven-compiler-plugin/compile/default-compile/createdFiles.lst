@@ -1,0 +1,6 @@
+com/yovi/gateway/controller/UsersController.class
+com/yovi/gateway/config/CorsConfig$1.class
+com/yovi/gateway/config/RestTemplateConfig.class
+com/yovi/gateway/config/CorsConfig.class
+com/yovi/gateway/GatewayApplication.class
+com/yovi/gateway/controller/GameyController.class

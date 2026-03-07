@@ -4,8 +4,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -15,6 +13,9 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 
+import com.yovi.gateway.config.CorsConfig;
+import com.yovi.gateway.config.RestTemplateConfig;
+
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
@@ -22,7 +23,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UsersController.class)
-@Import(UsersControllerTest.TestConfig.class)
+@Import({RestTemplateConfig.class, CorsConfig.class})
 @TestPropertySource(properties = {
         "gateway.users.url=http://users-mock:3000",
         "gateway.gamey.url=http://gamey-mock:4000"
@@ -155,14 +156,5 @@ class UsersControllerTest {
                 .andExpect(status().isInternalServerError());
 
         mockServer.verify();
-    }
-
-    // Configuración local del RestTemplate para los tests
-    @Configuration
-    static class TestConfig {
-        @Bean
-        public RestTemplate restTemplate() {
-            return new RestTemplate();
-        }
     }
 }

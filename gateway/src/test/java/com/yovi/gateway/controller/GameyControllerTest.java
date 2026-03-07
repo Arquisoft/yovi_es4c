@@ -15,6 +15,9 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.client.RestTemplate;
 
+import com.yovi.gateway.config.CorsConfig;
+import com.yovi.gateway.config.RestTemplateConfig;
+
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
@@ -22,7 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(GameyController.class)
-@Import(GameyControllerTest.TestConfig.class)
+@Import({RestTemplateConfig.class, CorsConfig.class})
 @TestPropertySource(properties = {
         "gateway.users.url=http://users-mock:3000",
         "gateway.gamey.url=http://gamey-mock:4000"
@@ -175,14 +178,5 @@ class GameyControllerTest {
                 .andExpect(status().isBadRequest());
 
         mockServer.verify();
-    }
-
-    // Configuración local del RestTemplate para los tests
-    @Configuration
-    static class TestConfig {
-        @Bean
-        public RestTemplate restTemplate() {
-            return new RestTemplate();
-        }
     }
 }
