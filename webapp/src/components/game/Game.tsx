@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { type YEN, chooseMove, makeHumanMove } from './api/gameyClient';
+import { type YEN, chooseMove, makeHumanMove } from '../../api/gameyClient';
 
 interface GameProps {
     size?: number;

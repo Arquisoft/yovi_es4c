@@ -1,10 +1,25 @@
 import './App.css'
-import RegisterForm from './RegisterForm';
-import Game from './Game';
-import GameHistory from './GameHistory';
+import { useState } from 'react';
+import RegisterForm from './components/auth/RegisterForm';
+import Game from './components/game/Game';
+import GameHistory from './components/game/GameHistory';
+import Logout from './components/auth/Logout';
 import reactLogo from './assets/react.svg'
 
 function App() {
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [username, setUsername] = useState<string>('');
+
+  const handleRegisterSuccess = (newUsername: string) => {
+    setUsername(newUsername);
+    setIsRegistered(true);
+  };
+
+  const handleLogout = () => {
+    setIsRegistered(false);
+    setUsername('');
+  };
+
   return (
     <div className="App">
       <div>
@@ -17,11 +32,20 @@ function App() {
       </div>
 
       <h2>Welcome to the Software Arquitecture 2025-2026 course</h2>
-      <RegisterForm />
-      <hr style={{ margin: '20px 0' }} />
-      <Game />
-      <hr style={{ margin: '20px 0' }} />
-      <GameHistory />
+
+      {!isRegistered ? (
+        <RegisterForm onRegisterSuccess={handleRegisterSuccess} />
+      ) : (
+        <div>
+          <Logout username={username} onLogout={handleLogout} />
+
+          <Game />
+
+          <hr style={{ margin: '20px 0' }} />
+
+          <GameHistory />
+        </div>
+      )}
     </div>
   );
 }

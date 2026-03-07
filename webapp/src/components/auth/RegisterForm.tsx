@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 
-const RegisterForm: React.FC = () => {
+interface RegisterFormProps {
+  onRegisterSuccess?: (username: string) => void;
+}
+
+const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess }) => {
   const [username, setUsername] = useState('');
   const [responseMessage, setResponseMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +35,13 @@ const RegisterForm: React.FC = () => {
       if (res.ok) {
         setResponseMessage(data.message);
         setUsername('');
+        // Llamar la callback cuando el registro es exitoso
+        if (onRegisterSuccess) {
+          // Pequeño delay para mostrar el mensaje de éxito
+          setTimeout(() => {
+            onRegisterSuccess(username);
+          }, 500);
+        }
       } else {
         setError(data.error || 'Server error');
       }
