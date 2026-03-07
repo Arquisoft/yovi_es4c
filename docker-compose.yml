@@ -1,10 +1,25 @@
 services:
+  gateway:
+    build: ./gateway
+    container_name: gateway
+    image: ghcr.io/arquisoft/yovi_es4c-gateway:latest
+    ports:
+      - "8080:8080"
+    environment:
+      - USERS_SERVICE_URL=http://users:3000
+      - GAMEY_SERVICE_URL=http://gamey:4000
+    depends_on:
+      - users
+      - gamey
+    networks:
+      - monitor-net
+
   users:
     build: ./users
     container_name: users
     image: ghcr.io/arquisoft/yovi_es4c-users:latest
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     environment:
       - DB_HOST=mysql
       - DB_PORT=3306
@@ -20,14 +35,14 @@ services:
     build:
       context: ./webapp
       args:
-        - VITE_API_URL=http://localhost:3000
-        - VITE_GAMEY_URL=http://localhost:4000
+        - VITE_API_URL=http://localhost:8080
+        - VITE_GAMEY_URL=http://localhost:8080
     container_name: webapp
     image: ghcr.io/arquisoft/yovi_es4c-webapp:latest
     ports:
       - "80:80"
     depends_on:
-      - users
+      - gateway
     networks:
       - monitor-net
 
@@ -35,8 +50,8 @@ services:
     build: ./gamey
     container_name: gamey
     image: ghcr.io/arquisoft/yovi_es4c-gamey:latest
-    ports:
-      - "4000:4000"
+    expose:
+      - "4000"
     networks:
       - monitor-net
 
@@ -66,11 +81,11 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512M  # Ajusta esto según tu RAM total (ej. 512MB o 756MB)
-          cpus: '0.50'   # Limita al 50% de un núcleo de CPU
-    command: 
-      - --innodb-buffer-pool-size=256M # El valor por defecto es muy alto para una VM pequeña
-      - --performance-schema=OFF        # Ahorra mucha RAM desactivando métricas internas
+          memory: 512M
+          cpus: '0.50'
+    command:
+      - --innodb-buffer-pool-size=256M
+      - --performance-schema=OFF
 
   grafana:
     image: grafana/grafana
@@ -81,6 +96,7 @@ services:
       - ./users/monitoring/grafana/provisioning:/etc/grafana/provisioning
     networks:
       - monitor-net
+
 networks:
   monitor-net:
     driver: bridge

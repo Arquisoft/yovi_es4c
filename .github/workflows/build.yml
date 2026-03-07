@@ -19,6 +19,10 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: 22
+    - uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
     - run: npm --prefix users ci
     - run: npm --prefix webapp ci
     - run: npm --prefix users run test:coverage
@@ -31,6 +35,8 @@ jobs:
       run: |
         sed -i "s|SF:${GITHUB_WORKSPACE}/|SF:|g" gamey/lcov.info
         grep '^SF:' gamey/lcov.info | head
+    - name: Generate gateway code coverage
+      run: mvn -f gateway/pom.xml verify
     - name: Analyze with SonarQube
       uses: SonarSource/sonarqube-scan-action@master
       env:

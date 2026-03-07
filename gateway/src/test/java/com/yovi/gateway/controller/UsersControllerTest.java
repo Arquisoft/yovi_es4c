@@ -1,0 +1,168 @@
+package com.yovi.gateway.controller;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.client.RestTemplate;
+
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@WebMvcTest(UsersController.class)
+@Import(UsersControllerTest.TestConfig.class)
+@TestPropertySource(properties = {
+        "gateway.users.url=http://users-mock:3000",
+        "gateway.gamey.url=http://gamey-mock:4000"
+})
+class UsersControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    private MockRestServiceServer mockServer;
+
+    @BeforeEach
+    void setUp() {
+        mockServer = MockRestServiceServer.createServer(restTemplate);
+    }
+
+    // --- /createuser ---
+
+    @Test
+    void createUser_returnsOkFromUpstream() throws Exception {
+        mockServer.expect(requestTo("http://users-mock:3000/createuser"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withSuccess("{\"message\":\"Hello test!\"}", MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(post("/createuser")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"test\"}"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("{\"message\":\"Hello test!\"}"));
+
+        mockServer.verify();
+    }
+
+    @Test
+    void createUser_propagatesUpstreamError() throws Exception {
+        mockServer.expect(requestTo("http://users-mock:3000/createuser"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).body("{\"error\":\"missing username\"}"));
+
+        mockMvc.perform(post("/createuser")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+
+        mockServer.verify();
+    }
+
+    // --- GET /api/games ---
+
+    @Test
+    void getGames_returnsGamesListFromUpstream() throws Exception {
+        String responseBody = "[{\"id\":1,\"yen\":\"...\",\"players\":[]}]";
+        mockServer.expect(requestTo("http://users-mock:3000/api/games"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(responseBody, MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(get("/api/games"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(responseBody));
+
+        mockServer.verify();
+    }
+
+    @Test
+    void getGames_propagatesUpstreamServerError() throws Exception {
+        mockServer.expect(requestTo("http://users-mock:3000/api/games"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"error\":\"db error\"}"));
+
+        mockMvc.perform(get("/api/games"))
+                .andExpect(status().isInternalServerError());
+
+        mockServer.verify();
+    }
+
+    // --- POST /api/games ---
+
+    @Test
+    void saveGame_returnsCreatedFromUpstream() throws Exception {
+        mockServer.expect(requestTo("http://users-mock:3000/api/games"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withStatus(HttpStatus.CREATED).body("{\"gameId\":42}"));
+
+        mockMvc.perform(post("/api/games")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"yen\":\"...\",\"players\":[]}"))
+                .andExpect(status().isCreated());
+
+        mockServer.verify();
+    }
+
+    @Test
+    void saveGame_propagatesBadRequestFromUpstream() throws Exception {
+        mockServer.expect(requestTo("http://users-mock:3000/api/games"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withStatus(HttpStatus.BAD_REQUEST).body("{\"error\":\"yen required\"}"));
+
+        mockMvc.perform(post("/api/games")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isBadRequest());
+
+        mockServer.verify();
+    }
+
+    // --- POST /api/games/seed ---
+
+    @Test
+    void seedGames_returnsCreatedFromUpstream() throws Exception {
+        mockServer.expect(requestTo("http://users-mock:3000/api/games/seed"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withStatus(HttpStatus.CREATED).body("{\"gamesCreated\":5}"));
+
+        mockMvc.perform(post("/api/games/seed"))
+                .andExpect(status().isCreated());
+
+        mockServer.verify();
+    }
+
+    @Test
+    void seedGames_propagatesErrorFromUpstream() throws Exception {
+        mockServer.expect(requestTo("http://users-mock:3000/api/games/seed"))
+                .andExpect(method(HttpMethod.POST))
+                .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"error\":\"seed failed\"}"));
+
+        mockMvc.perform(post("/api/games/seed"))
+                .andExpect(status().isInternalServerError());
+
+        mockServer.verify();
+    }
+
+    // Configuración local del RestTemplate para los tests
+    @Configuration
+    static class TestConfig {
+        @Bean
+        public RestTemplate restTemplate() {
+            return new RestTemplate();
+        }
+    }
+}
