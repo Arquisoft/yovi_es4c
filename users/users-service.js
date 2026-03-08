@@ -7,6 +7,9 @@ const fs = require('node:fs');
 const YAML = require('js-yaml');
 const promBundle = require('express-prom-bundle');
 const mysql = require('mysql2/promise');
+const bcrypt = require('bcrypt');
+
+const SALT_ROUNDS = 10;
 
 const metricsMiddleware = promBundle({includeMethod: true});
 app.use(metricsMiddleware);
@@ -20,7 +23,6 @@ try {
 
 app.use(express.json());
 
-// Create MySQL pool using environment variables
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306,
@@ -32,13 +34,10 @@ const pool = mysql.createPool({
   timezone: 'Z'
 });
 
-// Initialize database tables if they don't exist
 const initializeDatabase = async () => {
   let conn;
   try {
     conn = await pool.getConnection();
-    
-    // Create users table
     await conn.query(`
       CREATE TABLE IF NOT EXISTS users (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -47,8 +46,6 @@ const initializeDatabase = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-
-    // Create games table
     await conn.query(`
       CREATE TABLE IF NOT EXISTS games (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -56,8 +53,6 @@ const initializeDatabase = async () => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-
-    // Create game_players table
     await conn.query(`
       CREATE TABLE IF NOT EXISTS game_players (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -69,7 +64,6 @@ const initializeDatabase = async () => {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
       )
     `);
-
     console.log('✅ Database tables initialized successfully');
   } catch (err) {
     console.error('❌ Error initializing database:', err.message);
@@ -78,7 +72,6 @@ const initializeDatabase = async () => {
   }
 };
 
-// Initialize database on startup with retry logic
 const initDbWithRetry = async (retries = 15, delay = 3000) => {
   for (let i = 0; i < retries; i++) {
     try {
@@ -87,7 +80,6 @@ const initDbWithRetry = async (retries = 15, delay = 3000) => {
     } catch (err) {
       if (i < retries - 1) {
         console.log(`⏳ Database initialization attempt ${i + 1}/${retries} failed. Retrying in ${delay}ms...`);
-        console.log(`   Error: ${err.message}`);
         await new Promise(resolve => setTimeout(resolve, delay));
       } else {
         console.error('❌ Failed to initialize database after multiple attempts');
@@ -97,28 +89,68 @@ const initDbWithRetry = async (retries = 15, delay = 3000) => {
   }
 };
 
-// Wait a bit before trying to initialize to ensure MySQL is ready
 setTimeout(() => {
   initDbWithRetry().catch(err => {
     console.error('Failed to initialize database:', err.message);
-    // Don't exit, let the app run and retry on first request
   });
 }, 5000);
 
+// POST /createuser — registers a new user with hashed password
 app.post('/createuser', async (req, res) => {
-  const username = req.body && req.body.username;
+  const { username, password } = req.body || {};
+  if (!username) return res.status(400).json({ error: 'username is required' });
+  if (!password) return res.status(400).json({ error: 'password is required' });
+
+  const conn = await pool.getConnection();
   try {
-    // Simulate a 1 second delay to mimic processing/network latency
+    // Check if username already exists
+    const [existing] = await conn.query('SELECT id FROM users WHERE name = ?', [username]);
+    if (existing.length > 0) {
+      return res.status(409).json({ error: 'Username already taken' });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    await conn.query('INSERT INTO users (name, password) VALUES (?, ?)', [username, hashedPassword]);
+
+    // Simulate processing delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    const message = `Hello ${username}! welcome to the course!`;
-    res.json({ message });
+    res.json({ message: `Hello ${username}! welcome to the course!` });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: err.message });
+  } finally {
+    conn.release();
   }
 });
 
-// Endpoint to save a finished game (yen notation + players)
+// POST /login — authenticates an existing user
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body || {};
+  if (!username) return res.status(400).json({ error: 'username is required' });
+  if (!password) return res.status(400).json({ error: 'password is required' });
+
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query('SELECT id, name, password FROM users WHERE name = ?', [username]);
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    const user = rows[0];
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: 'Invalid username or password' });
+    }
+
+    res.json({ message: `Welcome back, ${user.name}!`, userId: user.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    conn.release();
+  }
+});
+
+// POST /api/games
 app.post('/api/games', async (req, res) => {
   const { yen, players } = req.body || {};
   if (!yen || !Array.isArray(players)) return res.status(400).json({ error: 'yen and players are required' });
@@ -131,134 +163,78 @@ app.post('/api/games', async (req, res) => {
 
     const insertSql = 'INSERT INTO game_players (game_id, user_id, player_name, is_winner) VALUES (?, ?, ?, ?)';
     for (const p of players) {
-      const userId = p.userId || null;
-      const name = p.name || null;
-      const isWinner = !!p.isWinner;
-      await conn.query(insertSql, [gameId, userId, name, isWinner]);
+      await conn.query(insertSql, [gameId, p.userId || null, p.name || null, !!p.isWinner]);
     }
 
     await conn.commit();
     res.status(201).json({ gameId });
   } catch (err) {
     await conn.rollback();
-    console.error('Error saving game:', err);
     res.status(500).json({ error: err.message });
   } finally {
     conn.release();
   }
 });
 
-// Endpoint to get all games with their players
+// GET /api/games
 app.get('/api/games', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     const [games] = await conn.query('SELECT id, yen, created_at FROM games ORDER BY created_at DESC');
-    
     const gamesWithPlayers = [];
-    
     for (const game of games) {
       const [players] = await conn.query(
         'SELECT id, game_id, user_id, player_name, is_winner FROM game_players WHERE game_id = ?',
         [game.id]
       );
-      gamesWithPlayers.push({
-        id: game.id,
-        yen: game.yen,
-        created_at: game.created_at,
-        players: players || []
-      });
+      gamesWithPlayers.push({ ...game, players: players || [] });
     }
-
     res.json(gamesWithPlayers);
   } catch (err) {
-    console.error('Error fetching games:', err);
     res.status(500).json({ error: err.message });
   } finally {
     conn.release();
   }
 });
 
-// Endpoint to seed the database with sample data
+// POST /api/games/seed
 app.post('/api/games/seed', async (req, res) => {
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
-
-    // Sample games data
     const sampleGames = [
-      {
-        yen: '1.e4 e5 2.Nf3 Nc6 3.Bb5 a6',
-        players: [
-          { name: 'Juan', userId: null, isWinner: true },
-          { name: 'María', userId: null, isWinner: false }
-        ]
-      },
-      {
-        yen: '1.d4 d5 2.c4 dxc4',
-        players: [
-          { name: 'Carlos', userId: null, isWinner: false },
-          { name: 'Ana', userId: null, isWinner: true }
-        ]
-      },
-      {
-        yen: '1.c4 e6 2.Nc3 Bb4',
-        players: [
-          { name: 'Pedro', userId: null, isWinner: true },
-          { name: 'Laura', userId: null, isWinner: false }
-        ]
-      },
-      {
-        yen: '1.e4 c6 2.d4 d5 3.Nc3 dxe4',
-        players: [
-          { name: 'Diego', userId: null, isWinner: false },
-          { name: 'Sofia', userId: null, isWinner: true }
-        ]
-      },
-      {
-        yen: '1.e4 c5 2.Nf3 d6 3.d4 cxd4',
-        players: [
-          { name: 'Miguel', userId: null, isWinner: true },
-          { name: 'Isabel', userId: null, isWinner: false }
-        ]
-      }
+      { yen: '1.e4 e5 2.Nf3 Nc6 3.Bb5 a6', players: [{ name: 'Juan', isWinner: true }, { name: 'María', isWinner: false }] },
+      { yen: '1.d4 d5 2.c4 dxc4', players: [{ name: 'Carlos', isWinner: false }, { name: 'Ana', isWinner: true }] },
+      { yen: '1.c4 e6 2.Nc3 Bb4', players: [{ name: 'Pedro', isWinner: true }, { name: 'Laura', isWinner: false }] },
+      { yen: '1.e4 c6 2.d4 d5 3.Nc3 dxe4', players: [{ name: 'Diego', isWinner: false }, { name: 'Sofia', isWinner: true }] },
+      { yen: '1.e4 c5 2.Nf3 d6 3.d4 cxd4', players: [{ name: 'Miguel', isWinner: true }, { name: 'Isabel', isWinner: false }] },
     ];
 
     let totalInserted = 0;
     for (const gameData of sampleGames) {
       const [gameResult] = await conn.query('INSERT INTO games (yen) VALUES (?)', [gameData.yen]);
       const gameId = gameResult.insertId;
-
-      const insertSql = 'INSERT INTO game_players (game_id, user_id, player_name, is_winner) VALUES (?, ?, ?, ?)';
       for (const player of gameData.players) {
-        await conn.query(insertSql, [
-          gameId,
-          player.userId,
-          player.name,
-          player.isWinner
-        ]);
+        await conn.query('INSERT INTO game_players (game_id, user_id, player_name, is_winner) VALUES (?, ?, ?, ?)',
+          [gameId, null, player.name, player.isWinner]);
       }
       totalInserted++;
     }
 
     await conn.commit();
-    res.status(201).json({
-      message: `Successfully inserted ${totalInserted} sample games`,
-      gamesCreated: totalInserted
-    });
+    res.status(201).json({ message: `Successfully inserted ${totalInserted} sample games`, gamesCreated: totalInserted });
   } catch (err) {
     await conn.rollback();
-    console.error('Error seeding database:', err);
     res.status(500).json({ error: err.message });
   } finally {
     conn.release();
   }
 });
 
-
 if (require.main === module) {
   app.listen(port, () => {
     console.log(`User Service listening at http://localhost:${port}`)
-  })
+  });
 }
 
-module.exports = app
+module.exports = app;

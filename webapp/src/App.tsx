@@ -1,25 +1,34 @@
 import './App.css'
 import { useState } from 'react';
 import RegisterForm from './components/auth/RegisterForm';
+import LoginForm from './components/auth/LoginForm';
 import Game from './components/game/Game';
 import GameHistory from './components/game/GameHistory';
 import Logout from './components/auth/Logout';
 import reactLogo from './assets/react.svg'
 
-function App() {
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [username, setUsername] = useState<string>('');
+type AuthView = 'login' | 'register';
 
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState<string>('');
+  const [authView, setAuthView] = useState<AuthView>('login');
   const [historyRefresh, setHistoryRefresh] = useState(0);
+
+  const handleLoginSuccess = (loggedUsername: string) => {
+    setUsername(loggedUsername);
+    setIsAuthenticated(true);
+  };
 
   const handleRegisterSuccess = (newUsername: string) => {
     setUsername(newUsername);
-    setIsRegistered(true);
+    setIsAuthenticated(true);
   };
 
   const handleLogout = () => {
-    setIsRegistered(false);
+    setIsAuthenticated(false);
     setUsername('');
+    setAuthView('login');
   };
 
   const refreshHistory = () => {
@@ -37,18 +46,25 @@ function App() {
         </a>
       </div>
 
-      <h2>Welcome to the Software Arquitecture 2025-2026 course</h2>
+      <h2>Welcome to the Software Architecture 2025-2026 course</h2>
 
-      {!isRegistered ? (
-        <RegisterForm onRegisterSuccess={handleRegisterSuccess} />
+      {!isAuthenticated ? (
+        authView === 'login' ? (
+          <LoginForm
+            onLoginSuccess={handleLoginSuccess}
+            onGoToRegister={() => setAuthView('register')}
+          />
+        ) : (
+          <RegisterForm
+            onRegisterSuccess={handleRegisterSuccess}
+            onGoToLogin={() => setAuthView('login')}
+          />
+        )
       ) : (
         <div>
           <Logout username={username} onLogout={handleLogout} />
-
-          <Game onGameReset={refreshHistory}/>
-
+          <Game onGameReset={refreshHistory} />
           <hr style={{ margin: '20px 0' }} />
-
           <GameHistory refreshTrigger={historyRefresh} />
         </div>
       )}

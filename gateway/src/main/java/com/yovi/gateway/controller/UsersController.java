@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
  *
  * Rutas proxadas:
  *  - POST /createuser       → users:3000/createuser
+ *  - POST /login            → users:3000/login
  *  - GET  /api/games        → users:3000/api/games
  *  - POST /api/games        → users:3000/api/games
  *  - POST /api/games/seed   → users:3000/api/games/seed
@@ -30,6 +31,11 @@ public class UsersController {
     @PostMapping("/createuser")
     public ResponseEntity<String> createUser(@RequestBody String body) {
         return forward(usersUrl + "/createuser", "POST", body);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody String body) {
+        return forward(usersUrl + "/login", "POST", body);
     }
 
     @GetMapping("/api/games")
@@ -54,7 +60,8 @@ public class UsersController {
             } else {
                 org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
                 headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
-                org.springframework.http.HttpEntity<String> entity = new org.springframework.http.HttpEntity<>(body, headers);
+                org.springframework.http.HttpEntity<String> entity =
+                        new org.springframework.http.HttpEntity<>(body, headers);
                 return restTemplate.postForEntity(url, entity, String.class);
             }
         } catch (HttpStatusCodeException ex) {
