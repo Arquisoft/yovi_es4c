@@ -1,5 +1,20 @@
 import { useEffect, useState } from 'react';
-import './GameHistory.css';
+import {
+  Alert,
+  Box,
+  Button,
+  ButtonGroup,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Divider,
+  Typography,
+} from '@mui/material';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import PersonIcon from '@mui/icons-material/Person';
+import PeopleIcon from '@mui/icons-material/People';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
 interface Player {
   id: number;
@@ -15,16 +30,17 @@ interface GameRecord {
   players: Player[];
 }
 
-// se añade el trigger que será disparado desde el componente padre (App) cada vez que se reinicie el juego, 
-// para forzar la recarga del historial y mostrar la nueva partida guardada.
 interface GameHistoryProps {
   refreshTrigger: number;
+  userId: number | null;
+  username: string;
 }
 
-export default function GameHistory({ refreshTrigger }: GameHistoryProps)  {
+export default function GameHistory({ refreshTrigger, userId, username }: GameHistoryProps) {
   const [games, setGames] = useState<GameRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showOnlyMine, setShowOnlyMine] = useState(false);
 
   useEffect(() => {
     fetchGameHistory();
@@ -34,24 +50,18 @@ export default function GameHistory({ refreshTrigger }: GameHistoryProps)  {
     try {
       setLoading(true);
       setError(null);
-      const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
+      const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
       const response = await fetch(`${API_URL}/api/games`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        }
+        headers: { 'Content-Type': 'application/json' },
       });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
       const data = await response.json();
-      console.log('Games fetched:', data);
       setGames(data || []);
     } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
-      console.error('Error fetching games:', errorMsg);
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMsg);
       setGames([]);
     } finally {
@@ -59,109 +69,160 @@ export default function GameHistory({ refreshTrigger }: GameHistoryProps)  {
     }
   };
 
-  const seedDatabase = async () => {
-    try {
-      console.log('Seeding database...');
-      const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000"
-      const response = await fetch(`${API_URL}/api/games/seed`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Database seeded:', data);
-      alert(`✅ ${data.message}`);
-      await fetchGameHistory();
-    } catch (err) {
-      const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
-      console.error('Error seeding database:', errorMsg);
-      alert(`❌ Error: ${errorMsg}`);
-    }
-  };
-
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('es-ES', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
+    return new Date(dateString).toLocaleString('es-ES', {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit',
     });
   };
 
+  // Filter games where the current user participated (by user_id)
+  const visibleGames = showOnlyMine
+    ? games.filter(g => g.players.some(p => p.user_id === userId))
+    : games;
+
   if (loading) {
-    return <div className="game-history"><p>Cargando historial de partidas...</p></div>;
+    return (
+      <Box display="flex" justifyContent="center" py={4}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (error) {
     return (
-      <div className="game-history">
-        <p className="error">❌ Error: {error}</p>
-        <p className="error-hint">Asegúrate de que el servicio de usuarios esté corriendo en http://localhost:3000</p>
-        <div className="button-group">
-          <button onClick={fetchGameHistory} className="refresh-btn">Reintentar</button>
-          <button onClick={seedDatabase} className="seed-btn">Cargar datos de prueba</button>
-        </div>
-      </div>
-    );
-  }
-
-  if (games.length === 0) {
-    return (
-      <div className="game-history">
-        <p>📭 No hay partidas registradas aún.</p>
-        <div className="button-group">
-          <button onClick={fetchGameHistory} className="refresh-btn">Actualizar</button>
-          <button onClick={seedDatabase} className="seed-btn">Cargar datos de prueba</button>
-        </div>
-      </div>
+      <Box>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Error: {error}
+        </Alert>
+        <Button variant="outlined" startIcon={<RefreshIcon />} onClick={fetchGameHistory}>
+          Retry
+        </Button>
+      </Box>
     );
   }
 
   return (
-    <div className="game-history">
-      <h3>📊 Historial de Partidas ({games.length})</h3>
-      <div className="games-container">
-        {games.map((game) => (
-          <div key={game.id} className="game-card">
-            <div className="game-header">
-              <h4>Partida #{game.id}</h4>
-              <span className="game-date">{formatDate(game.created_at)}</span>
-            </div>
-            <div className="game-details">
-              <div className="yen-notation">
-                <strong>Notación YEN:</strong>
-                <pre>{game.yen}</pre>
-              </div>
-              <div className="players">
-                <strong>Jugadores ({game.players.length}):</strong>
-                {game.players.length > 0 ? (
-                  <ul>
-                    {game.players.map((player) => (
-                      <li key={player.id} className={player.is_winner ? 'winner' : ''}>
-                        <span className="player-name">{player.player_name}</span>
-                        {player.is_winner && <span className="winner-badge">🏆 Ganador</span>}
-                        {player.user_id && <span className="user-id">(Usuario ID: {player.user_id})</span>}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="no-players">Sin jugadores registrados</p>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <button onClick={fetchGameHistory} className="refresh-btn">Actualizar</button>
-    </div>
+    <Box>
+      {/* Header + toggle */}
+      <Box display="flex" alignItems="center" justifyContent="space-between" mb={2} flexWrap="wrap" gap={1}>
+        <Typography variant="h6" fontWeight={700}>
+          📊 Game History ({visibleGames.length}{showOnlyMine ? ` of ${games.length}` : ''})
+        </Typography>
+
+        <Box display="flex" gap={1}>
+          <ButtonGroup variant="outlined" size="small">
+            <Button
+              startIcon={<PeopleIcon />}
+              variant={!showOnlyMine ? 'contained' : 'outlined'}
+              onClick={() => setShowOnlyMine(false)}
+            >
+              All games
+            </Button>
+            <Button
+              startIcon={<PersonIcon />}
+              variant={showOnlyMine ? 'contained' : 'outlined'}
+              onClick={() => setShowOnlyMine(true)}
+            >
+              My games
+            </Button>
+          </ButtonGroup>
+
+          <Button variant="outlined" size="small" startIcon={<RefreshIcon />} onClick={fetchGameHistory}>
+            Refresh
+          </Button>
+        </Box>
+      </Box>
+
+      {/* Empty state */}
+      {visibleGames.length === 0 && (
+        <Alert severity="info">
+          {showOnlyMine
+            ? `No games found for ${username} yet. Play a game to see it here!`
+            : 'No games recorded yet.'}
+        </Alert>
+      )}
+
+      {/* Game cards */}
+      <Box display="flex" flexDirection="column" gap={2}>
+        {visibleGames.map((game) => {
+          const isMyGame = game.players.some(p => p.user_id === userId);
+          const iWon = game.players.some(p => p.user_id === userId && p.is_winner);
+
+          return (
+            <Card
+              key={game.id}
+              variant="outlined"
+              sx={{
+                borderLeft: isMyGame ? '4px solid' : '4px solid transparent',
+                borderLeftColor: isMyGame ? (iWon ? 'success.main' : 'primary.main') : 'transparent',
+              }}
+            >
+              <CardContent>
+                <Box display="flex" justifyContent="space-between" alignItems="flex-start" flexWrap="wrap" gap={1}>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <Typography variant="subtitle1" fontWeight={700}>
+                      Game #{game.id}
+                    </Typography>
+                    {isMyGame && (
+                      <Chip
+                        size="small"
+                        icon={iWon ? <EmojiEventsIcon /> : undefined}
+                        label={iWon ? 'You won!' : 'You played'}
+                        color={iWon ? 'success' : 'primary'}
+                        variant="outlined"
+                      />
+                    )}
+                  </Box>
+                  <Typography variant="caption" color="text.secondary">
+                    {formatDate(game.created_at)}
+                  </Typography>
+                </Box>
+
+                <Divider sx={{ my: 1 }} />
+
+                <Typography variant="body2" color="text.secondary" mb={1}>
+                  <strong>YEN notation:</strong>
+                </Typography>
+                <Box
+                  component="pre"
+                  sx={{
+                    fontSize: '0.75rem',
+                    bgcolor: 'grey.100',
+                    p: 1,
+                    borderRadius: 1,
+                    overflow: 'auto',
+                    mb: 1,
+                    fontFamily: 'monospace',
+                  }}
+                >
+                  {game.yen}
+                </Box>
+
+                <Typography variant="body2" color="text.secondary" mb={0.5}>
+                  <strong>Players ({game.players.length}):</strong>
+                </Typography>
+                <Box display="flex" flexWrap="wrap" gap={0.5}>
+                  {game.players.map((player) => (
+                    <Chip
+                      key={player.id}
+                      label={player.player_name}
+                      size="small"
+                      icon={player.is_winner ? <EmojiEventsIcon /> : undefined}
+                      color={
+                        player.user_id === userId
+                          ? player.is_winner ? 'success' : 'primary'
+                          : player.is_winner ? 'warning' : 'default'
+                      }
+                      variant={player.user_id === userId ? 'filled' : 'outlined'}
+                    />
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </Box>
+    </Box>
   );
 }

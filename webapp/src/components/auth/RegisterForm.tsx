@@ -1,20 +1,29 @@
 import React, { useState } from 'react';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Paper,
+  TextField,
+  Typography,
+} from '@mui/material';
 
 interface RegisterFormProps {
-  onRegisterSuccess?: (username: string) => void;
+  onRegisterSuccess?: (username: string, userId: number) => void;
   onGoToLogin?: () => void;
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onGoToLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [responseMessage, setResponseMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    setResponseMessage(null);
+    setSuccessMessage(null);
     setError(null);
 
     if (!username.trim()) {
@@ -28,7 +37,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onGoToLo
 
     setLoading(true);
     try {
-      const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
+      const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
+
       const res = await fetch(`${API_URL}/createuser`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -36,76 +46,86 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onGoToLo
       });
 
       const data = await res.json();
-      if (res.ok) {
-        setResponseMessage(data.message);
-        setUsername('');
-        setPassword('');
-        if (onRegisterSuccess) {
-          setTimeout(() => {
-            onRegisterSuccess(username);
-          }, 500);
-        }
-      } else {
+      if (!res.ok) {
         setError(data.error || 'Server error');
+        return;
       }
-    } catch (err: any) {
-      setError(err.message || 'Network error');
+
+      setSuccessMessage(data.message);
+
+      const loginRes = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const loginData = await loginRes.json();
+      if (loginRes.ok) {
+        setTimeout(() => {
+          onRegisterSuccess?.(username, loginData.userId);
+        }, 500);
+      } else {
+        setTimeout(() => onGoToLogin?.(), 1000);
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Network error';
+      setError(message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="register-form">
-      <div className="form-group">
-        <label htmlFor="username">What's your name?</label>
-        <input
-          type="text"
-          id="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="form-input"
-          autoComplete="username"
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="reg-password">Password</label>
-        <input
-          type="password"
-          id="reg-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="form-input"
-          autoComplete="new-password"
-        />
-      </div>
+    <Box display="flex" justifyContent="center" mt={4}>
+      <Paper elevation={3} sx={{ p: 4, width: '100%', maxWidth: 400 }}>
+        <Typography variant="h5" fontWeight={700} mb={3} textAlign="center">
+          Create account
+        </Typography>
 
-      <button type="submit" className="submit-button" disabled={loading}>
-        {loading ? 'Registering...' : "Let's go!"}
-      </button>
+        <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={2}>
+          <TextField
+            label="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            autoComplete="username"
+            fullWidth
+          />
+          <TextField
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="new-password"
+            fullWidth
+          />
 
-      {responseMessage && (
-        <div className="success-message" style={{ marginTop: 12, color: 'green' }}>
-          {responseMessage}
-        </div>
-      )}
-      {error && (
-        <div className="error-message" style={{ marginTop: 12, color: 'red' }}>
-          {error}
-        </div>
-      )}
+          {error && <Alert severity="error">{error}</Alert>}
+          {successMessage && <Alert severity="success">{successMessage}</Alert>}
 
-      <p style={{ marginTop: 16, fontSize: '0.9rem' }}>
-        Already have an account?{' '}
-        <button
-          type="button"
-          onClick={onGoToLogin}
-          style={{ background: 'none', border: 'none', color: '#646cff', cursor: 'pointer', padding: 0, fontSize: 'inherit' }}
-        >
-          Log in here
-        </button>
-      </p>
-    </form>
+          <Button
+            type="submit"
+            variant="contained"
+            size="large"
+            disabled={loading}
+            fullWidth
+          >
+            {loading ? <CircularProgress size={24} color="inherit" /> : "Let's go!"}
+          </Button>
+        </Box>
+
+        <Typography variant="body2" textAlign="center" mt={2}>
+          Already have an account?{' '}
+          <Button
+            variant="text"
+            size="small"
+            onClick={onGoToLogin}
+            sx={{ p: 0, minWidth: 0, textTransform: 'none' }}
+          >
+            Log in here
+          </Button>
+        </Typography>
+      </Paper>
+    </Box>
   );
 };
 

@@ -4,10 +4,11 @@ import { type YEN, chooseMove, makeHumanMove } from '../../api/gameyClient';
 interface GameProps {
     size?: number;
     onGameReset?: () => void;
+    userId?: number | null;
+    username?: string;
 }
 
-const Game: React.FC<GameProps> = ({ size = 5 , onGameReset}) => {
-    // Estado inicial
+const Game: React.FC<GameProps> = ({ size = 5, onGameReset, userId = null, username = 'Azul' }) => {
     const [yen, setYen] = useState<YEN>({
         size: size,
         turn: 0,
@@ -17,34 +18,14 @@ const Game: React.FC<GameProps> = ({ size = 5 , onGameReset}) => {
     const [status, setStatus] = useState<string>('Tu turno (Azul)');
     const [loading, setLoading] = useState<boolean>(false);
 
-    // Inicializa el string del tablero (solo visual inicial)
     const initializeLayout = (s: number): string => {
-        let rows: string[] = [];
+        const rows: string[] = [];
         for (let i = 1; i <= s; i++) {
             rows.push('.'.repeat(i));
         }
         return rows.join('/');
     };
 
-
-    const saveGame = async (layoutStr: string, botWon: boolean) => {
-        const players = [
-            { userId: null, name: 'Azul', isWinner: !botWon },
-            { userId: null, name: 'Rojo', isWinner: botWon }
-        ];
-        try {
-            await fetch(`${import.meta.env.VITE_API_URL}/api/games`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ yen: layoutStr, players })
-            });
-            // Opcional: Recargar la página o avisar al historial
-        } catch (e) {
-            console.error('Failed to save game', e);
-        }
-    };
-
-    // Crea un nuevo juego con el tamaño dado
     const createInitialGame = (s: number): YEN => ({
         size: s,
         turn: 0,
@@ -57,7 +38,24 @@ const Game: React.FC<GameProps> = ({ size = 5 , onGameReset}) => {
         setStatus('Tu turno (Azul)');
     }, [size]);
 
-    // Conversión de coordenadas: (fila, columna) -> (x, y, z) para Rust
+    const saveGame = async (layoutStr: string, botWon: boolean) => {
+        const players = [
+            // Human player — link to authenticated user if logged in
+            { userId: userId, name: username, isWinner: !botWon },
+            // Bot player — always anonymous
+            { userId: null, name: 'Bot (Rojo)', isWinner: botWon },
+        ];
+        try {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/games`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ yen: layoutStr, players }),
+            });
+        } catch (e) {
+            console.error('Failed to save game', e);
+        }
+    };
+
     const toCubeCoords = (row: number, col: number, boardSize: number) => {
         const x = boardSize - 1 - row;
         const y = col;
@@ -66,43 +64,28 @@ const Game: React.FC<GameProps> = ({ size = 5 , onGameReset}) => {
     };
 
     const handleCellClick = async (row: number, col: number) => {
-        // Bloqueos básicos
         if (yen.turn !== 0 || loading) return;
         const rows = yen.layout.split('/');
         if (rows[row][col] !== '.') return;
 
         setLoading(true);
-        setStatus("Procesando movimiento...");
+        setStatus('Procesando movimiento...');
 
         try {
-            // 1. Convertir coordenadas para Rust
             const coords = toCubeCoords(row, col, size);
-
-            // 2. ENVIAR MOVIMIENTO HUMANO A RUST (Puerto 4000)
-            // Aquí es donde Rust aplica la lógica de conexión y victoria
-            const humanResult = await makeHumanMove(yen, coords, 0); // 0 = Azul
-
-            // Actualizamos el tablero con la respuesta oficial del servidor
+            const humanResult = await makeHumanMove(yen, coords, 0);
             setYen(humanResult.yen);
 
-            // Verificamos si Rust dice que el juego terminó
             if (humanResult.status === 'Finished') {
                 setStatus('¡HAS GANADO! (Azul)');
-                // Guardamos en el historial (Puerto 3000)
                 await saveGame(humanResult.yen.layout, false);
                 setLoading(false);
                 return;
             }
 
-            // 3. TURNO DEL BOT
-            setStatus('El bot está pensando...');
-
-            // A. Pedir al bot que elija coordenada
+            setStatus('El bot esta pensando...');
             const botChoice = await chooseMove(humanResult.yen);
-
-            // B. Aplicar el movimiento del bot en el servidor Rust
-            const botResult = await makeHumanMove(humanResult.yen, botChoice.coords, 1); // 1 = Rojo
-
+            const botResult = await makeHumanMove(humanResult.yen, botChoice.coords, 1);
             setYen(botResult.yen);
 
             if (botResult.status === 'Finished') {
@@ -111,10 +94,10 @@ const Game: React.FC<GameProps> = ({ size = 5 , onGameReset}) => {
             } else {
                 setStatus('Tu turno (Azul)');
             }
-
-        } catch (e: any) {
+        } catch (e: unknown) {
+            const message = e instanceof Error ? e.message : 'Unknown error';
             console.error(e);
-            setStatus(`Error: ${e.message}`);
+            setStatus(`Error: ${message}`);
         } finally {
             setLoading(false);
         }
@@ -136,7 +119,7 @@ const Game: React.FC<GameProps> = ({ size = 5 , onGameReset}) => {
                             margin: '3px',
                             cursor: (cell === '.' && yen.turn === 0) ? 'pointer' : 'default',
                             border: '2px solid #374151',
-                            transition: 'all 0.2s'
+                            transition: 'all 0.2s',
                         }}
                     />
                 ))}
@@ -144,24 +127,20 @@ const Game: React.FC<GameProps> = ({ size = 5 , onGameReset}) => {
         ));
     };
 
-    //resetea el juego a su estado inicial
     const resetGame = () => {
         setYen(createInitialGame(size));
         setStatus('Tu turno (Azul)');
         setLoading(false);
-
-        // Dispara el evento para reinciar el historial
         onGameReset?.();
     };
 
-    
     return (
         <div style={{ textAlign: 'center', padding: '20px' }}>
-            <h3>Juego de Y (Tamaño {size})</h3>
+            <h3>Juego de Y (Tamano {size})</h3>
             <div style={{
                 margin: '15px',
                 fontWeight: 'bold',
-                color: status.includes('GANADO') ? '#059669' : '#374151'
+                color: status.includes('GANADO') ? '#059669' : '#374151',
             }}>
                 {status}
             </div>
