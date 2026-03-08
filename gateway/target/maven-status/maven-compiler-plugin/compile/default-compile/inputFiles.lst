@@ -1,0 +1,5 @@
+/app/src/main/java/com/yovi/gateway/GatewayApplication.java
+/app/src/main/java/com/yovi/gateway/config/CorsConfig.java
+/app/src/main/java/com/yovi/gateway/config/RestTemplateConfig.java
+/app/src/main/java/com/yovi/gateway/controller/GameyController.java
+/app/src/main/java/com/yovi/gateway/controller/UsersController.java
