@@ -7,7 +7,7 @@ function Logout({ username, onLogout }: LogoutProps) {
   return (
     <div style={{ marginBottom: '20px', textAlign: 'right' }}>
       <p>
-        Logged in as: <strong>{username}</strong>
+        Conectado como: <strong>{username}</strong>
       </p>
 
       <button
@@ -22,7 +22,7 @@ function Logout({ username, onLogout }: LogoutProps) {
           fontSize: '14px'
         }}
       >
-        Logout
+        Desconectar
       </button>
     </div>
   );

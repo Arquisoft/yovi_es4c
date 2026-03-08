@@ -15,14 +15,20 @@ interface GameRecord {
   players: Player[];
 }
 
-export default function GameHistory() {
+// se añade el trigger que será disparado desde el componente padre (App) cada vez que se reinicie el juego, 
+// para forzar la recarga del historial y mostrar la nueva partida guardada.
+interface GameHistoryProps {
+  refreshTrigger: number;
+}
+
+export default function GameHistory({ refreshTrigger }: GameHistoryProps)  {
   const [games, setGames] = useState<GameRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchGameHistory();
-  }, []);
+  }, [refreshTrigger]);
 
   const fetchGameHistory = async () => {
     try {

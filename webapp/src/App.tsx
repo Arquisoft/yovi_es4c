@@ -10,6 +10,8 @@ function App() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [username, setUsername] = useState<string>('');
 
+  const [historyRefresh, setHistoryRefresh] = useState(0);
+
   const handleRegisterSuccess = (newUsername: string) => {
     setUsername(newUsername);
     setIsRegistered(true);
@@ -18,6 +20,10 @@ function App() {
   const handleLogout = () => {
     setIsRegistered(false);
     setUsername('');
+  };
+
+  const refreshHistory = () => {
+    setHistoryRefresh(prev => prev + 1);
   };
 
   return (
@@ -39,11 +45,11 @@ function App() {
         <div>
           <Logout username={username} onLogout={handleLogout} />
 
-          <Game />
+          <Game onGameReset={refreshHistory}/>
 
           <hr style={{ margin: '20px 0' }} />
 
-          <GameHistory />
+          <GameHistory refreshTrigger={historyRefresh} />
         </div>
       )}
     </div>

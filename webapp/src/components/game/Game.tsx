@@ -3,9 +3,10 @@ import { type YEN, chooseMove, makeHumanMove } from '../../api/gameyClient';
 
 interface GameProps {
     size?: number;
+    onGameReset?: () => void;
 }
 
-const Game: React.FC<GameProps> = ({ size = 5 }) => {
+const Game: React.FC<GameProps> = ({ size = 5 , onGameReset}) => {
     // Estado inicial
     const [yen, setYen] = useState<YEN>({
         size: size,
@@ -43,13 +44,16 @@ const Game: React.FC<GameProps> = ({ size = 5 }) => {
         }
     };
 
+    // Crea un nuevo juego con el tamaño dado
+    const createInitialGame = (s: number): YEN => ({
+        size: s,
+        turn: 0,
+        players: ['B', 'R'],
+        layout: initializeLayout(s),
+    });
+
     useEffect(() => {
-        setYen({
-            size: size,
-            turn: 0,
-            players: ['B', 'R'],
-            layout: initializeLayout(size),
-        });
+        setYen(createInitialGame(size));
         setStatus('Tu turno (Azul)');
     }, [size]);
 
@@ -140,6 +144,17 @@ const Game: React.FC<GameProps> = ({ size = 5 }) => {
         ));
     };
 
+    //resetea el juego a su estado inicial
+    const resetGame = () => {
+        setYen(createInitialGame(size));
+        setStatus('Tu turno (Azul)');
+        setLoading(false);
+
+        // Dispara el evento para reinciar el historial
+        onGameReset?.();
+    };
+
+    
     return (
         <div style={{ textAlign: 'center', padding: '20px' }}>
             <h3>Juego de Y (Tamaño {size})</h3>
@@ -155,7 +170,7 @@ const Game: React.FC<GameProps> = ({ size = 5 }) => {
             </div>
             {(status.includes('GANADO') || status.includes('ganado')) && (
                 <button
-                    onClick={() => window.location.reload()}
+                    onClick={resetGame}
                     style={{ marginTop: '20px', padding: '10px 20px', cursor: 'pointer' }}
                 >
                     Reiniciar Juego
