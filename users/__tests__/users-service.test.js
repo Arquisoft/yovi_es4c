@@ -1,23 +1,25 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import request from 'supertest'
-import app from '../users-service.js'
+
+// Mock mysql2/promise BEFORE importing app
 vi.mock('mysql2/promise', () => {
-  const mockConn = {
+  const makeConn = () => ({
     query: vi.fn()
-      .mockResolvedValueOnce([[], []])                 // SELECT returns empty rows + fields
-      .mockResolvedValueOnce([[{ insertId: 1 }], []]), // INSERT returns rows + fields
+      .mockResolvedValueOnce([[], []])       // SELECT: no existing user
+      .mockResolvedValueOnce([{ insertId: 1 }, []]), // INSERT: success
     release: vi.fn(),
-  };
+  });
 
   return {
     default: {
       createPool: () => ({
-        getConnection: vi.fn().mockResolvedValue(mockConn),
+        getConnection: vi.fn().mockImplementation(() => Promise.resolve(makeConn())),
       }),
     },
   };
 });
 
+import app from '../users-service.js'
 
 describe('POST /createuser', () => {
   afterEach(() => {
