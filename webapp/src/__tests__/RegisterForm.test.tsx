@@ -9,11 +9,11 @@ describe('RegisterForm', () => {
     vi.restoreAllMocks()
   })
 
-  test('shows validation error when username is empty', async () => {
+  test('Se intenta logear sin poner nombre de usuario y muestra error', async () => {
     render(<RegisterForm />)
     const user = userEvent.setup()
 
-    // El botón se llama "Let's go!" — buscamos por texto exacto del DOM
+    // Envío del formulario
     await user.click(screen.getByRole('button', { name: /let's go!/i }))
 
     await waitFor(() => {
@@ -21,7 +21,20 @@ describe('RegisterForm', () => {
     })
   })
 
-  test('submits username and displays response', async () => {
+  test('Se intenta logear sin poner contraseña y muestra error', async () => {
+    render(<RegisterForm />)
+    const user = userEvent.setup()
+
+    // Introducción de datos y envío del formulario
+    await user.type(screen.getByLabelText(/username/i), 'Ana')
+    await user.click(screen.getByRole('button', { name: /let's go!/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/please enter a password/i)).toBeInTheDocument()
+    })
+  })
+
+  test('Se logea un usuario correctamente', async () => {
     const user = userEvent.setup()
 
     global.fetch = vi.fn().mockResolvedValueOnce({
@@ -31,7 +44,7 @@ describe('RegisterForm', () => {
 
     render(<RegisterForm />)
 
-    // El label real del input es "Username", no "What's your name?"
+    // Introducción de datos y envío del formulario
     await user.type(screen.getByLabelText(/username/i), 'Pablo')
     await user.type(screen.getByLabelText(/password/i), 'secret123')
     await user.click(screen.getByRole('button', { name: /let's go!/i }))
@@ -42,4 +55,41 @@ describe('RegisterForm', () => {
       ).toBeInTheDocument()
     })
   })
+
+  test('Se intenta registrar con un nombre de usuario en uso', async () => {
+    const user = userEvent.setup()
+
+    global.fetch = vi.fn().mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: 'Username already taken' }),
+    } as Response)
+
+    render(<RegisterForm />)
+
+    // Introducción de datos y envío del formulario
+    await user.type(screen.getByLabelText(/username/i), 'existinguser')
+    await user.type(screen.getByLabelText(/password/i), 'password')
+    await user.click(screen.getByRole('button', { name: /let's go!/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/username already taken/i)).toBeInTheDocument()
+    })
+  })
+
+  test('Muestra error de red si falla la llamada a la API', async () => {
+    const user = userEvent.setup()
+    global.fetch = vi.fn().mockRejectedValueOnce(new Error('network down'))
+
+    render(<RegisterForm />)
+
+    // Introducción de datos y envío del formulario
+    await user.type(screen.getByLabelText(/username/i), 'foo')
+    await user.type(screen.getByLabelText(/password/i), 'bar')
+    await user.click(screen.getByRole('button', { name: /let's go!/i }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/network down/i)).toBeInTheDocument()
+    })
+  })
+
 })
