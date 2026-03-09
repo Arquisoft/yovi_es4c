@@ -1,13 +1,15 @@
 openapi: 3.0.0
 info:
-  title: User Service API
+  title: API del Servicio de Usuarios
   version: 1.0.0
-  description: API for managing users
+  description: API para la gestión de usuarios y registros de partidas
+
 paths:
+
   /createuser:
     post:
-      summary: Creates a new user
-      description: Creates a new user with the given username.
+      summary: Registrar un nuevo usuario
+      description: Crea un nuevo usuario con la contraseña hasheada. Devuelve un error si el nombre de usuario ya está en uso.
       requestBody:
         required: true
         content:
@@ -16,13 +18,18 @@ paths:
               type: object
               required:
                 - username
+                - password
               properties:
                 username:
                   type: string
                   example: "testuser"
+                password:
+                  type: string
+                  format: password
+                  example: "secret123"
       responses:
         '200':
-          description: User created successfully
+          description: Usuario creado correctamente
           content:
             application/json:
               schema:
@@ -30,6 +37,268 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: "Hello testuser! welcome to the course!"
+                    example: "¡Hola testuser! ¡Bienvenido al curso!"
         '400':
-          description: Error creating user
+          description: Falta el nombre de usuario o la contraseña
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                faltaUsername:
+                  value:
+                    error: "el nombre de usuario es obligatorio"
+                faltaPassword:
+                  value:
+                    error: "la contraseña es obligatoria"
+        '409':
+          description: Nombre de usuario ya en uso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "El nombre de usuario ya está en uso"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /login:
+    post:
+      summary: Autenticar un usuario
+      description: Valida las credenciales y devuelve el ID del usuario si son correctas.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: "testuser"
+                password:
+                  type: string
+                  format: password
+                  example: "secret123"
+      responses:
+        '200':
+          description: Autenticación correcta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "¡Bienvenido de nuevo, testuser!"
+                  userId:
+                    type: integer
+                    example: 1
+        '400':
+          description: Falta el nombre de usuario o la contraseña
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                faltaUsername:
+                  value:
+                    error: "el nombre de usuario es obligatorio"
+                faltaPassword:
+                  value:
+                    error: "la contraseña es obligatoria"
+        '401':
+          description: Credenciales incorrectas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Usuario o contraseña incorrectos"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /api/games:
+    get:
+      summary: Obtener todas las partidas
+      description: Devuelve la lista de todas las partidas guardadas, cada una con sus jugadores.
+      responses:
+        '200':
+          description: Lista de partidas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 42
+                    yen:
+                      type: string
+                      example: "[./. ./. . .]"
+                    created_at:
+                      type: string
+                      format: date-time
+                      example: "2024-01-15T10:30:00.000Z"
+                    players:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          game_id:
+                            type: integer
+                            example: 42
+                          user_id:
+                            type: integer
+                            nullable: true
+                            example: 1
+                          player_name:
+                            type: string
+                            example: "Alice"
+                          is_winner:
+                            type: boolean
+                            example: true
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+    post:
+      summary: Guardar una partida
+      description: Guarda una partida finalizada con su cadena YEN y la lista de jugadores.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - yen
+                - players
+              properties:
+                yen:
+                  type: string
+                  description: Cadena YEN que representa el estado de la partida
+                  example: "[./. ./. . .]"
+                players:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: "Alice"
+                      userId:
+                        type: integer
+                        nullable: true
+                        example: 1
+                      isWinner:
+                        type: boolean
+                        example: true
+            example:
+              yen: "[./. ./. . .]"
+              players:
+                - name: "Alice"
+                  userId: 1
+                  isWinner: true
+                - name: "Bob"
+                  userId: 2
+                  isWinner: false
+      responses:
+        '201':
+          description: Partida guardada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  gameId:
+                    type: integer
+                    example: 42
+        '400':
+          description: Campos ausentes o inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "yen y players son obligatorios"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+
+  /api/games/seed:
+    post:
+      summary: Insertar partidas de ejemplo
+      description: Inserta 5 partidas de ejemplo predefinidas en la base de datos. Útil para desarrollo y pruebas.
+      responses:
+        '201':
+          description: Partidas de ejemplo insertadas correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Se han insertado 5 partidas de ejemplo correctamente"
+                  gamesCreated:
+                    type: integer
+                    example: 5
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string

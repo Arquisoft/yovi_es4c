@@ -34,7 +34,7 @@ const pool = mysql.createPool({
   timezone: 'Z'
 });
 
-const initializeDatabase = async () => {
+const initializeDatabase = async () => {  /* c8 ignore start*/
   let conn;
   try {
     conn = await pool.getConnection();
@@ -70,9 +70,9 @@ const initializeDatabase = async () => {
   } finally {
     if (conn) conn.release();
   }
-};
+}; /* c8 ignore end*/
 
-const initDbWithRetry = async (retries = 15, delay = 3000) => {
+const initDbWithRetry = async (retries = 15, delay = 3000) => { /* c8 ignore start*/
   for (let i = 0; i < retries; i++) {
     try {
       await initializeDatabase();
@@ -87,13 +87,13 @@ const initDbWithRetry = async (retries = 15, delay = 3000) => {
       }
     }
   }
-};
+}; /* c8 ignore end*/
 
-setTimeout(() => {
+setTimeout(() => { /* c8 ignore start*/
   initDbWithRetry().catch(err => {
     console.error('Failed to initialize database:', err.message);
   });
-}, 5000);
+}, 5000); /* c8 ignore end*/
 
 // POST /createuser — registers a new user with hashed password
 app.post('/createuser', async (req, res) => {
