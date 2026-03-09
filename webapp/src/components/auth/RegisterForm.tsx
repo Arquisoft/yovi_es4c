@@ -84,13 +84,13 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onGoToLo
 
         <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={2}>
           <TextField
-            label="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            autoComplete="username"
-            fullWidth
-            inputProps={{ id: 'username' }}
-          />
+              id="username"
+              label="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
+              fullWidth
+            />
           <TextField
             label="Password"
             type="password"
