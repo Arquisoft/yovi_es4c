@@ -16,8 +16,11 @@ const BOT_DIFFICULTIES = [
 ];
 
 const Game: React.FC<GameProps> = ({ size = 5, onGameReset, userId = null, username = 'Azul' }) => {
+    // boardSize controla el tamaño del tablero que el usuario puede modificar
+    const [boardSize, setBoardSize] = useState<number>(size);
+
     const [yen, setYen] = useState<YEN>({
-        size: size,
+        size: boardSize,
         turn: 0,
         players: ['B', 'R'],
         layout: '',
@@ -43,10 +46,11 @@ const Game: React.FC<GameProps> = ({ size = 5, onGameReset, userId = null, usern
         layout: initializeLayout(s),
     });
 
+    // whenever boardSize cambia reiniciamos el juego
     useEffect(() => {
-        setYen(createInitialGame(size));
+        setYen(createInitialGame(boardSize));
         setStatus('Tu turno (Azul)');
-    }, [size]);
+    }, [boardSize]);
 
     const saveGame = async (layoutStr: string, botWon: boolean) => {
         const players = [
@@ -82,7 +86,7 @@ const Game: React.FC<GameProps> = ({ size = 5, onGameReset, userId = null, usern
         setStatus('Procesando movimiento...');
 
         try {
-            const coords = toCubeCoords(row, col, size);
+            const coords = toCubeCoords(row, col, boardSize);
             const humanResult = await makeHumanMove(yen, coords, 0);
             setYen(humanResult.yen);
 
@@ -141,7 +145,7 @@ const Game: React.FC<GameProps> = ({ size = 5, onGameReset, userId = null, usern
     };
 
     const resetGame = () => {
-        setYen(createInitialGame(size));
+        setYen(createInitialGame(boardSize));
         setStatus('Tu turno (Azul)');
         setLoading(false);
         onGameReset?.();
@@ -149,7 +153,32 @@ const Game: React.FC<GameProps> = ({ size = 5, onGameReset, userId = null, usern
 
     return (
         <div style={{ textAlign: 'center', padding: '20px' }}>
-            <h3>Juego de Y (Tamano {size})</h3>
+            <h3>Juego de Y (Tamaño {boardSize})</h3>
+
+            {/* Selector de tamaño del tablero */}
+            <div style={{ marginBottom: '20px' }}>
+                <label htmlFor="size-select" style={{ marginRight: '10px', fontWeight: 'bold' }}>
+                    Tamaño del tablero:
+                </label>
+                <select
+                    id="size-select"
+                    value={boardSize}
+                    onChange={(e) => {
+                        const newSize = Number(e.target.value);
+                        setBoardSize(newSize);
+                        // reiniciar automáticamente
+                    }}
+                    disabled={loading || yen.layout !== initializeLayout(boardSize)}
+                    style={{ padding: '5px', borderRadius: '4px' }}
+                >
+                    {/* valores entre 5 y 10 inclusive */}
+                    {[5, 6, 7, 8, 9, 10].map(n => (
+                        <option key={n} value={n}>
+                            {n}
+                        </option>
+                    ))}
+                </select>
+            </div>
 
             {/* 4. NUEVO: Selector de dificultad */}
             <div style={{ marginBottom: '20px' }}>
@@ -160,7 +189,7 @@ const Game: React.FC<GameProps> = ({ size = 5, onGameReset, userId = null, usern
                     id="bot-select" 
                     value={selectedBot} 
                     onChange={(e) => setSelectedBot(e.target.value)}
-                    disabled={loading || yen.layout !== initializeLayout(size)} 
+                    disabled={loading || yen.layout !== initializeLayout(boardSize)} 
                     style={{ padding: '5px', borderRadius: '4px' }}
                 >
                     {BOT_DIFFICULTIES.map(bot => (
