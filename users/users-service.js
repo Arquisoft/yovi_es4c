@@ -236,5 +236,6 @@ if (require.main === module) {
     console.log(`User Service listening at http://localhost:${port}`)
   });
 }
-
+app.pool = pool;
+app._bcrypt = bcrypt;  // exponer para tests
 module.exports = app;
