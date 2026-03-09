@@ -224,7 +224,7 @@ describe('POST /api/games', () => {
   it('Valido: guarda una partida y devuelve su gameId', async () => {
     const res = await request(app)
       .post('/api/games')
-      .send({ yen: '1.e4 e5', players: [{ name: 'Alice', isWinner: true }, { name: 'Bob', isWinner: false }] });
+      .send({ yen: '[./.  ./.  . .]', players: [{ name: 'Alice', isWinner: true }, { name: 'Bob', isWinner: false }] });
 
     expect(res.statusCode).toBe(201);
     expect(res.body.gameId).toBe(7);
@@ -233,21 +233,21 @@ describe('POST /api/games', () => {
   it('Valido: hace commit de la transacción al guardar correctamente', async () => {
     await request(app)
       .post('/api/games')
-      .send({ yen: '1.d4', players: [{ name: 'Alice', isWinner: true }] });
+      .send({ yen: '[./.  . .]', players: [{ name: 'Alice', isWinner: true }] });
 
     expect(mockConn.beginTransaction).toHaveBeenCalled();
     expect(mockConn.commit).toHaveBeenCalled();
     expect(mockConn.rollback).not.toHaveBeenCalled();
   });
 
-  it('Valido: acepta yen como objeto JSON', async () => {
+  it('Valido: guarda el yen como texto en la base de datos', async () => {
     const res = await request(app)
       .post('/api/games')
-      .send({ yen: { moves: ['e4', 'e5'] }, players: [{ name: 'Alice', isWinner: true }] });
+      .send({ yen: '[./. ./. . .]', players: [{ name: 'Alice', isWinner: true }] });
 
     expect(res.statusCode).toBe(201);
     const insertCall = mockConn.query.mock.calls.find(c => c[0].includes('INSERT INTO games'));
-    expect(insertCall[1][0]).toContain('moves');
+    expect(insertCall[1][0]).toBe('[./. ./. . .]');
   });
 
   it('Espera error: devuelve 400 si falta yen', async () => {
@@ -262,7 +262,7 @@ describe('POST /api/games', () => {
   it('Espera error: devuelve 400 si players no es un array', async () => {
     const res = await request(app)
       .post('/api/games')
-      .send({ yen: '1.e4', players: 'Alice' });
+      .send({ yen: '[./.  .]', players: 'Alice' });
 
     expect(res.statusCode).toBe(400);
     expect(res.body.error).toBe('yen and players are required');
@@ -274,7 +274,7 @@ describe('POST /api/games', () => {
 
     const res = await request(app)
       .post('/api/games')
-      .send({ yen: '1.e4', players: [{ name: 'Alice', isWinner: true }] });
+      .send({ yen: '[./.  .]', players: [{ name: 'Alice', isWinner: true }] });
 
     expect(res.statusCode).toBe(500);
     expect(res.body.error).toBe('Insert failed');
@@ -295,11 +295,11 @@ describe('GET /api/games', () => {
 
   it('Valido: devuelve la lista de partidas con sus jugadores', async () => {
     const games = [
-      { id: 1, yen: '1.e4 e5', created_at: '2024-01-01T00:00:00.000Z' },
-      { id: 2, yen: '1.d4',    created_at: '2024-01-02T00:00:00.000Z' },
+      { id: 1, yen: '[./.  ./.  . .]', created_at: '2024-01-01T00:00:00.000Z' },
+      { id: 2, yen: '[./.  . .]',    created_at: '2024-01-02T00:00:00.000Z' },
     ];
-    const playersGame1 = [{ id: 1, game_id: 1, user_id: null, player_name: 'Alice', is_winner: true }];
-    const playersGame2 = [{ id: 2, game_id: 2, user_id: null, player_name: 'Bob',   is_winner: false }];
+    const playersGame1 = [{ id: 1, game_id: 1, user_id: null, player_name: 'Alice', is_winner: 1 }];
+    const playersGame2 = [{ id: 2, game_id: 2, user_id: null, player_name: 'Bob',   is_winner: 0 }];
 
     mockConn.query
       .mockResolvedValueOnce([games])
@@ -325,7 +325,7 @@ describe('GET /api/games', () => {
 
   it('Valido: cada partida incluye el campo players aunque no tenga jugadores', async () => {
     mockConn.query
-      .mockResolvedValueOnce([[{ id: 1, yen: '1.e4', created_at: '2024-01-01T00:00:00.000Z' }]])
+      .mockResolvedValueOnce([[{ id: 1, yen: '[./.  .]', created_at: '2024-01-01T00:00:00.000Z' }]])
       .mockResolvedValueOnce([[]]); // sin jugadores
 
     const res = await request(app).get('/api/games');
