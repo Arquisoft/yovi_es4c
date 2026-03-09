@@ -1,14 +1,14 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import request from 'supertest'
 import app from '../users-service.js'
-
 vi.mock('mysql2/promise', () => {
   const mockConn = {
     query: vi.fn()
-      .mockResolvedValueOnce([[]])           // SELECT (user does not exist)
-      .mockResolvedValueOnce([{ insertId: 1 }]), // INSERT
+      .mockResolvedValueOnce([[], []])                 // SELECT returns empty rows + fields
+      .mockResolvedValueOnce([[{ insertId: 1 }], []]), // INSERT returns rows + fields
     release: vi.fn(),
   };
+
   return {
     default: {
       createPool: () => ({
@@ -17,6 +17,7 @@ vi.mock('mysql2/promise', () => {
     },
   };
 });
+
 
 describe('POST /createuser', () => {
   afterEach(() => {
