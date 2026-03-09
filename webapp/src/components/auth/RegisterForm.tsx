@@ -37,7 +37,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onGoToLo
 
     setLoading(true);
     try {
-      const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
+      const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
       const res = await fetch(`${API_URL}/createuser`, {
         method: 'POST',
@@ -89,6 +89,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onGoToLo
             onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
             fullWidth
+            inputProps={{ id: 'username' }}
           />
           <TextField
             label="Password"
@@ -100,7 +101,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onGoToLo
           />
 
           {error && <Alert severity="error">{error}</Alert>}
-          {successMessage && <Alert severity="success">{successMessage}</Alert>}
+          {successMessage && <Alert severity="success" className="success-message">{successMessage}</Alert>}
 
           <Button
             type="submit"
@@ -108,6 +109,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onGoToLo
             size="large"
             disabled={loading}
             fullWidth
+            className="submit-button"
           >
             {loading ? <CircularProgress size={24} color="inherit" /> : "Let's go!"}
           </Button>

@@ -4,13 +4,33 @@ import assert from 'assert'
 Given('the register page is open', async function () {
   const page = this.page
   if (!page) throw new Error('Page not initialized')
+
+  await page.route('**/createuser', async route => {
+    const body = route.request().postDataJSON()
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ message: `Hello ${body.username}! welcome to the course!` })
+    })
+  })
+
+  await page.route('**/login', async route => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ userId: 1 })
+    })
+  })
+
   await page.goto('http://localhost:5173')
+  await page.click('button:has-text("Register here")')
 })
 
 When('I enter {string} as the username and submit', async function (username) {
   const page = this.page
   if (!page) throw new Error('Page not initialized')
   await page.fill('#username', username)
+  await page.fill('input[type="password"]', 'Password123')
   await page.click('.submit-button')
 })
 
