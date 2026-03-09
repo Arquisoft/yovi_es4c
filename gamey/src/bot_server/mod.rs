@@ -30,7 +30,9 @@ pub use choose::MoveResponse;
 pub use error::ErrorResponse;
 pub use version::*;
 
-use crate::{GameYError, RandomBot, YBotRegistry, state::AppState};
+//use crate::{GameYError, RandomBot, YBotRegistry, state::AppState};
+
+use crate::{GameYError, RandomBot, GreedyBot, MinimaxBot, YBotRegistry, state::AppState};
 
 /// Creates the Axum router with the given state.
 ///
@@ -57,12 +59,17 @@ async fn fallback(uri: axum::http::Uri) -> impl axum::response::IntoResponse {
 
 /// Creates the default application state with the standard bot registry.
 ///
-/// The default state includes the `RandomBot` which selects moves randomly.
+/// The default state includes the `RandomBot` which selects moves randomly,
+/// as well as the Greedy and Minimax bots for higher difficulty levels.
 pub fn create_default_state() -> AppState {
-    let bots = YBotRegistry::new().with_bot(Arc::new(RandomBot));
+    let bots = YBotRegistry::new()
+        .with_bot(Arc::new(RandomBot))
+        // NUEVOS BOTS AÑADIDOS AQUÍ:
+        .with_bot(Arc::new(GreedyBot::new(1)))       // Dificultad Media (Bot juega como jugador 1)
+        .with_bot(Arc::new(MinimaxBot::new(1, 2)));  // Dificultad Alta (Profundidad 2)
+        
     AppState::new(bots)
 }
-
 /// Starts the bot server on the specified port.
 ///
 /// This function blocks until the server is shut down.

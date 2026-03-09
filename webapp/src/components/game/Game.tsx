@@ -8,6 +8,13 @@ interface GameProps {
     username?: string;
 }
 
+//  Define las dificultades disponibles y sus IDs correspondientes en el backend Rust
+const BOT_DIFFICULTIES = [
+    { id: 'random_bot', label: 'Fácil (Aleatorio)' },
+    { id: 'greedy_bot', label: 'Medio (Greedy)' }, 
+    { id: 'minimax_bot', label: 'Difícil (Minimax)' } 
+];
+
 const Game: React.FC<GameProps> = ({ size = 5, onGameReset, userId = null, username = 'Azul' }) => {
     const [yen, setYen] = useState<YEN>({
         size: size,
@@ -17,6 +24,9 @@ const Game: React.FC<GameProps> = ({ size = 5, onGameReset, userId = null, usern
     });
     const [status, setStatus] = useState<string>('Tu turno (Azul)');
     const [loading, setLoading] = useState<boolean>(false);
+
+    // NUEVO ESTADO: Almacena el bot seleccionado
+    const [selectedBot, setSelectedBot] = useState<string>(BOT_DIFFICULTIES[0].id);
 
     const initializeLayout = (s: number): string => {
         const rows: string[] = [];
@@ -84,7 +94,10 @@ const Game: React.FC<GameProps> = ({ size = 5, onGameReset, userId = null, usern
             }
 
             setStatus('El bot esta pensando...');
-            const botChoice = await chooseMove(humanResult.yen);
+            // 3. MODIFICACIÓN: Pasamos el selectedBot a la función chooseMove
+            const botChoice = await chooseMove(humanResult.yen, selectedBot);
+
+            //const botChoice = await chooseMove(humanResult.yen);
             const botResult = await makeHumanMove(humanResult.yen, botChoice.coords, 1);
             setYen(botResult.yen);
 
@@ -137,6 +150,27 @@ const Game: React.FC<GameProps> = ({ size = 5, onGameReset, userId = null, usern
     return (
         <div style={{ textAlign: 'center', padding: '20px' }}>
             <h3>Juego de Y (Tamano {size})</h3>
+
+            {/* 4. NUEVO: Selector de dificultad */}
+            <div style={{ marginBottom: '20px' }}>
+                <label htmlFor="bot-select" style={{ marginRight: '10px', fontWeight: 'bold' }}>
+                    Dificultad del Bot:
+                </label>
+                <select 
+                    id="bot-select" 
+                    value={selectedBot} 
+                    onChange={(e) => setSelectedBot(e.target.value)}
+                    disabled={loading || yen.layout !== initializeLayout(size)} 
+                    style={{ padding: '5px', borderRadius: '4px' }}
+                >
+                    {BOT_DIFFICULTIES.map(bot => (
+                        <option key={bot.id} value={bot.id}>
+                            {bot.label}
+                        </option>
+                    ))}
+                </select>
+            </div>
+
             <div style={{
                 margin: '15px',
                 fontWeight: 'bold',

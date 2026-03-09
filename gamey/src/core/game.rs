@@ -441,6 +441,11 @@ impl GameY {
         }
         false
     }
+
+    /// Returns the player occupying the given coordinates, if any. NUEBO
+    pub fn piece_at(&self, coords: &Coordinates) -> Option<PlayerId> {
+        self.board_map.get(coords).map(|(_, player)| *player)
+    }
 }
 
 fn indent(str: &mut String, level: u32) {
@@ -543,6 +548,8 @@ fn apply_player_color(symbol: String, player: Option<PlayerId>) -> String {
         _ => symbol,
     }
 }
+
+
 
 /// Represents the current status of a game.
 #[derive(Debug, Clone)]

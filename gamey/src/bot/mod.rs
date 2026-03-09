@@ -10,6 +10,11 @@
 pub mod random;
 pub mod ybot;
 pub mod ybot_registry;
+pub mod greedy;   // NUEVO
+pub mod minimax;  // NUEVO
+
 pub use random::*;
 pub use ybot::*;
 pub use ybot_registry::*;
+pub use greedy::*;   // NUEVO
+pub use minimax::*;  // NUEVO
