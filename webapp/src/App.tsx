@@ -7,8 +7,9 @@ import RegisterForm from './components/auth/RegisterForm';
 import GameView from './components/game/GameView';
 import GameHistory from './components/game/GameHistory';
 import LandingView from './components/layout/LandingView';
+import ProfileView from './components/layout/ProfileView';
 
-export type AppView = 'landing' | 'game' | 'history';
+export type AppView = 'landing' | 'game' | 'history' | 'profile';
 export type AuthView = 'login' | 'register';
 
 function App() {
@@ -68,6 +69,13 @@ function App() {
     }
 
     switch (appView) {
+      case 'profile':
+        return (
+          <ProfileView
+            userId={userId}
+            username={username}
+          />
+        );
       case 'history':
         return (
           <GameHistory
