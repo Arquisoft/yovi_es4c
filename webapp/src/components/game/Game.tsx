@@ -98,7 +98,7 @@ const Game: React.FC<GameProps> = ({ size = 5, onGameReset, userId = null, usern
             }
 
             setStatus('El bot esta pensando...');
-            // 3. MODIFICACIÓN: Pasamos el selectedBot a la función chooseMove
+            // MODIFICACIÓN: Pasamos el selectedBot a la función chooseMove
             const botChoice = await chooseMove(humanResult.yen, selectedBot);
 
             //const botChoice = await chooseMove(humanResult.yen);
@@ -168,7 +168,7 @@ const Game: React.FC<GameProps> = ({ size = 5, onGameReset, userId = null, usern
                         setBoardSize(newSize);
                         // reiniciar automáticamente
                     }}
-                    disabled={loading || yen.layout !== initializeLayout(boardSize)}
+                    disabled={loading}
                     style={{ padding: '5px', borderRadius: '4px' }}
                 >
                     {/* valores entre 5 y 10 inclusive */}
