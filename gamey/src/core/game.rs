@@ -442,7 +442,7 @@ impl GameY {
         false
     }
 
-    /// Returns the player occupying the given coordinates, if any. NUEBO
+    /// Returns the player occupying the given coordinates, if any. NUEVO
     pub fn piece_at(&self, coords: &Coordinates) -> Option<PlayerId> {
         self.board_map.get(coords).map(|(_, player)| *player)
     }
