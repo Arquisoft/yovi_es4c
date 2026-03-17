@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   CircularProgress,
-  Paper,
+  Container,
+  InputAdornment,
   TextField,
   Typography,
-  Alert,
 } from '@mui/material';
+import HexagonIcon from '@mui/icons-material/Hexagon';
+import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
 interface LoginFormProps {
   onLoginSuccess?: (username: string, userId: number) => void;
@@ -23,9 +27,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onGoToRegister })
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
-
-    if (!username.trim()) { setError('Please enter a username.'); return; }
-    if (!password.trim()) { setError('Please enter a password.'); return; }
+    if (!username.trim()) { setError('Introduce un nombre de usuario.'); return; }
+    if (!password.trim()) { setError('Introduce una contraseña.'); return; }
 
     setLoading(true);
     try {
@@ -35,66 +38,119 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onGoToRegister })
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
-
       const data = await res.json();
       if (res.ok) {
-        setTimeout(() => {
-          onLoginSuccess?.(username, data.userId);
-        }, 300);
+        setTimeout(() => onLoginSuccess?.(username, data.userId), 300);
       } else {
-        setError(data.error || 'Invalid credentials');
+        setError(data.error || 'Credenciales inválidas');
       }
-    } catch (err: any) {
-      setError(err.message || 'Network error');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Error de red');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box display="flex" justifyContent="center" mt={4}>
-      <Paper elevation={3} sx={{ p: 4, width: '100%', maxWidth: 400 }}>
-        <Typography variant="h5" fontWeight={700} mb={3} textAlign="center">
-          Log in
-        </Typography>
+    <Box
+      sx={{
+        minHeight: 'calc(100vh - 64px)',
+        display: 'flex',
+        alignItems: 'center',
+        background: `radial-gradient(ellipse 70% 50% at 50% 0%, #00e5ff06 0%, transparent 70%), #060b18`,
+      }}
+    >
+      <Container maxWidth="xs">
+        <Box
+          sx={{
+            position: 'relative',
+            backgroundColor: '#0d1526',
+            border: '1px solid #00e5ff1a',
+            borderRadius: 2,
+            p: { xs: 3, sm: 5 },
+            boxShadow: '0 0 60px #00e5ff08, inset 0 1px 0 #00e5ff15',
+            animation: 'slideUp 0.5s ease',
+            '@keyframes slideUp': { from: { opacity: 0, transform: 'translateY(20px)' }, to: { opacity: 1, transform: 'translateY(0)' } },
+          }}
+        >
+          {/* Corner accent */}
+          <Box sx={{ position: 'absolute', top: -1, left: -1, width: 40, height: 40, borderTop: '2px solid #00e5ff', borderLeft: '2px solid #00e5ff', borderTopLeftRadius: 8 }} />
+          <Box sx={{ position: 'absolute', bottom: -1, right: -1, width: 40, height: 40, borderBottom: '2px solid #00e5ff44', borderRight: '2px solid #00e5ff44', borderBottomRightRadius: 8 }} />
 
-        <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={2}>
-          <TextField
-            label="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            autoComplete="username"
-            fullWidth
-          />
-          <TextField
-            label="Password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-            fullWidth
-          />
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1.5, mb: 4 }}>
+            <HexagonIcon sx={{ color: '#00e5ff', fontSize: 28, filter: 'drop-shadow(0 0 6px #00e5ff)' }} />
+            <Typography variant="h5" sx={{ fontFamily: '"Orbitron"', fontWeight: 700, letterSpacing: '0.1em', color: '#e8f4fd' }}>
+              ACCEDER
+            </Typography>
+          </Box>
 
-          {error && <Alert severity="error">{error}</Alert>}
+          <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={2.5}>
+            <TextField
+              label="Usuario"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoComplete="username"
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <PersonOutlineIcon sx={{ color: '#7a9bb5', fontSize: 20 }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              label="Contraseña"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              fullWidth
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <LockOutlinedIcon sx={{ color: '#7a9bb5', fontSize: 20 }} />
+                  </InputAdornment>
+                ),
+              }}
+            />
 
-          <Button
-            type="submit"
-            variant="contained"
-            size="large"
-            disabled={loading}
-            fullWidth
-          >
-            {loading ? <CircularProgress size={24} color="inherit" /> : 'Log in'}
-          </Button>
+            {error && (
+              <Alert
+                severity="error"
+                sx={{ backgroundColor: '#ff3d710d', border: '1px solid #ff3d7133', color: '#ff8fa3' }}
+              >
+                {error}
+              </Alert>
+            )}
+
+            <Button
+              type="submit"
+              variant="contained"
+              size="large"
+              disabled={loading}
+              fullWidth
+              sx={{ mt: 1, py: 1.5 }}
+            >
+              {loading ? <CircularProgress size={22} sx={{ color: '#060b18' }} /> : 'Entrar'}
+            </Button>
+          </Box>
+
+          <Box sx={{ textAlign: 'center', mt: 3, pt: 3, borderTop: '1px solid #00e5ff0f' }}>
+            <Typography variant="body2" sx={{ color: '#7a9bb5' }}>
+              ¿No tienes cuenta?{' '}
+              <Button
+                variant="text"
+                size="small"
+                onClick={onGoToRegister}
+                sx={{ color: '#00e5ff', p: 0, minWidth: 0, textTransform: 'none', fontSize: 'inherit', fontFamily: '"Rajdhani"', letterSpacing: '0.02em', '&:hover': { color: '#6effff' } }}
+              >
+                Regístrate aquí
+              </Button>
+            </Typography>
+          </Box>
         </Box>
-
-        <Typography variant="body2" textAlign="center" mt={2}>
-          Don't have an account?{' '}
-          <Button variant="text" size="small" onClick={onGoToRegister} sx={{ p: 0, minWidth: 0, textTransform: 'none' }}>
-            Register here
-          </Button>
-        </Typography>
-      </Paper>
+      </Container>
     </Box>
   );
 };
