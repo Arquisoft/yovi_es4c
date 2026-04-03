@@ -53,6 +53,11 @@ public class UsersController {
         return forward(usersUrl + "/api/games/seed", "POST", body);
     }
 
+    @GetMapping("/api/users/{userId}/stats")
+    public ResponseEntity<String> getUserStats(@PathVariable String userId) {
+        return forward(usersUrl + "/api/users/" + userId + "/stats", "GET", null);
+    }
+
     private ResponseEntity<String> forward(String url, String method, String body) {
         try {
             if ("GET".equals(method)) {

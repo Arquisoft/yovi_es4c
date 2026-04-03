@@ -7,12 +7,22 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
-import HexagonIcon from '@mui/icons-material/Hexagon';
 import StarIcon from '@mui/icons-material/Star';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 
-interface Player { id: number; player_name: string; is_winner: boolean; user_id: number | null; }
-interface GameRecord { id: number; yen: string; created_at: string; players: Player[]; }
+interface PlayerStats {
+  totalGames: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  currentStreak: number;
+  topDay: string | null;
+  topDayCount: number;
+  lastGame: string | null;
+  beatenBots: number;
+  memberSince: string | null;
+}
+
 interface ProfileViewProps { userId: number | null; username: string; }
 
 function StatCard({ icon, label, value, accent }: { icon: React.ReactNode; label: string; value: string | number; accent?: string }) {
@@ -54,60 +64,34 @@ function WinRateRing({ rate }: { rate: number }) {
 }
 
 export default function ProfileView({ userId, username }: ProfileViewProps) {
-  const [games, setGames] = useState<GameRecord[]>([]);
+  const [stats, setStats] = useState<PlayerStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchGames = useCallback(async () => {
+  const fetchStats = useCallback(async () => {
+    if (userId === null) { setLoading(false); return; }
     try {
       setLoading(true);
       const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
-      const res = await fetch(`${API_URL}/api/games`, { headers: { 'Content-Type': 'application/json' } });
-      if (!res.ok) throw new Error('Error fetching games');
-      setGames(await res.json() || []);
-    } catch { setGames([]); }
+      const res = await fetch(`${API_URL}/api/users/${userId}/stats`);
+      if (!res.ok) throw new Error('Error fetching stats');
+      setStats(await res.json());
+    } catch { setStats(null); }
     finally { setLoading(false); }
-  }, []);
+  }, [userId]);
 
-  useEffect(() => { fetchGames(); }, [fetchGames]);
+  useEffect(() => { fetchStats(); }, [fetchStats]);
 
-  // Compute metrics from games
-  const myGames = games.filter(g => g.players.some(p => p.user_id === userId));
-  const wins = myGames.filter(g => g.players.some(p => p.user_id === userId && p.is_winner));
-  const losses = myGames.length - wins.length;
-  const winRate = myGames.length > 0 ? Math.round((wins.length / myGames.length) * 100) : 0;
-
-  const boardSizes = myGames.map(g => g.yen.split('/').length);
-  const avgSize = boardSizes.length > 0 ? (boardSizes.reduce((a, b) => a + b, 0) / boardSizes.length).toFixed(1) : '—';
-  const biggestBoard = boardSizes.length > 0 ? Math.max(...boardSizes) : '—';
-
-  const allBotGames = myGames.flatMap(g => g.players.filter(p => p.user_id === null && p.player_name.toLowerCase().includes('bot')));
-  const beatenBots = myGames.filter(g => {
-    const meWon = g.players.some(p => p.user_id === userId && p.is_winner);
-    return meWon;
-  }).length;
-
-  // Streak
-  const sorted = [...myGames].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-  let streak = 0;
-  for (const g of sorted) {
-    if (g.players.some(p => p.user_id === userId && p.is_winner)) streak++;
-    else break;
-  }
-
-  // Most active day
-  const dayCount: Record<string, number> = {};
-  myGames.forEach(g => {
-    const day = new Date(g.created_at).toLocaleDateString('es-ES', { weekday: 'long' });
-    dayCount[day] = (dayCount[day] ?? 0) + 1;
-  });
-  const topDay = Object.entries(dayCount).sort((a, b) => b[1] - a[1])[0]?.[0] ?? '—';
-
-  // Last game date
-  const lastGame = sorted[0] ? new Date(sorted[0].created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' }) : '—';
-
-  // Rank label
-  const rank = winRate >= 80 ? 'Maestro' : winRate >= 60 ? 'Avanzado' : winRate >= 40 ? 'Intermedio' : myGames.length === 0 ? 'Sin rango' : 'Novato';
+  const winRate = stats?.winRate ?? 0;
+  const rank = winRate >= 80 ? 'Maestro' : winRate >= 60 ? 'Avanzado' : winRate >= 40 ? 'Intermedio' : !stats || stats.totalGames === 0 ? 'Sin rango' : 'Novato';
   const rankColor = winRate >= 80 ? '#ffab40' : winRate >= 60 ? '#00e5ff' : winRate >= 40 ? '#7c3aed' : '#4a6a85';
+
+  const lastGame = stats?.lastGame
+    ? new Date(stats.lastGame).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
+    : '—';
+
+  const memberSince = stats?.memberSince
+    ? new Date(stats.memberSince).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })
+    : '—';
 
   return (
     <Box sx={{ minHeight: 'calc(100vh - 64px)', background: `radial-gradient(ellipse 60% 40% at 50% 0%, #7c3aed08 0%, transparent 60%), #060b18`, py: 4 }}>
@@ -147,6 +131,9 @@ export default function ProfileView({ userId, username }: ProfileViewProps) {
                     sx={{ backgroundColor: `${rankColor}15`, border: `1px solid ${rankColor}44`, color: rankColor, fontFamily: '"Rajdhani"', fontWeight: 700, fontSize: '0.75rem' }} />
                 </Box>
                 <Typography sx={{ color: '#4a6a85', fontFamily: '"Rajdhani"', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <AccountCircleIcon sx={{ fontSize: 13 }} /> Se unió el: {memberSince}
+                </Typography>
+                <Typography sx={{ color: '#4a6a85', fontFamily: '"Rajdhani"', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <CalendarTodayIcon sx={{ fontSize: 13 }} /> Última partida: {lastGame}
                 </Typography>
               </Box>
@@ -156,12 +143,10 @@ export default function ProfileView({ userId, username }: ProfileViewProps) {
 
             {/* Stats grid */}
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-              <StatCard icon={<SportsEsportsIcon />} label="Partidas" value={myGames.length} />
-              <StatCard icon={<EmojiEventsIcon />} label="Victorias" value={wins.length} accent="#00e676" />
-              <StatCard icon={<SmartToyIcon />} label="Derrotas" value={losses} accent="#ff3d71" />
-              <StatCard icon={<TrendingUpIcon />} label="Racha actual" value={streak} accent="#ffab40" />
-              <StatCard icon={<HexagonIcon />} label="Tablero promedio" value={avgSize} accent="#7c3aed" />
-              <StatCard icon={<HexagonIcon />} label="Tablero mayor" value={biggestBoard} accent="#06b6d4" />
+              <StatCard icon={<SportsEsportsIcon />} label="Partidas" value={stats?.totalGames ?? 0} />
+              <StatCard icon={<EmojiEventsIcon />} label="Victorias" value={stats?.wins ?? 0} accent="#00e676" />
+              <StatCard icon={<SmartToyIcon />} label="Derrotas" value={stats?.losses ?? 0} accent="#ff3d71" />
+              <StatCard icon={<TrendingUpIcon />} label="Racha actual" value={stats?.currentStreak ?? 0} accent="#ffab40" />
             </Box>
 
             <Divider sx={{ borderColor: '#00e5ff0a' }} />
@@ -173,11 +158,11 @@ export default function ProfileView({ userId, username }: ProfileViewProps) {
                   Bots derrotados
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
-                  <Typography sx={{ fontFamily: '"Orbitron"', fontWeight: 900, fontSize: '2.2rem', color: '#00e676', lineHeight: 1 }}>{beatenBots}</Typography>
-                  <Typography sx={{ color: '#4a6a85', fontFamily: '"Rajdhani"', fontSize: '0.8rem' }}>/ {myGames.length} partidas</Typography>
+                  <Typography sx={{ fontFamily: '"Orbitron"', fontWeight: 900, fontSize: '2.2rem', color: '#00e676', lineHeight: 1 }}>{stats?.beatenBots ?? 0}</Typography>
+                  <Typography sx={{ color: '#4a6a85', fontFamily: '"Rajdhani"', fontSize: '0.8rem' }}>/ {stats?.totalGames ?? 0} partidas</Typography>
                 </Box>
                 <Box sx={{ mt: 1.5, height: 6, borderRadius: 3, backgroundColor: '#00e5ff0a', overflow: 'hidden' }}>
-                  <Box sx={{ height: '100%', width: `${myGames.length > 0 ? (beatenBots / myGames.length) * 100 : 0}%`, background: 'linear-gradient(90deg, #00e676, #00b248)', borderRadius: 3, transition: 'width 1s ease' }} />
+                  <Box sx={{ height: '100%', width: `${stats && stats.totalGames > 0 ? (stats.beatenBots / stats.totalGames) * 100 : 0}%`, background: 'linear-gradient(90deg, #00e676, #00b248)', borderRadius: 3, transition: 'width 1s ease' }} />
                 </Box>
               </Paper>
 
@@ -186,15 +171,15 @@ export default function ProfileView({ userId, username }: ProfileViewProps) {
                   Día más activo
                 </Typography>
                 <Typography sx={{ fontFamily: '"Orbitron"', fontWeight: 700, fontSize: '1.3rem', color: '#00e5ff', textTransform: 'capitalize', lineHeight: 1.2 }}>
-                  {topDay}
+                  {stats?.topDay ?? '—'}
                 </Typography>
                 <Typography sx={{ color: '#4a6a85', fontFamily: '"Rajdhani"', fontSize: '0.8rem', mt: 0.5 }}>
-                  {topDay !== '—' ? `${dayCount[topDay]} partida${dayCount[topDay] !== 1 ? 's' : ''} ese día` : 'Sin datos suficientes'}
+                  {stats?.topDay ? `${stats.topDayCount} partida${stats.topDayCount !== 1 ? 's' : ''} ese día` : 'Sin datos suficientes'}
                 </Typography>
               </Paper>
             </Box>
 
-            {myGames.length === 0 && (
+            {(!stats || stats.totalGames === 0) && (
               <Box sx={{ textAlign: 'center', py: 4, border: '1px dashed #00e5ff22', borderRadius: 2, backgroundColor: '#00e5ff04' }}>
                 <SportsEsportsIcon sx={{ color: '#7a9bb5', fontSize: 40, opacity: 0.4, mb: 1 }} />
                 <Typography sx={{ color: '#7a9bb5', fontFamily: '"Rajdhani"', fontWeight: 600 }}>
