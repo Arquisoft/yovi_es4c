@@ -31,18 +31,31 @@ services:
     networks:
       - monitor-net
 
+  ws-server:
+    build: ./webapp/ws-server
+    container_name: ws-server
+    image: ghcr.io/arquisoft/yovi_es4c-ws-server:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - WS_PORT=8081
+    networks:
+      - monitor-net
+
   webapp:
     build:
       context: ./webapp
       args:
         - VITE_API_URL=http://localhost:8080
         - VITE_GAMEY_URL=http://localhost:8080
+        - VITE_WS_URL=ws://localhost:8081
     container_name: webapp
     image: ghcr.io/arquisoft/yovi_es4c-webapp:latest
     ports:
       - "80:80"
     depends_on:
       - gateway
+      - ws-server
     networks:
       - monitor-net
 
