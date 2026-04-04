@@ -1,21 +1,33 @@
-# Build stage
+# ── Etapa de build ───────────────────────────────────────────────────────────
 FROM node:22-alpine AS builder
 WORKDIR /app
 
-# Install deps
 COPY package.json package-lock.json ./
 RUN npm ci --silent
 
-# Copy sources
 COPY . .
 
-# Accept build-time API urls (defaults to localhost:3000 and gamey localhost:4000)
-ARG VITE_API_URL="http://localhost:3000"
-ARG VITE_GAMEY_URL="http://localhost:4000"
-RUN VITE_API_URL=${VITE_API_URL} VITE_GAMEY_URL=${VITE_GAMEY_URL} && npm run build
+# Variables de entorno de Vite (build time)
+# En producción el cliente conecta al mismo host/puerto (80),
+# Nginx se encarga de proxiar todo.
+ARG VITE_API_URL="http://localhost:80"
+ARG VITE_GAMEY_URL="http://localhost:80"
+# WebSocket a través de Nginx en /ws (mismo host, sin puerto extra)
+ARG VITE_WS_URL="ws://localhost:80/ws"
 
-# Production image
+RUN VITE_API_URL=${VITE_API_URL} \
+    VITE_GAMEY_URL=${VITE_GAMEY_URL} \
+    VITE_WS_URL=${VITE_WS_URL} \
+    npm run build
+
+# ── Etapa de producción (Nginx) ──────────────────────────────────────────────
 FROM nginx:stable-alpine
+
+# Copia el build de Vite
 COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copia la configuración de Nginx con los proxies HTTP y WebSocket
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

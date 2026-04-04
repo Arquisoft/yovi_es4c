@@ -38,7 +38,7 @@ const BOT_DIFFICULTIES = [
   { id: 'minimax_bot', label: 'Difícil — Minimax'  },
 ];
 const MIN_SIZE = 5;
-const MAX_SIZE = 14;
+const MAX_SIZE = 99; // Sin límite práctico
 
 // ---- Props ----
 interface GameModeSelectorProps {
@@ -122,7 +122,7 @@ export default function GameModeSelector({ onStart }: GameModeSelectorProps) {
             variant="outlined"
             size="small"
             onClick={() => changeSize(1)}
-            disabled={boardSize >= MAX_SIZE}
+            
             aria-label="aumentar tamaño"
             data-testid="size-increase"
           >

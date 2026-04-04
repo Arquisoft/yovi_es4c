@@ -1,18 +1,16 @@
 /**
- * Game.tsx  (refactorizado)
+ * Game.tsx — Partida contra el bot.
  *
- * Partida contra el bot. Usa HexBoard para el tablero (geometría corregida).
+ * Al terminar la partida se muestran DOS botones:
+ *   - "Jugar de nuevo"  → reinicia la partida inmediatamente
+ *   - "Volver al menú"  → llama a onBack() para ir al selector
  *
- * Novedades respecto al original:
- *  - Acepta `botDifficulty` y `humanPlayerIndex` (0 = humano empieza, 1 = bot empieza)
- *    desde GameModeSelector, eliminando la config inline.
- *  - La lógica de tablero ha salido a HexBoard.tsx.
- *  - Se eliminan los sx inline de MUI en la medida de lo posible.
- *  - Llama a la API Rust para AMBOS movimientos (humano y bot).
+ * La partida se guarda en BD en background al acabar.
+ * onGameEnd() solo sirve para refrescar el historial; no navega.
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  Alert, Box, Button, CircularProgress, Paper, Typography,
+  Alert, Box, Button, CircularProgress, Paper, Stack, Typography,
 } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import SmartToyIcon    from '@mui/icons-material/SmartToy';
@@ -25,7 +23,9 @@ interface GameProps {
   boardSize:        number;
   botDifficulty:    string;
   humanPlayerIndex: 0 | 1;
+  /** Se llama tras guardar la partida en BD — solo para refrescar historial */
   onGameEnd?:  () => void;
+  /** Navegar de vuelta al selector de modo */
   onBack?:     () => void;
   userId?:     number | null;
   username?:   string;
@@ -57,11 +57,12 @@ const Game: React.FC<GameProps> = ({
   const botIdx   = humanPlayerIndex === 0 ? 1 : 0;
   const isMyTurn = yen.turn === humanPlayerIndex && phase === 'playing';
 
+  // ── Guardar partida en BD (en background, no bloquea la UI) ──────────────
   const saveGame = useCallback(async (finalLayout: string, humanWon: boolean) => {
     const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
     try {
       await fetch(`${API_URL}/api/games`, {
-        method: 'POST',
+        method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           yen: finalLayout,
@@ -71,10 +72,14 @@ const Game: React.FC<GameProps> = ({
           ],
         }),
       });
+      // Solo refresca el historial, NO navega
       onGameEnd?.();
-    } catch (e) { console.error('saveGame error', e); }
+    } catch (e) {
+      console.error('saveGame error', e);
+    }
   }, [userId, username, onGameEnd]);
 
+  // ── Turno del bot ────────────────────────────────────────────────────────
   const runBotTurn = useCallback(async (currentYen: YEN) => {
     setStatus('Bot pensando...');
     setLoading(true);
@@ -83,8 +88,9 @@ const Game: React.FC<GameProps> = ({
       const botResult = await makeHumanMove(currentYen, choice.coords, botIdx);
       setYen(botResult.yen);
       if (botResult.status === 'Finished') {
-        setPhase('lost'); setStatus('El bot ha ganado');
-        await saveGame(botResult.yen.layout, false);
+        setPhase('lost');
+        setStatus('El bot ha ganado');
+        saveGame(botResult.yen.layout, false); // no await — no bloquea
       } else {
         setStatus('Tu turno');
       }
@@ -95,27 +101,35 @@ const Game: React.FC<GameProps> = ({
     }
   }, [botDifficulty, botIdx, saveGame]);
 
-  // Si el bot empieza (humanPlayerIndex=1) disparamos su primer turno
+  // Si el bot empieza (humanPlayerIndex=1), hacer su primer movimiento
   useEffect(() => {
     if (humanPlayerIndex === 1 && phase === 'playing') {
       runBotTurn(yen);
     }
-    // Solo al montar
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ── Click del jugador ────────────────────────────────────────────────────
   const handleCellClick = async (row: number, col: number) => {
     if (!isMyTurn || loading) return;
     if (yen.layout.split('/')?.[row]?.[col] !== '.') return;
-    setLoading(true); setError(null); setStatus('Procesando...');
+
+    setLoading(true);
+    setError(null);
+    setStatus('Procesando...');
+
     try {
       const humanResult = await makeHumanMove(yen, toCube(row, col, boardSize), humanPlayerIndex);
       setYen(humanResult.yen);
+
       if (humanResult.status === 'Finished') {
-        setPhase('won'); setStatus('¡Has ganado!');
-        await saveGame(humanResult.yen.layout, true);
-        setLoading(false); return;
+        setPhase('won');
+        setStatus('¡Has ganado!');
+        saveGame(humanResult.yen.layout, true); // no await — no bloquea
+        setLoading(false);
+        return;
       }
+
       await runBotTurn(humanResult.yen);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Error desconocido');
@@ -125,23 +139,34 @@ const Game: React.FC<GameProps> = ({
     }
   };
 
+  // ── Reiniciar ────────────────────────────────────────────────────────────
   const reset = () => {
     const fresh = buildInitialYen(boardSize);
-    setYen(fresh); setPhase('playing'); setError(null);
+    setYen(fresh);
+    setPhase('playing');
+    setError(null);
     setStatus(humanPlayerIndex === 0 ? 'Tu turno' : '');
     if (humanPlayerIndex === 1) runBotTurn(fresh);
   };
 
   const statusColor = phase === 'won' ? '#00e676' : phase === 'lost' ? '#ff3d71' : loading ? '#ffab40' : '#00e5ff';
+  const isFinished  = phase !== 'playing';
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {/* Cabecera */}
+
+      {/* Cabecera: botón Menú + leyenda */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1 }}>
-        <Button size="small" variant="text" startIcon={<ArrowBackIcon />}
-          onClick={onBack} sx={{ color: 'text.secondary' }} data-testid="btn-back">
+        <Button
+          size="small" variant="text"
+          startIcon={<ArrowBackIcon />}
+          onClick={onBack}
+          sx={{ color: 'text.secondary' }}
+          data-testid="btn-back"
+        >
           Menú
         </Button>
+
         <Box sx={{ display: 'flex', gap: 2 }}>
           {([
             { fill: '#1d4ed8', stroke: '#60a5fa', label: `${username} (${humanPlayerIndex === 0 ? 'Azul' : 'Rojo'})` },
@@ -157,37 +182,67 @@ const Game: React.FC<GameProps> = ({
         </Box>
       </Box>
 
-      {/* Tablero SVG corregido */}
+      {/* Tablero */}
       <HexBoard
         layout={yen.layout}
         boardSize={boardSize}
         currentTurn={yen.turn}
         canInteract={isMyTurn}
-        gameOver={phase !== 'playing'}
+        gameOver={isFinished}
         loading={loading}
         onCellClick={handleCellClick}
       />
 
-      {/* Estado */}
-      <Paper variant="outlined"
-        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center',
+      {/* Barra de estado */}
+      <Paper
+        variant="outlined"
+        sx={{
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
           gap: 1.5, py: 1.5, px: 3,
-          borderColor: `${statusColor}33`, bgcolor: `${statusColor}08`, transition: 'all 0.3s ease' }}>
+          borderColor: `${statusColor}33`,
+          bgcolor:     `${statusColor}08`,
+          transition:  'all 0.3s ease',
+        }}
+      >
         {phase === 'won'  && <EmojiEventsIcon sx={{ color: '#00e676', fontSize: 20 }} />}
         {phase === 'lost' && <SmartToyIcon    sx={{ color: '#ff3d71', fontSize: 20 }} />}
-        <Typography variant="button" sx={{ color: statusColor, letterSpacing: '0.1em' }}
-          data-testid="bot-game-status">{status}</Typography>
+        <Typography
+          variant="button"
+          sx={{ color: statusColor, letterSpacing: '0.1em' }}
+          data-testid="bot-game-status"
+        >
+          {status}
+        </Typography>
         {loading && <CircularProgress size={16} sx={{ color: '#ffab40' }} />}
       </Paper>
 
       {error && <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>}
 
-      {phase !== 'playing' && (
-        <Button variant="contained" size="large" startIcon={<RefreshIcon />}
-          onClick={reset} fullWidth color={phase === 'won' ? 'success' : 'error'}
-          data-testid="btn-play-again">
-          Jugar de nuevo
-        </Button>
+      {/* Botones post-partida: el jugador elige si volver a jugar o al menú */}
+      {isFinished && (
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+          <Button
+            variant="contained"
+            size="large"
+            startIcon={<RefreshIcon />}
+            onClick={reset}
+            fullWidth
+            color={phase === 'won' ? 'success' : 'error'}
+            data-testid="btn-play-again"
+          >
+            Jugar de nuevo
+          </Button>
+          <Button
+            variant="outlined"
+            size="large"
+            startIcon={<ArrowBackIcon />}
+            onClick={onBack}
+            fullWidth
+            data-testid="btn-back-to-menu"
+          >
+            Volver al menú
+          </Button>
+        </Stack>
       )}
     </Box>
   );

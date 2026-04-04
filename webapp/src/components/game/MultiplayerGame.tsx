@@ -33,7 +33,7 @@ import ArrowBackIcon   from '@mui/icons-material/ArrowBack';
 import SendIcon        from '@mui/icons-material/Send';
 import { type KeyboardEvent, useRef, useState } from 'react';
 import HexBoard from './HexBoard';
-import type { RoomState } from '../hooks/useWebSocketRoom';
+import type { RoomState } from '../../hooks/useWebSocketRoom';
 import { makeHumanMove } from '../../api/gameyClient';
 
 interface MultiplayerGameProps {

@@ -15,7 +15,7 @@ import GameModeSelector, { type GameConfig } from './GameModeSelector';
 import Game                                  from './Game';
 import MultiplayerLobby                      from './MultiplayerLobby';
 import MultiplayerGame                       from './MultiplayerGame';
-import { useWebSocketRoom }                  from '../hooks/useWebSocketRoom';
+import { useWebSocketRoom }                  from '../../hooks/useWebSocketRoom';
 
 type Phase = 'selector' | 'bot' | 'mp-lobby';
 
@@ -42,10 +42,15 @@ export default function GameView({ userId, username, onGameReset }: GameViewProp
     }
   };
 
+  // Solo refresca el historial tras guardar partida; la navegación la maneja
+  // el propio Game.tsx con su botón "Volver al menú" → onBack
   const handleBotGameEnd = useCallback(() => {
     onGameReset?.();
-    setPhase('selector');
   }, [onGameReset]);
+
+  const handleBotBack = useCallback(() => {
+    setPhase('selector');
+  }, []);
 
   const handleMpDisconnect = useCallback(() => {
     disconnect();
@@ -96,7 +101,7 @@ export default function GameView({ userId, username, onGameReset }: GameViewProp
             botDifficulty={config.botDifficulty}
             humanPlayerIndex={config.humanPlayerIndex}
             onGameEnd={handleBotGameEnd}
-            onBack={() => setPhase('selector')}
+            onBack={handleBotBack}
             userId={userId}
             username={username}
           />

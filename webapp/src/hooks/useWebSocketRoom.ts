@@ -218,7 +218,14 @@ export function useWebSocketRoom(username: string) {
     [send],
   );
 
-  const sendChat = useCallback((text: string) => send({ type: 'chat', text }), [send]);
+  const sendChat = useCallback((text: string) => {
+    // Añadir el mensaje localmente de inmediato (el servidor no hace echo al emisor)
+    setState(s => ({
+      ...s,
+      chat: [...s.chat, { from: username, text, ts: Date.now() }],
+    }));
+    send({ type: 'chat', text });
+  }, [username, send]);
 
   const disconnect = useCallback(() => {
     wsRef.current?.close(1000, 'user_left');
