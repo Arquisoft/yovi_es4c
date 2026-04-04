@@ -1,30 +1,27 @@
 /**
  * HexBoard.tsx
  *
- * Tablero SVG hexagonal — pirámide centrada, crece de arriba a abajo.
+ * Tablero SVG hexagonal — orientación POINTY-TOP, pirámide centrada.
  *
- * GEOMETRÍA — Hexágonos flat-top (lados planos arriba/abajo):
+ * ORIENTACIÓN: pointy-top
+ *   - Vértices arriba y abajo, lados planos a izquierda y derecha.
+ *   - Ángulo del primer vértice: 90° (arriba).
  *
- *   colStep = √3 · r   → separación horizontal entre centros de la misma fila
- *   rowStep = 1.5 · r  → separación vertical entre filas
+ * GEOMETRÍA para radio r:
+ *   colStep = √3 · r       ← separación horizontal entre centros
+ *   rowStep = 1.5 · r      ← separación vertical entre filas
  *
- *   Anchura de la fila r (en celdas): r + 1
- *   Anchura máxima (base, fila n-1):  n celdas → baseWidth = (n-1) · colStep
+ * POSICIÓN de la celda (row, col) en tablero triangular de tamaño n:
+ *   offsetX = (n - 1 - row) · colStep / 2   ← centra cada fila respecto a la base
+ *   cx = offsetX + col · colStep
+ *   cy = row · rowStep
  *
- *   Para centrar la fila r respecto a la base:
- *     offsetX(r) = (baseWidth - rowWidth(r)) / 2
- *               = ((n-1) · colStep - r · colStep) / 2
- *               = (n - 1 - r) · colStep / 2
+ * PROPIEDAD CLAVE — los centros de los dos hijos de fila r+1 coinciden
+ * con los lados izquierdo y derecho del padre en fila r:
+ *   hijo izq: cx - colStep/2  →  offsetX(r+1) + col·colStep       ✓
+ *   hijo der: cx + colStep/2  →  offsetX(r+1) + (col+1)·colStep   ✓
  *
- *   Posición de la celda (row, col):
- *     cx = offsetX(row) + col · colStep
- *     cy = row · rowStep
- *
- * Con esto la fila 0 tiene 1 celda centrada arriba y la fila n-1
- * tiene n celdas centradas abajo: forma de pirámide perfecta.
- *
- * La función buildHexGeometry se exporta para que GameHistory
- * use exactamente el mismo algoritmo en su MiniBoard.
+ * Esto hace que los hexágonos se conecten perfectamente en zig-zag.
  */
 import { memo } from 'react';
 import { Box, Paper } from '@mui/material';
@@ -57,25 +54,21 @@ export interface HexGeometry {
   rowStep: number;
 }
 
-// ── Geometría exportada ──────────────────────────────────────────────────────
+// ── Geometría exportada (compartida con GameHistory MiniBoard) ──────────────
 
 /**
- * Calcula las posiciones de todas las celdas del tablero triangular
- * formando una pirámide centrada (fila 0 = 1 celda arriba, fila n-1 = n celdas abajo).
- *
- * @param n     tamaño del tablero (número de filas)
- * @param hexR  radio del hexágono (distancia del centro a cada vértice)
+ * Calcula las posiciones de todas las celdas del tablero triangular.
+ * Orientación pointy-top, pirámide centrada (fila 0 = cima, fila n-1 = base).
  */
 export function buildHexGeometry(n: number, hexR: number): HexGeometry {
-  const colStep = Math.sqrt(3) * hexR;   // separación horizontal
-  const rowStep = 1.5 * hexR;            // separación vertical
+  const colStep = Math.sqrt(3) * hexR;  // distancia horizontal entre centros
+  const rowStep = 1.5 * hexR;           // distancia vertical entre filas
 
   const cells: HexCell[] = [];
 
   for (let row = 0; row < n; row++) {
-    // Offset para centrar esta fila respecto a la base (fila n-1)
+    // Offset que centra esta fila respecto a la base (fila n-1)
     const offsetX = ((n - 1 - row) * colStep) / 2;
-
     for (let col = 0; col <= row; col++) {
       cells.push({
         row,
@@ -86,26 +79,28 @@ export function buildHexGeometry(n: number, hexR: number): HexGeometry {
     }
   }
 
-  // Ancho = anchura de la base (fila n-1 tiene n celdas)
-  // La base ocupa desde 0 hasta (n-1)*colStep + colStep = n*colStep
+  // Ancho total = base de n celdas
   const svgW = (n - 1) * colStep + colStep;
-  // Alto = hasta el centro de la última fila + radio
-  const maxCy = (n - 1) * rowStep;
-  const svgH  = maxCy + 2 * hexR;
+  // Alto total = centro de la última fila + radio completo (hex pointy: mitad = r)
+  const svgH = (n - 1) * rowStep + 2 * hexR;
 
   return { cells, svgW, svgH, hexR, colStep, rowStep };
 }
 
 /**
- * Puntos de un hexágono flat-top centrado en (cx, cy) con radio r.
- * Ángulo 0° = vértice derecho, incrementos de 60°.
+ * Puntos de un hexágono POINTY-TOP centrado en (cx, cy) con radio r.
+ * Vértice 0 apunta hacia arriba (90°), el resto cada 60°.
  */
-export function flatHexPoints(cx: number, cy: number, r: number): string {
+export function pointyHexPoints(cx: number, cy: number, r: number): string {
   return Array.from({ length: 6 }, (_, i) => {
-    const angle = (Math.PI / 3) * i;
+    // 90° de offset → primer vértice arriba
+    const angle = (Math.PI / 3) * i + Math.PI / 2;
     return `${(cx + r * Math.cos(angle)).toFixed(2)},${(cy + r * Math.sin(angle)).toFixed(2)}`;
   }).join(' ');
 }
+
+// Alias para compatibilidad con GameHistory que importa flatHexPoints
+export { pointyHexPoints as flatHexPoints };
 
 // ── Colores ─────────────────────────────────────────────────────────────────
 
@@ -132,11 +127,11 @@ const HexBoard = memo(function HexBoard({
   loading,
   onCellClick,
 }: HexBoardProps) {
-  // Radio sin límite superior: escala libremente con el tamaño del tablero
+  // Radio sin límite superior: escala libremente
   const HEX_R    = Math.max(10, Math.round(220 / boardSize));
-  const GAP      = 1.5;
-  const RENDER_R = HEX_R - GAP;
-  const PAD      = HEX_R * 1.2;
+  const GAP      = 1.5;            // gap visual entre hexágonos
+  const RENDER_R = HEX_R - GAP;   // radio de render (ligeramente menor)
+  const PAD      = HEX_R * 1.2;   // padding alrededor del tablero
 
   const { cells, svgW, svgH } = buildHexGeometry(boardSize, HEX_R);
   const viewW = svgW + PAD * 2;
@@ -178,9 +173,10 @@ const HexBoard = memo(function HexBoard({
             const isEmpty   = rawCell === '.';
             const clickable = isEmpty && canInteract && !gameOver && !loading;
 
+            // Aplicar padding de desplazamiento
             const pcx = cx + PAD;
             const pcy = cy + PAD;
-            const pts = flatHexPoints(pcx, pcy, RENDER_R);
+            const pts = pointyHexPoints(pcx, pcy, RENDER_R);
 
             const fill   = isBlue ? C.blueFill   : isRed ? C.redFill   : C.emptyFill;
             const stroke = isBlue ? C.blueStroke : isRed ? C.redStroke : C.emptyStroke;

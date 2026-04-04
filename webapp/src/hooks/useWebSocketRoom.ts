@@ -84,56 +84,47 @@ export function useWebSocketRoom(username: string) {
   }, []);
 
   // ---- Conexión base (interna) ----
-  const openSocket = useCallback((): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      wsRef.current?.close(1000, 'reconnect');
-      const ws = new WebSocket(WS_BASE);
-      wsRef.current = ws;
+  const openSocket = useCallback((onReady: () => void): void => {
+    wsRef.current?.close(1000, 'reconnect');
+    const ws = new WebSocket(WS_BASE);
+    wsRef.current = ws;
 
-      ws.onopen = () => resolve();
+    ws.onopen = () => onReady();
 
-      ws.onmessage = ({ data }: MessageEvent) => {
-        try { handleMsg(JSON.parse(data as string)); }
-        catch { console.error('[WS] mensaje inválido', data); }
-      };
+    ws.onmessage = ({ data }: MessageEvent) => {
+      try { handleMsg(JSON.parse(data as string)); }
+      catch { console.error('[WS] mensaje inválido', data); }
+    };
 
-      ws.onerror = () => {
-        setState(s => ({ ...s, status: 'error', error: 'Error de conexión WebSocket' }));
-        reject(new Error('WebSocket error'));
-      };
+    ws.onerror = () => {
+      setState(s => ({ ...s, status: 'error', error: 'Error de conexión WebSocket' }));
+    };
 
-      ws.onclose = ({ code }) => {
-        if (code !== 1000) {
-          setState(s =>
-            s.status === 'playing' || s.status === 'waiting'
-              ? { ...s, status: 'error', error: 'Conexión perdida' }
-              : s,
-          );
-        }
-      };
-    });
+    ws.onclose = ({ code }) => {
+      if (code !== 1000) {
+        setState(s =>
+          s.status === 'playing' || s.status === 'waiting'
+            ? { ...s, status: 'error', error: 'Conexión perdida' }
+            : s,
+        );
+      }
+    };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---- Crear sala (jugador A) ----
-  const createRoom = useCallback(async (boardSize: number) => {
+  const createRoom = useCallback((boardSize: number) => {
     setState(s => ({ ...s, status: 'connecting', error: null, chat: [], boardSize }));
-    try {
-      await openSocket();
+    openSocket(() => {
       send({ type: 'create', username, boardSize });
-    } catch {
-      setState(s => ({ ...s, status: 'error', error: 'No se pudo conectar al servidor' }));
-    }
+    });
   }, [username, openSocket, send]);
 
   // ---- Unirse a sala (jugador B) ----
-  const joinRoom = useCallback(async (roomCode: string, boardSize: number) => {
-    setState(s => ({ ...s, status: 'connecting', error: null, chat: [], boardSize }));
-    try {
-      await openSocket();
+  const joinRoom = useCallback((roomCode: string, boardSize?: number) => {
+    setState(s => ({ ...s, status: 'connecting', error: null, chat: [], ...(boardSize ? { boardSize } : {}) }));
+    openSocket(() => {
       send({ type: 'join', username, roomCode: roomCode.toUpperCase().trim() });
-    } catch {
-      setState(s => ({ ...s, status: 'error', error: 'No se pudo conectar al servidor' }));
-    }
+    });
   }, [username, openSocket, send]);
 
   // ---- Procesar mensajes del servidor ----
