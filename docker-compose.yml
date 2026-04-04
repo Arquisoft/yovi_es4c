@@ -1,10 +1,30 @@
 services:
+
+  # ── TLS termination proxy (certificado autofirmado para localhost) ────────
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"       # HTTP → redirige a HTTPS
+      - "443:443"     # HTTPS — webapp
+      - "8443:8443"   # HTTPS — API gateway
+    volumes:
+      - ./nginx/conf.d/app.conf:/etc/nginx/conf.d/app.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - gateway
+      - webapp
+    networks:
+      - monitor-net
+
+  # ── API Gateway (Spring Boot) ────────────────────────────────────────────
   gateway:
     build: ./gateway
     container_name: gateway
     image: ghcr.io/arquisoft/yovi_es4c-gateway:latest
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     environment:
       - USERS_SERVICE_URL=http://users:3000
       - GAMEY_SERVICE_URL=http://gamey:4000
@@ -14,6 +34,7 @@ services:
     networks:
       - monitor-net
 
+  # ── Users service (Node.js) ───────────────────────────────────────────────
   users:
     build: ./users
     container_name: users
@@ -31,21 +52,23 @@ services:
     networks:
       - monitor-net
 
+  # ── Webapp (React + Nginx) ────────────────────────────────────────────────
   webapp:
     build:
       context: ./webapp
       args:
-        - VITE_API_URL=http://localhost:8080
-        - VITE_GAMEY_URL=http://localhost:8080
+        - VITE_API_URL=https://localhost:8443
+        - VITE_GAMEY_URL=https://localhost:8443
     container_name: webapp
     image: ghcr.io/arquisoft/yovi_es4c-webapp:latest
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     depends_on:
       - gateway
     networks:
       - monitor-net
 
+  # ── Gamey service (Rust) ──────────────────────────────────────────────────
   gamey:
     build: ./gamey
     container_name: gamey
@@ -55,6 +78,7 @@ services:
     networks:
       - monitor-net
 
+  # ── Monitoring ────────────────────────────────────────────────────────────
   prometheus:
     image: prom/prometheus
     container_name: prometheus
