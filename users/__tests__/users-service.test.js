@@ -390,3 +390,118 @@ describe('POST /api/games/seed', () => {
     expect(mockConn.rollback).toHaveBeenCalled();
   });
 });
+
+// ── GET /api/users/:userId/stats ──────────────────────────────────────────────
+describe('GET /api/users/:userId/stats', () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+    vi.spyOn(pool, 'getConnection').mockResolvedValue(mockConn);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('Válido: devuelve las estadísticas correctas para un usuario con partidas', async () => {
+    mockConn.query
+      .mockResolvedValueOnce([[                                               // SELECT games
+        { yen: 'a/b/c', created_at: '2026-03-29T21:06:00.000Z', is_winner: true },
+        { yen: 'a/b',   created_at: '2026-03-28T10:00:00.000Z', is_winner: false },
+        { yen: 'a/b/c', created_at: '2026-03-27T10:00:00.000Z', is_winner: true },
+      ]])
+      .mockResolvedValueOnce([[{ created_at: '2026-01-15T10:00:00.000Z' }]]); // SELECT users;
+
+    const res = await request(app).get('/api/users/1/stats');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.totalGames).toBe(3);
+    expect(res.body.wins).toBe(2);
+    expect(res.body.losses).toBe(1);
+    expect(res.body.winRate).toBe(67);
+    expect(res.body.currentStreak).toBe(1);
+    expect(res.body.beatenBots).toBe(2);
+    expect(res.body.memberSince).toBe('2026-01-15T10:00:00.000Z');
+  });
+
+  it('Válido: devuelve estadísticas vacías para un usuario sin partidas', async () => {
+    mockConn.query
+      .mockResolvedValueOnce([[]])
+      .mockResolvedValueOnce([[{ created_at: '2026-01-15T10:00:00.000Z' }]]); // SELECT users; // SELECT games → sin partidas
+
+    const res = await request(app).get('/api/users/1/stats');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.totalGames).toBe(0);
+    expect(res.body.wins).toBe(0);
+    expect(res.body.losses).toBe(0);
+    expect(res.body.winRate).toBe(0);
+    expect(res.body.currentStreak).toBe(0);
+    expect(res.body.topDay).toBeNull();
+    expect(res.body.lastGame).toBeNull();
+  });
+
+  it('Válido: calcula correctamente la racha cuando todas son victorias', async () => {
+    mockConn.query
+      .mockResolvedValueOnce([[
+        { yen: 'a/b', created_at: '2026-03-29T10:00:00.000Z', is_winner: true },
+        { yen: 'a/b', created_at: '2026-03-28T10:00:00.000Z', is_winner: true },
+        { yen: 'a/b', created_at: '2026-03-27T10:00:00.000Z', is_winner: true },
+      ]])
+      .mockResolvedValueOnce([[{ created_at: '2026-01-15T10:00:00.000Z' }]]);
+
+    const res = await request(app).get('/api/users/1/stats');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.currentStreak).toBe(3);
+  });
+
+  it('Válido: la racha se corta en la primera derrota', async () => {
+    mockConn.query
+      .mockResolvedValueOnce([[
+        { yen: 'a/b', created_at: '2026-03-29T10:00:00.000Z', is_winner: true },
+        { yen: 'a/b', created_at: '2026-03-28T10:00:00.000Z', is_winner: false },
+        { yen: 'a/b', created_at: '2026-03-27T10:00:00.000Z', is_winner: true },
+      ]])
+      .mockResolvedValueOnce([[{ created_at: '2026-01-15T10:00:00.000Z' }]]);
+
+    const res = await request(app).get('/api/users/1/stats');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.currentStreak).toBe(1);
+  });
+
+  it('Válido: memberSince es null si el usuario no existe en la tabla users', async () => {
+    mockConn.query
+      .mockResolvedValueOnce([[]])  // SELECT users → no encontrado
+      .mockResolvedValueOnce([[]]); // SELECT games → sin partidas
+
+    const res = await request(app).get('/api/users/999/stats');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.memberSince).toBeNull();
+  });
+
+  it('Espera error: devuelve 400 si el userId no es un número', async () => {
+    const res = await request(app).get('/api/users/abc/stats');
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toBe('Invalid userId');
+  });
+
+  it('Espera error: devuelve 500 si la base de datos falla', async () => {
+    mockConn.query.mockRejectedValueOnce(new Error('db error'));
+
+    const res = await request(app).get('/api/users/1/stats');
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.error).toBe('db error');
+  });
+
+  it('Válido: libera la conexión siempre, incluso si hay error', async () => {
+    mockConn.query.mockRejectedValueOnce(new Error('db error'));
+
+    await request(app).get('/api/users/1/stats');
+
+    expect(mockConn.release).toHaveBeenCalledTimes(1);
+  });
+});
