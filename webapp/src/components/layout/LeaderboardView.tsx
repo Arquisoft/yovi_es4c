@@ -386,6 +386,7 @@ export default function LeaderboardView() {
                   onClick={() => setOffset((o) => Math.max(0, o - LIMIT))}
                   disabled={!hasPrev}
                   size="small"
+                  aria-label="Página anterior"
                   sx={{
                     color: '#00e5ff',
                     border: '1px solid #00e5ff22',
@@ -419,6 +420,7 @@ export default function LeaderboardView() {
                   onClick={() => setOffset((o) => o + LIMIT)}
                   disabled={!hasNext}
                   size="small"
+                  aria-label="Página siguiente"
                   sx={{
                     color: '#00e5ff',
                     border: '1px solid #00e5ff22',
