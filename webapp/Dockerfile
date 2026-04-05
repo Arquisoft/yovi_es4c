@@ -12,7 +12,7 @@ COPY . .
 # Accept build-time API urls (defaults to localhost:3000 and gamey localhost:4000)
 ARG VITE_API_URL="http://localhost:3000"
 ARG VITE_GAMEY_URL="http://localhost:4000"
-RUN VITE_API_URL=${VITE_API_URL} VITE_GAMEY_URL=${VITE_GAMEY_URL} && npm run build
+RUN VITE_API_URL=${VITE_API_URL} VITE_GAMEY_URL=${VITE_GAMEY_URL}  npm run build
 
 # Production image
 FROM nginx:stable-alpine

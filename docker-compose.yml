@@ -1,14 +1,13 @@
 services:
 
-  # ── TLS termination proxy (certificado autofirmado para localhost) ────────
+  # ── TLS termination proxy ────────────────────────────────────────────────
   nginx:
     image: nginx:stable-alpine
     container_name: nginx
     restart: unless-stopped
     ports:
       - "80:80"       # HTTP → redirige a HTTPS
-      - "443:443"     # HTTPS — webapp
-      - "8443:8443"   # HTTPS — API gateway
+      - "443:443"     # HTTPS — webapp + API gateway
     volumes:
       - ./nginx/conf.d/app.conf:/etc/nginx/conf.d/app.conf:ro
       - ./nginx/certs:/etc/nginx/certs:ro
@@ -57,8 +56,9 @@ services:
     build:
       context: ./webapp
       args:
-        - VITE_API_URL=https://localhost:8443
-        - VITE_GAMEY_URL=https://localhost:8443
+        # Gateway ahora en el mismo puerto 443 que la webapp
+        - VITE_API_URL=https://localhost
+        - VITE_GAMEY_URL=https://localhost
     container_name: webapp
     image: ghcr.io/arquisoft/yovi_es4c-webapp:latest
     expose:
