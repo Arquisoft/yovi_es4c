@@ -8,25 +8,37 @@ ifndef::imagesdir[:imagesdir: ../images]
 [options="header",cols="1,2,2"]
 |===
 |Elemento | Entrada | Salida
-| Usuario
-| Accede a la aplicación, realiza movimientos, consulta historial
-| Visualización del tablero, resultados de la partida, historial
+| Usuario humano
+| Accede a la aplicación, selecciona modo de juego, realiza movimientos, consulta historial
+| Visualización del tablero, resultado de la partida, historial de partidas
 
-| Bot externo
-| Solicitudes al API (posición en formato YEN, peticiones de jugadas)
-| Respuesta con el siguiente movimiento en formato YEN
+| Jugador multijugador (sala)
+| Crea o se une a una sala mediante código de 6 caracteres; envía movimientos y mensajes de chat
+| Actualizaciones del tablero en tiempo real, mensajes de chat del oponente
+
+| Bot externo (competición)
+| Envía estado YEN + jugada + bot_id al endpoint `POST /api/play`
+| Estado del tablero tras la jugada del bot oponente, resultado de la partida
 
 | Sistema Yovi
-| Recibe movimientos y peticiones
-| Gestiona partidas, usuarios y lógica del juego
+| Recibe movimientos, peticiones de estado y mensajes de sala
+| Gestiona partidas, usuarios, salas WebSocket y lógica del juego
 
-| Módulo de lógica (Rust)
-| Estado del tablero en formato YEN
-| Resultado de la partida o siguiente movimiento sugerido
+| Módulo de lógica (Rust/Gamey)
+| Estado del tablero en formato YEN + coordenadas de la jugada
+| Nuevo estado YEN validado, status de la partida, jugada del bot
+
+| Gateway (Spring Boot)
+| Peticiones HTTP del frontend o bots externos
+| Redirige al microservicio correspondiente (users o gamey)
+
+| Servidor WebSocket (ws-server)
+| Mensajes de sala: create, join, board_update, game_over, chat
+| Empareja jugadores, retransmite movimientos y chat entre oponentes
 |===
 
-El sistema Yovi actúa como intermediario entre los usuarios, los bots externos y el módulo de lógica del juego. 
-Los usuarios interactúan a través de la interfaz web, mientras que los bots lo hacen mediante el API.
+El sistema Yovi actúa como intermediario entre los usuarios, los bots externos y el módulo de lógica del juego.
+Los usuarios interactúan a través de la interfaz web mediante HTTP y WebSocket, mientras que los bots lo hacen mediante el endpoint REST `/api/play`.
 
 ---
 
@@ -35,21 +47,33 @@ Los usuarios interactúan a través de la interfaz web, mientras que los bots lo
 [options="header",cols="1,2,2"]
 |===
 |Elemento | Canal | Tecnología
-| Usuario ↔ Aplicación web
+| Usuario ↔ WebApp (SPA)
 | Navegador web
-| HTTP/HTTPS, TypeScript/React
+| HTTP/HTTPS, React + TypeScript + Material UI
 
-| Aplicación web ↔ API
+| WebApp ↔ Gateway (REST)
+| Peticiones HTTP/HTTPS
+| JSON, puerto 80 (Nginx proxy → gateway:8080)
+
+| WebApp ↔ Servidor WebSocket
+| Conexión WebSocket persistente
+| ws:// o wss://, protocolo de salas propio, puerto 80 (Nginx proxy → ws-server:8081)
+
+| Gateway ↔ Users Service
+| Red interna Docker, HTTP
+| JSON, puerto 3000
+
+| Gateway ↔ Gamey Engine
+| Red interna Docker, HTTP
+| JSON + notación YEN, puerto 4000
+
+| Users Service ↔ MySQL
+| Red interna Docker, TCP
+| SQL, puerto 3306
+
+| Bot externo ↔ Gateway
 | Peticiones HTTP
-| JSON
-
-| Aplicación web ↔ Módulo de lógica
-| Servicios web
-| HTTP/HTTPS + JSON
-
-| Bot externo ↔ API
-| Peticiones HTTP
-| JSON
+| JSON, `POST /api/play`, puerto 80
 |===
 
 ---
@@ -59,9 +83,13 @@ Los usuarios interactúan a través de la interfaz web, mientras que los bots lo
 [options="header",cols="1,2"]
 |===
 |Entrada/Salida | Canal
-| Movimiento del usuario | Agente de usuario (HTTP)
-| Visualización del tablero | Agente de usuario (HTTP)
-| Petición de jugada (bot) | API HTTP (JSON)
-| Respuesta del sistema | API HTTP (JSON)
-| Comunicación con módulo Rust | Servicios web (HTTP + JSON)
+| Movimiento del usuario (vs bot) | HTTP → Gateway → Gamey Engine (`/v1/game/play`)
+| Movimiento del usuario (multijugador) | HTTP → Gateway → Gamey Engine + WebSocket broadcast al oponente
+| Visualización del tablero | Renderizado SVG en la SPA (estado recibido de Gamey)
+| Petición de jugada del bot interno | HTTP → Gateway → Gamey Engine (`/v1/ybot/choose/{botId}`)
+| Petición de partida bot-vs-bot | HTTP → Gateway → Users Service → Gamey Engine (`POST /api/play`)
+| Chat en sala multijugador | WebSocket bidireccional (cliente ↔ ws-server ↔ oponente)
+| Guardado de partida | HTTP → Gateway → Users Service → MySQL
+| Historial de partidas | HTTP → Gateway → Users Service → MySQL
+| Registro/login de usuario | HTTP → Gateway → Users Service → MySQL
 |===
