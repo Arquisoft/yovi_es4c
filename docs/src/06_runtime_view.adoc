@@ -3,90 +3,173 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-runtime-view]]
 == Runtime View
 
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-The runtime view describes concrete behavior and interactions of the system’s building blocks in form of scenarios from the following areas:
-
-* important use cases or features: how do building blocks execute them?
-* interactions at critical external interfaces: how do building blocks cooperate with users and neighboring systems?
-* operation and administration: launch, start-up, stop
-* error and exception scenarios
-
-Remark: The main criterion for the choice of possible scenarios (sequences, workflows) is their *architectural relevance*. It is *not* important to describe a large number of scenarios. You should rather document a representative selection.
-
-.Motivation
-You should understand how (instances of) building blocks of your system perform their job and communicate at runtime.
-You will mainly capture scenarios in your documentation to communicate your architecture to stakeholders that are less willing or able to read and understand the static models (building block view, deployment view).
-
-.Form
-There are many notations for describing scenarios, e.g.
-
-* numbered list of steps (in natural language)
-* activity diagrams or flow charts
-* sequence diagrams
-* BPMN or EPCs (event process chains)
-* state machines
-* ...
-
-
-.Further Information
-
-See https://docs.arc42.org/section-6/[Runtime View] in the arc42 documentation.
-
-****
-endif::arc42help[]
-
-=== Resgistro del usuario
+=== Registro del usuario
 
 Caso::
-- El usuario entra en la página web e inicia el proceso de registrarse para poder echar unas partidas.
-
-
-* La WebApp envía los datos del formulario al Users Service para validación y creación de la cuenta.
-* Users Service valida los datos, crea al usuario y devuelve la confirmación.
-
+El usuario accede a la página web e inicia el proceso de registro para poder jugar partidas.
 
 [plantuml,"Registro de Usuario",png]
 ----
 actor Usuario
 participant "WebApp (React)" as WebApp
+participant "Gateway" as GW
 participant "Users Service (Node.js)" as UsersService
-database "Base de datos" as DB
+database "MySQL" as DB
 
 Usuario -> WebApp: Completa formulario de registro
-WebApp -> UsersService: POST /users/createuser
-UsersService -> DB: Guardar datos de usuario
-DB --> UsersService: Confirmación guardado
-UsersService --> WebApp: Respuesta éxito/fracaso
-WebApp --> Usuario: Mensaje de confirmación
+WebApp -> GW: POST /createuser
+GW -> UsersService: POST /createuser
+UsersService -> DB: INSERT usuarios (contraseña hasheada con bcrypt)
+DB --> UsersService: Confirmación
+UsersService --> GW: { message: "Hello username!" }
+GW --> WebApp: Respuesta
+WebApp --> Usuario: Mensaje de bienvenida + redirige a selección de modo
 ----
 
-=== Partida a Y
+---
+
+=== Partida vs Bot
 
 Caso::
-- El usuario comienza una nueva partida.
-* La WebApp solicita al Gamey Engine que cree una nueva sesión de juego.
-* Gamey Engine inicializa el estado de la partida y registra los bots necesarios.
-* Gamey Engine devuelve a la WebApp el estado inicial de la partida.
-* La WebApp muestra al usuario el tablero o interfaz de juego lista para interactuar.
+El usuario selecciona el modo vs bot, configura tamaño, dificultad y quién empieza, y juega una partida completa.
 
-Diagrama de secuencia representativo:
-
-[plantuml,"Inicio de Partida",png]
+[plantuml,"Partida vs Bot",png]
 ----
 actor Usuario
 participant "WebApp (React)" as WebApp
+participant "Gateway" as GW
 participant "Gamey Engine (Rust)" as Gamey
-database "Estado de juego" as GameDB
+participant "Users Service" as US
+database "MySQL" as DB
 
-Usuario -> WebApp: Solicita nueva partida
-WebApp -> Gamey: POST /game/start
-Gamey -> GameDB: Inicializar estado de partida
-GameDB --> Gamey: Confirmación estado inicial
-Gamey --> WebApp: Estado inicial de la partida
-WebApp --> Usuario: Interfaz de juego lista
+Usuario -> WebApp: Selecciona modo, tamaño, dificultad, quién empieza
+WebApp -> WebApp: Muestra tablero inicial
+
+loop Cada turno del jugador
+  Usuario -> WebApp: Click en celda
+  WebApp -> GW: POST /v1/game/play\n{yen, coords, player_idx}
+  GW -> Gamey: POST /v1/game/play
+  Gamey --> GW: {yen actualizado, status}
+  GW --> WebApp: Respuesta
+
+  alt status == "Ongoing"
+    WebApp -> GW: POST /v1/ybot/choose/{botId}
+    GW -> Gamey: POST /v1/ybot/choose/{botId}
+    Gamey --> GW: {coords del bot}
+    GW --> WebApp: Respuesta
+    WebApp -> GW: POST /v1/game/play (turno del bot)
+    GW -> Gamey: POST /v1/game/play
+    Gamey --> GW: {yen actualizado, status}
+    GW --> WebApp: Respuesta
+  end
+end
+
+WebApp --> Usuario: Muestra resultado (ganó/perdió)
+note right of WebApp
+  Se muestran DOS botones:
+  - "Jugar de nuevo" (reinicia tablero)
+  - "Volver al menú" (selector de modo)
+end note
+
+WebApp -> GW: POST /api/games (en background)
+GW -> US: POST /api/games
+US -> DB: INSERT game + game_players
 ----
 
+---
+
+=== Partida Multijugador (WebSocket)
+
+Caso::
+Dos jugadores crean y se unen a una sala, juegan una partida con chat en tiempo real.
+
+[plantuml,"Partida Multijugador",png]
+----
+actor "Jugador A" as JA
+actor "Jugador B" as JB
+participant "WebApp A" as WA
+participant "WebApp B" as WB
+participant "Nginx\n(proxy /ws)" as Nginx
+participant "WS-Server" as WS
+participant "Gateway" as GW
+participant "Gamey Engine" as Gamey
+
+JA -> WA: Selecciona multijugador → "Crear sala"
+WA -> Nginx: WebSocket ws://.../ws
+Nginx -> WS: WebSocket proxy
+WA -> WS: { type: "create", username, boardSize }
+WS --> WA: { type: "room_created", roomCode: "ABC123" }
+note right of WA: Muestra código ABC123 para compartir
+
+JB -> WB: Selecciona multijugador → "Unirse" → introduce ABC123
+WB -> WS: { type: "join", username, roomCode: "ABC123" }
+WS --> WA: { type: "game_start", opponentName, playerIndex: 0 }
+WS --> WB: { type: "game_start", opponentName, playerIndex: 1 }
+note right of WS: playerIndex asignado aleatoriamente
+
+loop Cada turno
+  JA -> WA: Click en celda (si es su turno)
+  WA -> GW: POST /v1/game/play
+  GW -> Gamey: POST /v1/game/play
+  Gamey --> WA: {yen actualizado, status}
+  WA -> WS: { type: "board_update", layout, turn }
+  WS --> WB: { type: "board_update", layout, turn }
+  WB -> WB: Actualiza tablero
+
+  opt Chat
+    JA -> WA: Escribe mensaje
+    WA -> WS: { type: "chat", text }
+    WS --> WB: { type: "chat", from: "JugadorA", text }
+  end
+end
+
+WA -> GW: POST /api/games (guarda partida en background)
+WA -> WS: { type: "game_over", layout, winner }
+WS --> WB: { type: "game_over", layout, winner }
+----
+
+---
+
+=== Competición Bot vs Bot (`POST /api/play`)
+
+Caso::
+Un bot externo (o script de testing) quiere hacer una jugada y recibir la respuesta del bot de la aplicación en una sola llamada HTTP.
+
+[plantuml,"Bot vs Bot",png]
+----
+participant "Bot externo" as Bot
+participant "Gateway" as GW
+participant "Users Service" as US
+participant "Gamey Engine" as Gamey
+
+Bot -> GW: POST /api/play\n{yen, coords, player_idx, bot_id}
+GW -> US: POST /api/play
+
+US -> Gamey: POST /v1/game/play (jugada del bot externo)
+Gamey --> US: {yen, status}
+
+alt status == "Finished"
+  US --> GW: {yen, status, winner, player_move, bot_move: null}
+  GW --> Bot: Respuesta (bot externo ganó)
+else status == "Ongoing"
+  US -> Gamey: POST /v1/ybot/choose/{bot_id}
+  Gamey --> US: {coords del bot interno}
+  US -> Gamey: POST /v1/game/play (jugada del bot interno)
+  Gamey --> US: {yen final, status, winner}
+  US --> GW: {yen, status, winner, player_move, bot_move}
+  GW --> Bot: Respuesta con estado tras ambas jugadas
+end
+----
+
+---
+
+=== Fin de partida vs Bot — Experiencia del usuario
+
+Caso::
+La partida termina y el usuario decide si jugar de nuevo o ver el historial.
+
+* La partida se guarda en MySQL **en background** (el usuario no espera).
+* Se muestran simultáneamente dos botones:
+** **"Jugar de nuevo"**: reinicia el tablero con la misma configuración sin volver al menú.
+** **"Volver al menú"**: navega al `GameModeSelector` para elegir nueva configuración.
+* El historial de partidas se refresca automáticamente cuando el usuario navega a esa vista.

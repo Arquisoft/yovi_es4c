@@ -1,315 +1,182 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-building-block-view]]
-
-
 == Building Block View
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Content
-The building block view shows the static decomposition of the system into building blocks (modules, components, subsystems, classes, interfaces, packages, libraries, frameworks, layers, partitions, tiers, functions, macros, operations, data structures, ...) as well as their dependencies (relationships, associations, ...)
-
-This view is mandatory for every architecture documentation.
-In analogy to a house this is the _floor plan_.
-
-.Motivation
-Maintain an overview of your source code by making its structure understandable through
-abstraction.
-
-This allows you to communicate with your stakeholder on an abstract level without disclosing implementation details.
-
-.Form
-The building block view is a hierarchical collection of black boxes and white boxes
-(see figure below) and their descriptions.
-
-image::05_building_blocks-EN.png["Hierarchy of building blocks"]
-
-*Level 1* is the white box description of the overall system together with black
-box descriptions of all contained building blocks.
-
-*Level 2* zooms into some building blocks of level 1.
-Thus it contains the white box description of selected building blocks of level 1, together with black box descriptions of their internal building blocks.
-
-*Level 3* zooms into selected building blocks of level 2, and so on.
-
-
-.Further Information
-
-See https://docs.arc42.org/section-5/[Building Block View] in the arc42 documentation.
-
-****
-endif::arc42help[]
 
 === Whitebox Overall System
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Here you describe the decomposition of the overall system using the following white box template. It contains
-
- * an overview diagram
- * a motivation for the decomposition
- * black box descriptions of the contained building blocks. For these we offer you alternatives:
-
-   ** use _one_ table for a short and pragmatic overview of all contained building blocks and their interfaces
-   ** use a list of black box descriptions of the building blocks according to the black box template (see below).
-   Depending on your choice of tool this list could be sub-chapters (in text files), sub-pages (in a Wiki) or nested elements (in a modeling tool).
-
-
- * (optional:) important interfaces, that are not explained in the black box templates of a building block, but are very important for understanding the white box.
-Since there are so many ways to specify interfaces why do not provide a specific template for them.
- In the worst case you have to specify and describe syntax, semantics, protocols, error handling,
- restrictions, versions, qualities, necessary compatibilities and many things more.
-In the best case you will get away with examples or simple signatures.
-
-****
-endif::arc42help[]
-
-_**Diagrama**_
+_**Diagrama de bloques del sistema completo**_
 
 [plantuml, building-block-overview, png]
 ----
 @startuml
-package "Yovi" {
-  [WebApp (React + TS)] --> [Users Service (Node + Express)]
-  [WebApp (React + TS)] --> [Gamey Engine (Rust)]
-  [Users Service (Node + Express)] --> [Gamey Engine (Rust)]
+skinparam linetype ortho
+
+package "Cliente (Navegador)" {
+  [WebApp (React + TS)]
 }
+
+package "Entrada única (puerto 80)" {
+  [Nginx]
+}
+
+package "Backend" {
+  [Gateway (Spring Boot)] as GW
+  [Users Service (Node.js)] as US
+  [Gamey Engine (Rust)] as GE
+  [WS-Server (Node.js)] as WS
+  database "MySQL" as DB
+}
+
+[WebApp] --> [Nginx] : HTTP / WS
+[Nginx] --> [GW] : HTTP proxy
+[Nginx] --> [WS] : WebSocket proxy (/ws)
+[GW] --> [US] : REST HTTP
+[GW] --> [GE] : REST HTTP
+[US] --> [GE] : REST HTTP (api/play)
+[US] --> [DB] : SQL
 @enduml
 ----
 
 Motivation::
 
-El sistema se descompone en servicios independientes (microservicios) para separar claramente
-la capa de presentación, la gestión de usuarios y la lógica principal del juego.
-Esta modularización mejora la mantenibilidad, la escalabilidad y permite el
-despliegue independiente de cada componente mediante contenedores Docker.
-
+El sistema se descompone en microservicios independientes para separar la presentación, la gestión de usuarios/partidas, la lógica del juego y la comunicación en tiempo real.
+Nginx actúa como punto de entrada único en producción, eliminando la exposición de puertos internos al exterior y habilitando el proxy WebSocket.
 
 Contained Building Blocks::
 
 [cols="1,2", options="header"]
 |===
-| **Name** | **Responsibility**
-| WebApp | Aplicación SPA que proporciona la interfaz de usuario y se comunica con los servicios backend.
-| Users Service | API REST responsable de la gestión de usuarios y lógica de autenticación.
-| Gamey Engine | Motor principal que implementa la lógica del juego y la gestión de bots.
-| Documentation | Documentación arquitectónica y técnica del sistema basada en arc42.
+| **Bloque** | **Responsabilidad**
+| WebApp | SPA que proporciona la interfaz de usuario: selección de modo, tablero de juego, historial, multijugador.
+| Nginx | Servidor web y proxy inverso: sirve los estáticos de React, redirige HTTP al gateway y WebSocket al ws-server.
+| Gateway | Punto de entrada HTTP único. Enruta peticiones REST al servicio correcto (users o gamey).
+| Users Service | API REST de usuarios y partidas. Gestiona registro, login, guardado de partidas y el endpoint `/api/play`.
+| Gamey Engine | Motor de juego en Rust. Valida movimientos, comprueba victorias y ejecuta los algoritmos de bot.
+| WS-Server | Servidor WebSocket de salas multijugador. Empareja jugadores por código, retransmite movimientos y chat.
+| MySQL | Persistencia de usuarios, partidas y jugadores.
 |===
 
 Important Interfaces::
 
-- Comunicación REST HTTP entre WebApp y Users Service.
-- Comunicación REST HTTP entre WebApp y Gamey Engine.
-- Comunicación interna entre servicios mediante red Docker.
-- Intercambio de datos en formato JSON.
+- HTTP/JSON entre WebApp y Gateway (puerto 80, Nginx proxy).
+- WebSocket `ws://<host>/ws` entre WebApp y WS-Server (Nginx proxy).
+- HTTP/JSON interno entre Gateway y Users Service (puerto 3000).
+- HTTP/JSON interno entre Gateway y Gamey Engine (puerto 4000).
+- HTTP/JSON interno entre Users Service y Gamey Engine (para `/api/play`).
+- SQL entre Users Service y MySQL (puerto 3306).
 
+---
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Insert your explanations of black boxes from level 1:
-
-If you use tabular form you will only describe your black boxes with name and
-responsibility according to the following schema:
-
-[cols="1,2" options="header"]
-|===
-| **Name** | **Responsibility**
-| _<black box 1>_ | _<Text>_
-| _<black box 2>_ | _<Text>_
-|===
-
-
-
-If you use a list of black box descriptions then you fill in a separate black box template for every important building block .
-Its headline is the name of the black box.
-****
-endif::arc42help[]
-
-[cols="1,2" options="header"]
-|===
-| **Name** | **Responsibility**
-| WebApp | Frontend SPA que proporciona la interfaz de usuario y comunica con los servicios backend.
-| Users Service | Backend REST responsable de la gestión de usuarios y autenticación.
-| Gamey Engine | Motor del juego que implementa la lógica y gestión de bots.
-| Documentation | Contiene la documentación arquitectónica y técnica del sistema.
-|===
-
-==== WebApp
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Here you describe <black box 1>
-according the the following black box template:
-
-* Purpose/Responsibility
-* Interface(s), when they are not extracted as separate paragraphs. This interfaces may include qualities and performance characteristics.
-* (Optional) Quality-/Performance characteristics of the black box, e.g.availability, run time behavior, ....
-* (Optional) directory/file location
-* (Optional) Fulfilled requirements (if you need traceability to requirements).
-* (Optional) Open issues/problems/risks
-
-****
-endif::arc42help[]
-
-Interfaces::
-- Consume los endpoints REST expuestos por Users Service.
-- Se comunica con Gamey Engine para operaciones relacionadas con el juego.
-- Utiliza HTTP y JSON como protocolo y formato de intercambio.
-
-Localización::
-- /webapp
-
-==== Users Service
-
-Interfaces::
-- Expone endpoints REST (por ejemplo, creación y consulta de usuarios).
-- Comunicación mediante HTTP y JSON.
-
-Localización::
-- /users
-
-==== Gamey Engine
-
-Interfaces::
-- Expone endpoints HTTP para operaciones del juego.
-- Intercambio de datos estructurados en JSON.
-
-Localización::
-- /gamey
-
-==== Documentation
-
-Interfaces::
-- Archivos estáticos en formato AsciiDoc.
-
-Localización::
-- /docs
-
-=== Level 2
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Here you can specify the inner structure of (some) building blocks from level 1 as white boxes.
-
-You have to decide which building blocks of your system are important enough to justify such a detailed description.
-Please prefer relevance over completeness. Specify important, surprising, risky, complex or volatile building blocks.
-Leave out normal, simple, boring or standardized parts of your system
-****
-endif::arc42help[]
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-...describes the internal structure of _building block 1_.
-****
-endif::arc42help[]
+=== Level 2 — Bloques internos relevantes
 
 ==== White Box WebApp
-La WebApp sigue la estructura típica de una SPA basada en React.
+
+La WebApp sigue la arquitectura SPA con componentes React organizados por funcionalidad.
 
 [cols="1,2", options="header"]
 |===
 | Componente | Responsabilidad
-| App.tsx | Punto de entrada de la aplicación y configuración de rutas.
-| Views | Componentes de nivel página.
-| Components | Componentes reutilizables de interfaz.
-| Services | Lógica de comunicación con APIs backend.
+| `App.tsx` | Punto de entrada: gestión de autenticación y navegación entre vistas.
+| `GameModeSelector` | Pantalla previa al juego: elige modo (bot/multijugador), tamaño de tablero, dificultad y quién empieza.
+| `GameView` | Orquestador de modos: transición entre selector → bot game / mp-lobby → mp-game.
+| `Game` | Partida vs bot: alterna turno humano y turno bot llamando a la API Rust. Al terminar muestra botones "Jugar de nuevo" y "Volver al menú".
+| `HexBoard` | Tablero SVG hexagonal (flat-top, pirámide centrada). Geometría exportada y compartida con `GameHistory`.
+| `MultiplayerLobby` | Sala de espera: crear sala (obtiene código) o unirse con código. Chat en tiempo real.
+| `MultiplayerGame` | Partida multijugador: tablero + chat lateral. Movimientos vía API Rust + broadcast WebSocket.
+| `GameHistory` | Historial de partidas con miniatura del tablero. Usa la misma geometría que `HexBoard`.
+| `useWebSocketRoom` | Hook que encapsula todo el protocolo WebSocket: conexión, sala, mensajes, estado.
+| `gameyClient.ts` | Cliente HTTP para la API Rust: `makeHumanMove`, `chooseMove`.
 |===
 
 Interaction::
 
-- Los componentes llaman a la capa Services.
-- Services realiza peticiones HTTP a los servicios backend.
-
+- `GameModeSelector` → `GameView` via prop `onStart(config)`.
+- `Game` llama a `gameyClient.ts` para cada movimiento (humano y bot).
+- `MultiplayerGame` llama a `gameyClient.ts` para validar el movimiento y luego usa `useWebSocketRoom.broadcastMove` para notificar al oponente.
+- `useWebSocketRoom` mantiene la conexión WebSocket abierta durante toda la partida.
 
 ==== White Box Users Service
 
-API REST basada en Express estructurada por rutas y controladores.
-
+API REST basada en Express con acceso directo a MySQL y llamadas HTTP internas a Gamey.
 
 [cols="1,2", options="header"]
 |===
-| Componente | Responsabilidad
-| Server | Configuración e inicialización del servidor Express.
-| Routes | Definición de endpoints REST.
-| Controllers | Lógica de gestión de peticiones.
-| Models | Estructuras de datos de usuario.
+| Endpoint | Responsabilidad
+| `POST /createuser` | Registro de usuario con contraseña hasheada (bcrypt).
+| `POST /login` | Autenticación, devuelve `userId`.
+| `GET /api/games` | Lista todas las partidas con sus jugadores.
+| `POST /api/games` | Guarda una partida finalizada en MySQL.
+| `POST /api/games/seed` | Inserta partidas de ejemplo.
+| `POST /api/play` | **Endpoint de competición**: aplica jugada del jugador + respuesta del bot en una sola llamada. Llama internamente a Gamey Engine 3 veces.
 |===
-
-Interaction::
-
-- Las rutas delegan en los controladores.
-- Los controladores procesan la lógica y devuelven respuestas JSON.
 
 ==== White Box Gamey Engine
 
-Proyecto en Rust estructurado siguiendo convenciones de Cargo.
+Proyecto en Rust con estructura modular expuesto como servidor HTTP con Axum.
 
 [cols="1,2", options="header"]
 |===
-| Componente | Responsabilidad
-| main.rs | Punto de entrada de la aplicación.
-| core | Lógica de reglas y estado del juego.
-| bot | Gestión y comportamiento de bots.
-| web | Capa de exposición HTTP.
+| Módulo | Responsabilidad
+| `core/` | Reglas del juego, estado YEN, validación de movimientos, detección de victoria.
+| `bot/` | Implementaciones de bots: `random_bot`, `greedy_bot`, `minimax_bot`.
+| `bot_server/play.rs` | Handler `POST /v1/game/play`: valida y aplica un movimiento.
+| `bot_server/choose.rs` | Handler `POST /v1/ybot/choose/{botId}`: el bot elige su jugada.
 |===
 
-Interaction::
+==== White Box WS-Server
 
-- La capa web expone endpoints HTTP.
-- El módulo core ejecuta la lógica del juego.
-- El módulo bot integra comportamiento automatizado.
+Servidor Node.js con la librería `ws`. No contiene lógica de juego.
 
-=== Level 3
+[cols="1,2", options="header"]
+|===
+| Función | Responsabilidad
+| `handleCreate` | Crea sala con código único de 6 caracteres alfanuméricos. El creador espera.
+| `handleJoin` | Une al segundo jugador. Asigna `playerIndex` **aleatoriamente** (0=Azul, 1=Rojo).
+| `handleForward` | Retransmite `board_update`, `game_over` y `chat` entre los dos jugadores de la sala.
+| `handleClose` | Notifica al oponente si un jugador se desconecta. Limpia la sala.
+|===
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Here you can specify the inner structure of (some) building blocks from level 2 as white boxes.
+---
 
-When you need more detailed levels of your architecture please copy this
-part of arc42 for additional levels.
-****
-endif::arc42help[]
+=== Level 3 — Geometría del tablero hexagonal
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Specifies the internal structure of _building block x.1_.
-****
-endif::arc42help[]
+==== `buildHexGeometry` (HexBoard.tsx)
 
-==== White Box Gamey Engine Core
+Función exportada que calcula las posiciones de todas las celdas del tablero triangular.
+Usa hexágonos **flat-top** (lados planos arriba/abajo) en forma de pirámide centrada:
 
-El módulo core encapsula las reglas del juego y la gestión del estado.
+[source]
+----
+colStep  = √3 · r                          // separación horizontal
+rowStep  = 1.5 · r                         // separación vertical
+offsetX(row) = (n - 1 - row) · colStep / 2 // centrado por fila
+cx(row, col) = offsetX(row) + col · colStep
+cy(row)      = row · rowStep
+----
 
-- Representación del estado del juego.
-- Validación de reglas.
-- Transiciones de estado.
-- Gestión de errores.
+La misma función es importada por `GameHistory.tsx` para garantizar que el miniboard del historial es geométricamente idéntico al tablero principal.
 
-Responsabilidad::
+==== `POST /api/play` — Flujo interno
 
-Garantizar la ejecución determinista de la lógica del juego de forma independiente a la interfaz web.
+[plantuml, api-play-flow, png]
+----
+@startuml
+participant "Bot/Cliente" as C
+participant "Users Service" as US
+participant "Gamey Engine" as GE
 
-
-==== White Box WebApp Services Layer
-
-Capa encargada de encapsular toda la comunicación HTTP.
-
-
-- Cliente de API.
-- Llamadas fetch/axios.
-- Gestión de errores.
-
-Responsabilidad::
-
-Desacoplar los componentes de interfaz de los detalles de comunicación con el backend.
-
-
+C -> US: POST /api/play\n{yen, coords, player_idx, bot_id}
+US -> GE: POST /v1/game/play\n(jugada del jugador)
+GE --> US: {yen, status, winner}
+alt status == "Finished"
+  US --> C: {yen, status, winner=0, bot_move=null}
+else status == "Ongoing"
+  US -> GE: POST /v1/ybot/choose/{bot_id}\n(yen actualizado)
+  GE --> US: {coords del bot}
+  US -> GE: POST /v1/game/play\n(jugada del bot)
+  GE --> US: {yen final, status, winner}
+  US --> C: {yen, status, winner, player_move, bot_move}
+end
+@enduml
+----

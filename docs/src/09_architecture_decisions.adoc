@@ -3,128 +3,138 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-design-decisions]]
 == Architecture Decisions
 
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contents
-Important, expensive, large scale or risky architecture decisions including rationales.
-With "decisions" we mean selecting one alternative based on given criteria.
-
-Please use your judgement to decide whether an architectural decision should be documented
-here in this central section or whether you better document it locally
-(e.g. within the white box template of one building block).
-
-Avoid redundancy. 
-Refer to section 4, where you already captured the most important decisions of your architecture.
-
-.Motivation
-Stakeholders of your system should be able to comprehend and retrace your decisions.
-
-.Form
-Various options:
-
-* ADR (https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions[Documenting Architecture Decisions]) for every important decision
-* List or table, ordered by importance and consequences or:
-* more detailed in form of separate sections per decision
-
-.Further Information
-
-See https://docs.arc42.org/section-9/[Architecture Decisions] in the arc42 documentation.
-There you will find links and examples about ADR.
-
-****
-endif::arc42help[]
-
 === MySQL como BBDD del proyecto
 
 Estado::
 Aceptada.
 
 Contexto::
-Se requiere un sistema de persistencia para almacenar los datos de los usuarios, partidas y estado del juego.  
-La solución debe ser flexible, integrarse correctamente con el ecosistema tecnológico elegido y facilitar el desarrollo y despliegue del proyecto.
-
-Alternativas consideradas::
-- Otras bases de datos relacionales.
-- Bases de datos no relacionales.
+Se requiere un sistema de persistencia para almacenar los datos de los usuarios, partidas y jugadores.
 
 Justificación::
 
 [cols="1,4"]
 |===
-| Modelo relacional
-| MySQL permite estructurar los datos en tablas normalizadas, ideal para usuarios, partidas y relaciones entre entidades del juego.
-
-| Integridad de datos
-| Garantiza consistencia mediante claves primarias, foráneas y restricciones, evitando errores de duplicidad o pérdida de información.
-
-| Madurez y soporte
-| MySQL es estable, ampliamente documentado y compatible con la mayoría de frameworks y lenguajes backend.
-
-| Adopción del equipo de desarrollo
-| Es una tecnología que todo el equipo de desarrollador ha empleado en algún otro proyecto.
-
-| Rendimiento
-| Adecuado para cargas moderadas, asegurando tiempos de respuesta rápidos en operaciones comunes.
-
-| Facilidad de despliegue
-| Compatible con Docker y entornos cloud, lo que facilita levantar instancias de forma reproducible.
+| Modelo relacional | MySQL permite estructurar los datos en tablas normalizadas (users, games, game_players), ideal para las relaciones entre entidades del juego.
+| Integridad de datos | Claves foráneas entre game_players y games/users garantizan consistencia.
+| Madurez y soporte | Tecnología estable, ampliamente documentada y compatible con Node.js (mysql2/promise).
+| Adopción del equipo | Tecnología conocida por todos los miembros del equipo.
+| Facilidad de despliegue | Compatible con Docker; imagen oficial mysql:8.0.
 |===
 
 Consecuencias::
 
-- Se adopta un esquema relacional que requiere planificación previa de las tablas y relaciones.  
-- Cambios estructurales en el futuro pueden requerir migraciones más cuidadosas que en una base de datos NoSQL.  
-- Se asegura integridad y consistencia de los datos, facilitando mantenimiento y auditorías.
+- Esquema relacional que requiere planificación previa de tablas y relaciones.
+- Cambios estructurales requieren migraciones. Se mitiga con `CREATE TABLE IF NOT EXISTS` en el arranque.
 
-=== Azure como infraestructura de despliegue (Máquina Virtual)
+---
+
+=== Azure como infraestructura de despliegue
 
 Estado::
 Aceptada.
 
 Contexto::
-Se requiere un entorno donde desplegar la aplicación backend, la base de datos y los servicios asociados, garantizando disponibilidad, escalabilidad y acceso remoto seguro.  
-La solución debe integrarse fácilmente con el ecosistema tecnológico del proyecto y permitir un despliegue sencillo y controlado.
-
-Alternativas consideradas::
-- AWS EC2.
-- Google Compute Engine.
-- Servidores on-premise.
-- Otros proveedores cloud.
+Se requiere un entorno cloud para desplegar la aplicación con acceso desde Internet.
 
 Justificación::
 
 [cols="1,4"]
 |===
-| Adopción del equipo de desarrollo
-| Es una tecnología que todo el equipo de desarrollador ha empleado en algún otro proyecto.
+| Adopción del equipo | Tecnología conocida por todos los miembros del equipo.
+| IaaS con control total | Máquina virtual Linux con Docker: control completo del entorno.
+| Escalabilidad | Posibilidad de ajustar recursos (CPU, RAM) según necesidad.
+| Integración CI/CD | Compatible con GitHub Actions para despliegue automático.
+|===
 
-| Infraestructura como servicio (IaaS)
-| Azure permite crear y configurar máquinas virtuales con control total sobre el sistema operativo y el entorno de ejecución.
+---
 
-| Escalabilidad
-| Posibilidad de aumentar recursos (CPU, RAM, almacenamiento) según crezcan las necesidades del proyecto.
+=== Nginx como proxy inverso único (puerto 80)
 
-| Alta disponibilidad
-| Integración con servicios de red, copias de seguridad y monitorización dentro del ecosistema Azure.
+Estado::
+Aceptada.
 
-| Integración con el entorno cloud
-| Compatible con Docker, CI/CD y otros servicios gestionados del ecosistema Azure.
+Contexto::
+La webapp está empaquetada como archivos estáticos (Vite build) que necesitan ser servidos.
+El frontend necesita comunicarse con el gateway (HTTP) y el servidor WebSocket (WS)
+sin exponer puertos internos al exterior.
 
-| Seguridad
-| Configuración de redes virtuales, grupos de seguridad y control de acceso basado en roles.
+Alternativas consideradas::
+- Exponer directamente los puertos de gateway (8080) y ws-server (8081) al cliente.
+- Usar un API Gateway externo (Kong, Traefik).
 
-| Flexibilidad
-| Permite alojar tanto la aplicación como la base de datos en un mismo entorno o separarlos en distintas máquinas virtuales según necesidades.
+Justificación::
+
+[cols="1,4"]
+|===
+| Punto de entrada único | El cliente solo necesita conocer un host y puerto (80). Simplifica configuración y firewall.
+| Proxy WebSocket | Nginx maneja el handshake HTTP→WebSocket con los headers `Upgrade` y `Connection` necesarios. Un proxy HTTP simple no sirve.
+| Sirve estáticos | Nginx sirve el build de React directamente, sin necesidad de un servidor Node.js adicional en producción.
+| CORS | Al servir todo desde el mismo origen, se eliminan los problemas de CORS entre frontend y APIs.
+| Sin coste adicional | Nginx está incluido en la imagen `nginx:stable-alpine`.
 |===
 
 Consecuencias::
+- Se añade un archivo `nginx.conf` que debe mantenerse actualizado si se añaden nuevas rutas.
+- El `Dockerfile` de la webapp usa una imagen multi-stage (Node para el build + Nginx para servir).
 
-- Se asume la responsabilidad de la administración del sistema operativo, actualizaciones y configuración del servidor.  
-- Puede implicar costes variables en función del uso de recursos y tiempo de ejecución.  
-- Ofrece mayor control y personalización frente a soluciones PaaS, a cambio de una mayor gestión técnica.  
-- Facilita el escalado futuro y la integración con otros servicios del ecosistema Azure.
+---
 
+=== Servidor WebSocket independiente (`ws-server`)
 
+Estado::
+Aceptada.
 
+Contexto::
+El modo multijugador requiere comunicación bidireccional en tiempo real entre dos clientes.
+El gateway (Spring Boot con MVC bloqueante) no soporta WebSocket de forma nativa sin cambios importantes.
+
+Alternativas consideradas::
+- Añadir WebSocket al gateway (requeriría migrar a WebFlux/reactive).
+- Añadir WebSocket al servicio de usuarios (mezcla responsabilidades).
+- Servidor WebSocket dedicado.
+
+Justificación::
+
+[cols="1,4"]
+|===
+| Separación de responsabilidades | El servidor WS solo gestiona salas y retransmite mensajes; no contiene lógica de juego.
+| Simplicidad | La librería `ws` de Node.js es mínima y directa para este caso de uso.
+| No modifica el gateway | El gateway no necesita cambios; Nginx gestiona el routing al puerto 8081.
+| Sin lógica de juego | Los movimientos siempre pasan por la API Rust, garantizando validación centralizada.
+|===
+
+Consecuencias::
+- Nuevo contenedor Docker `ws-server` a mantener y desplegar.
+- Nginx debe configurarse con el bloque `location /ws` y los headers de WebSocket.
+- El servidor WS no persiste estado: si se reinicia, las partidas en curso se pierden (riesgo asumido).
+
+---
+
+=== Endpoint `/api/play` en Users Service
+
+Estado::
+Aceptada.
+
+Contexto::
+Se necesita un endpoint de alto nivel para competición bot-vs-bot que aplique una jugada
+del cliente y devuelva la respuesta del bot en una sola llamada.
+
+Alternativas consideradas::
+- Implementarlo en el gateway (Java).
+- Crearlo como endpoint separado en un nuevo microservicio.
+- Documentarlo solo como secuencia de llamadas que el cliente debe hacer.
+
+Justificación::
+
+[cols="1,4"]
+|===
+| Centralización | Users Service ya tiene acceso a la BD (para futura persistencia del resultado) y a Gamey Engine.
+| Simplicidad | Node.js con `fetch` encadena las 3 llamadas internas de forma legible.
+| No rompe el gateway | El gateway solo añade el proxy de `/api/play` → users service, sin lógica nueva.
+| Un solo roundtrip | El cliente externo hace una llamada y recibe el estado completo; ideal para bots automáticos.
+|===
+
+Consecuencias::
+- Users Service realiza llamadas HTTP salientes a Gamey Engine (requiere `GAMEY_SERVICE_URL`).
+- Si Gamey Engine no está disponible, el endpoint devuelve 502.

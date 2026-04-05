@@ -12,31 +12,54 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
+
     - uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: stable
         components: rustfmt, clippy
+
     - uses: actions/setup-node@v4
       with:
         node-version: 22
+
     - uses: actions/setup-java@v4
       with:
         java-version: '21'
         distribution: 'temurin'
+
+    # ── Dependencias ────────────────────────────────────────────────────────
     - run: npm --prefix users ci
     - run: npm --prefix webapp ci
+    # ws-server solo tiene una dependencia de producción (ws); no necesita ci aquí
+
+    # ── Tests con coverage ───────────────────────────────────────────────────
     - run: npm --prefix users run test:coverage
-    - run: npm --prefix webapp run test:coverage
+    - name: Run webapp tests with coverage
+      run: npm --prefix webapp run test:coverage
+      env:
+        # Variables de entorno de Vite necesarias para que el build no falle
+        # en tiempo de test (importadas en env.d.ts)
+        VITE_API_URL: http://localhost:8080
+        VITE_GAMEY_URL: http://localhost:8080
+        VITE_WS_URL: ws://localhost:8081
+
+    # ── Rust coverage ────────────────────────────────────────────────────────
     - name: Install cargo-llvm-cov
       run: cargo install cargo-llvm-cov --locked
+
     - name: Generate gamey code coverage
       run: cd gamey && cargo llvm-cov --lcov --output-path lcov.info
+
     - name: Normalize Rust coverage paths
       run: |
         sed -i "s|SF:${GITHUB_WORKSPACE}/|SF:|g" gamey/lcov.info
         grep '^SF:' gamey/lcov.info | head
+
+    # ── Gateway (Java) coverage ──────────────────────────────────────────────
     - name: Generate gateway code coverage
       run: mvn -f gateway/pom.xml verify
+
+    # ── SonarQube ────────────────────────────────────────────────────────────
     - name: Analyze with SonarQube
       uses: SonarSource/sonarqube-scan-action@master
       env:
