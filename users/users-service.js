@@ -35,7 +35,7 @@ const pool = mysql.createPool({
 });
 
 // URL base del servicio gamey (Rust) — para el endpoint /api/play
-const GAMEY_URL = process.env.GAMEY_SERVICE_URL || 'http://gamey:4000';
+const GAMEY_URL = process.env.GAMEY_SERVICE_URL || 'http://gamey:4000'; //NOSONAR: gamey es el hostname del contenedor Docker del servicio de juego. En local, se puede usar http://localhost:4000
 
 const initializeDatabase = async () => {  /* c8 ignore start*/
   let conn;
