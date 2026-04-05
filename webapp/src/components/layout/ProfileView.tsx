@@ -78,8 +78,10 @@ export default function ProfileView({ userId, username }: ProfileViewProps) {
   const boardSizes = myGames.map(g => g.yen.split('/').length);
   const avgSize = boardSizes.length > 0 ? (boardSizes.reduce((a, b) => a + b, 0) / boardSizes.length).toFixed(1) : '—';
   const biggestBoard = boardSizes.length > 0 ? Math.max(...boardSizes) : '—';
-
-  const beatenBots = myGames.filter(g => g.players.some(p => p.user_id === userId && p.is_winner)).length;
+  const beatenBots = myGames.filter(g => {
+    const meWon = g.players.some(p => p.user_id === userId && p.is_winner);
+    return meWon;
+  }).length;
 
   const sorted = [...myGames].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   let streak = 0;

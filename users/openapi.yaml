@@ -302,3 +302,128 @@ paths:
                 properties:
                   error:
                     type: string
+  /api/play:
+    post:
+      summary: Jugada completa (jugador + respuesta del bot)
+      description: |
+        Endpoint de alto nivel para competición entre bots o testing.
+        Aplica la jugada del jugador, pide respuesta al bot y devuelve
+        el estado tras ambas jugadas en una sola llamada.
+        Si el jugador gana en su turno, bot_move será null.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [yen, coords, player_idx, bot_id]
+              properties:
+                yen:
+                  type: object
+                  description: Estado actual del juego en formato YEN
+                  properties:
+                    size:    { type: integer, example: 5 }
+                    turn:    { type: integer, example: 0 }
+                    players: { type: array, items: { type: string }, example: ["B","R"] }
+                    layout:  { type: string, example: "./../.../..../....." }
+                coords:
+                  type: object
+                  description: Coordenadas de la jugada del jugador (cúbicas)
+                  properties:
+                    x: { type: integer, example: 0 }
+                    y: { type: integer, example: 0 }
+                    z: { type: integer, example: 4 }
+                player_idx:
+                  type: integer
+                  description: Índice del jugador que mueve (0 = Azul, 1 = Rojo)
+                  example: 0
+                bot_id:
+                  type: string
+                  description: Identificador del bot oponente
+                  enum: [random_bot, greedy_bot, minimax_bot]
+                  example: random_bot
+            example:
+              yen:
+                size: 5
+                turn: 0
+                players: ["B","R"]
+                layout: "./../.../..../....."
+              coords: { x: 0, y: 0, z: 4 }
+              player_idx: 0
+              bot_id: random_bot
+      responses:
+        '200':
+          description: Estado del juego tras ambas jugadas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  yen:
+                    type: object
+                    description: Estado final del tablero
+                  status:
+                    type: string
+                    enum: [Ongoing, Finished]
+                    example: Ongoing
+                  winner:
+                    type: integer
+                    nullable: true
+                    description: Índice del ganador (0 o 1), null si sigue en curso
+                    example: null
+                  player_move:
+                    type: object
+                    description: Coordenadas aplicadas del jugador
+                    properties:
+                      x: { type: integer }
+                      y: { type: integer }
+                      z: { type: integer }
+                  bot_move:
+                    type: object
+                    nullable: true
+                    description: Coordenadas elegidas por el bot (null si el jugador ganó)
+                    properties:
+                      x: { type: integer }
+                      y: { type: integer }
+                      z: { type: integer }
+        '400':
+          description: Campos inválidos, jugada ilegal o YEN malformado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+              examples:
+                camposFaltantes:
+                  value: { error: "Missing required fields: yen, coords, player_idx, bot_id" }
+                jugadaIlegal:
+                  value: { error: "Illegal move" }
+                yenInvalido:
+                  value: { error: "Invalid YEN format" }
+        '404':
+          description: Bot no encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+              example:
+                error: "Bot not found: nonexistent_bot, available bots: [random_bot, greedy_bot, minimax_bot]"
+        '502':
+          description: Error de comunicación con el servicio de juego (gamey)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }

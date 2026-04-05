@@ -23,12 +23,17 @@ Given('the register page is open', async function () {
   })
 
   await page.goto('http://localhost:5173')
+  await page.waitForLoadState('networkidle')
+
+  // Si hay landing page, esperar a que aparezca el botón Register here
+  await page.waitForSelector('button:has-text("Register here")', { timeout: 10000 })
   await page.click('button:has-text("Register here")')
 })
 
 When('I enter {string} as the username and submit', async function (username) {
   const page = this.page
   if (!page) throw new Error('Page not initialized')
+  await page.waitForSelector('#username', { timeout: 5000 })
   await page.fill('#username', username)
   await page.fill('input[type="password"]', 'Password123')
   await page.click('.submit-button')

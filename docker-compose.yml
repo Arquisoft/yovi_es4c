@@ -6,14 +6,15 @@ services:
     container_name: nginx
     restart: unless-stopped
     ports:
-      - "80:80"       # HTTP → redirige a HTTPS
-      - "443:443"     # HTTPS — webapp + API gateway
+      - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/conf.d/app.conf:/etc/nginx/conf.d/app.conf:ro
       - ./nginx/certs:/etc/nginx/certs:ro
     depends_on:
       - gateway
       - webapp
+      - ws-server
     networks:
       - monitor-net
 
@@ -51,20 +52,33 @@ services:
     networks:
       - monitor-net
 
+  # ── WebSocket server ─────────────────────────────────────────────────────
+  ws-server:
+    build: ./webapp/ws-server
+    container_name: ws-server
+    image: ghcr.io/arquisoft/yovi_es4c-ws-server:latest
+    expose:
+      - "8081"
+    environment:
+      - WS_PORT=8081
+    networks:
+      - monitor-net
+
   # ── Webapp (React + Nginx) ────────────────────────────────────────────────
   webapp:
     build:
       context: ./webapp
       args:
-        # Gateway ahora en el mismo puerto 443 que la webapp
         - VITE_API_URL=https://localhost
         - VITE_GAMEY_URL=https://localhost
+        - VITE_WS_URL=wss://localhost/ws
     container_name: webapp
     image: ghcr.io/arquisoft/yovi_es4c-webapp:latest
     expose:
       - "80"
     depends_on:
       - gateway
+      - ws-server
     networks:
       - monitor-net
 

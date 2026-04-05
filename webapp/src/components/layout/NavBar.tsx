@@ -131,6 +131,7 @@ export default function NavBar({
                   <IconButton
                     onClick={onLogout}
                     size="small"
+                    data-testid="btn-logout"
                     sx={{
                       color: '#7a9bb5',
                       border: '1px solid #ff3d7122',
@@ -164,4 +165,13 @@ export default function NavBar({
       </Container>
     </AppBar>
   );
+}
+
+interface NavBarProps {
+  isAuthenticated: boolean;
+  username: string;
+  currentView: AppView;
+  onNavigate: (view: AppView) => void;
+  onLoginClick: () => void;
+  onLogout: () => void;
 }

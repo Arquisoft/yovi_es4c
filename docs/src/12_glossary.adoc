@@ -10,34 +10,64 @@ ifndef::imagesdir[:imagesdir: ../images]
 | Yovi
 | Nombre del proyecto, plataforma web para jugar al juego Y y permitir la interacción de usuarios y bots.
 
-| Juego Y
-| Juego de tablero abstracto en el que dos jugadores intentan conectar lados opuestos del tablero siguiendo reglas específicas.
+| Juego Y (Hex)
+| Juego de tablero abstracto en el que dos jugadores intentan conectar lados opuestos del tablero siguiendo reglas específicas. El tablero tiene forma de pirámide triangular.
 
 | Notación YEN
-| Formato JSON utilizado para representar el estado de una partida, incluyendo tamaño de tablero, turno, disposición de jugadores y layout.
+| Formato JSON utilizado para representar el estado de una partida: tamaño, turno, jugadores y disposición del tablero como string de filas separadas por `/`.
 
 | Bot
-| Programa que juega automáticamente contra la aplicación o contra otros usuarios, usando la API.
+| Programa que juega automáticamente. Disponibles: `random_bot` (aleatorio), `greedy_bot` (codicioso), `minimax_bot` (minimax con profundidad 2).
 
 | API (Application Programming Interface)
 | Conjunto de servicios web que permite la interacción de bots o módulos externos con la aplicación.
 
-| Frontend
-| Interfaz web implementada en TypeScript con React que permite a los usuarios jugar y consultar su historial.
+| Gateway
+| Servicio Spring Boot que actúa como punto de entrada HTTP único. Enruta peticiones REST al servicio correcto (users o gamey).
 
-| Módulo de Lógica (Rust)
-| Componente encargado de calcular movimientos válidos, verificar victorias y sugerir estrategias usando la notación YEN.
+| Nginx
+| Servidor web y proxy inverso. En producción sirve la SPA React y redirige HTTP al gateway y WebSocket al ws-server, todo por el puerto 80.
+
+| WebSocket
+| Protocolo de comunicación bidireccional y persistente sobre HTTP. Usado para actualizar el tablero en tiempo real en el modo multijugador y para el chat de sala.
+
+| WS-Server
+| Microservicio Node.js que gestiona salas WebSocket: empareja jugadores por código, asigna colores aleatoriamente y retransmite movimientos y chat.
+
+| Código de sala
+| Identificador de 6 caracteres alfanuméricos generado al crear una sala multijugador. El segundo jugador lo introduce para unirse a la partida.
+
+| playerIndex
+| Índice asignado a cada jugador en una sala (0 = Azul, empieza primero; 1 = Rojo). Se asigna aleatoriamente en multijugador; el jugador elige en modo vs bot.
+
+| Frontend (WebApp)
+| Interfaz web implementada en TypeScript con React y Material UI. Incluye selector de modo de juego, tablero SVG, lobby multijugador con chat e historial de partidas.
+
+| HexBoard
+| Componente SVG del tablero hexagonal. Usa hexágonos flat-top en forma de pirámide centrada. Su función de geometría (`buildHexGeometry`) es compartida con `GameHistory`.
+
+| Flat-top hexagon
+| Orientación hexagonal con lados planos arriba y abajo, vértices a izquierda y derecha. Es la orientación usada en el tablero de Yovi.
+
+| Gamey Engine
+| Motor de juego implementado en Rust + Axum. Valida movimientos (`/v1/game/play`), calcula jugadas de bot (`/v1/ybot/choose/{botId}`) y detecta victorias.
+
+| `/api/play`
+| Endpoint de alto nivel en Users Service para competición bot-vs-bot. Aplica la jugada del cliente y devuelve la respuesta del bot interno en una sola llamada HTTP.
+
+| Users Service
+| Microservicio Node.js + Express que gestiona usuarios (registro, login), partidas (guardar, listar) y el endpoint `/api/play`.
 
 | Persistencia (MySQL)
-| Componente encargado de almacenar información de usuarios, partidas y estadísticas en la base de datos.
+| Almacenamiento de usuarios, partidas y jugadores. Tres tablas: `users`, `games`, `game_players`.
 
-| Estrategia
-| Algoritmo que define cómo el bot decide su siguiente movimiento en una partida.
+| Docker Compose
+| Herramienta de orquestación de contenedores. Levanta todos los microservicios (webapp, gateway, users, gamey, ws-server, mysql) con un solo comando.
 
 | Partida
-| Instancia de un juego Y entre dos jugadores, humanos o bots, con un tablero y un historial de movimientos.
+| Instancia de un juego Y entre dos jugadores (humanos o bots), con tablero y estado guardado en MySQL al finalizar.
 
 | Historial
-| Datos calculados sobre los jugadores y sus partidas, incluyendo victorias, derrotas y ranking.
+| Vista de la webapp que muestra todas las partidas guardadas con miniatura del tablero, jugadores, ganador y fecha.
 
-|===  
+|===
