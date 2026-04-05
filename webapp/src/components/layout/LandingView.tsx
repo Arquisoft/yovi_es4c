@@ -194,7 +194,8 @@ export default function LandingView({ onPlayNow }: LandingViewProps) {
                     width: 18,
                     height: 18,
                     borderRadius: '50%',
-                    backgroundColor: Math.random() > 0.6 ? '#00e5ff' : Math.random() > 0.5 ? '#ff3d71' : '#1a2a3a',
+                    // NOSONAR: Math.random() es para decoracion.
+                    backgroundColor: Math.random() > 0.6 ? '#00e5ff' : Math.random() > 0.5 ? '#ff3d71' : '#1a2a3a', //NOSONAR
                     border: '1px solid #00e5ff22',
                   }}
                 />
