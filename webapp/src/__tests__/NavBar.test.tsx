@@ -57,7 +57,7 @@ describe('NavBar', () => {
   it('llama a onLogout al pulsar el botón de cerrar sesión', () => {
     const onLogout = vi.fn()
     render(<NavBar {...baseProps} isAuthenticated username="Alice" onLogout={onLogout} />)
-    fireEvent.click(screen.getByRole('button', { name: /cerrar sesión/i }))
+    fireEvent.click(screen.getByTestId('btn-logout'))
     expect(onLogout).toHaveBeenCalled()
   })
 

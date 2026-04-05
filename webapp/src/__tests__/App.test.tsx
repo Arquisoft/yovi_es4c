@@ -113,7 +113,7 @@ describe('App — navegación autenticada', () => {
   it('logout vuelve a la landing page y elimina los enlaces de nav', async () => {
     render(<App />)
     await loginAs()
-    fireEvent.click(screen.getByRole('button', { name: /cerrar sesión/i }))
+    fireEvent.click(screen.getByTestId('btn-logout'))
     expect(screen.getByText('Y-GAME')).toBeInTheDocument()
     expect(screen.queryByText('Jugar')).not.toBeInTheDocument()
   })

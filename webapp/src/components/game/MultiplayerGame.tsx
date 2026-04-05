@@ -156,9 +156,8 @@ export default function MultiplayerGame({
             {/* Leyenda de colores */}
             <Box sx={{ display: 'flex', gap: 2 }}>
               {([
-                // El color del icono sigue al playerIndex real: 0 = Azul, 1 = Rojo
-                { fill: myIdx === 0 ? '#1d4ed8' : '#b91c1c', stroke: myIdx === 0 ? '#60a5fa' : '#f87171', label: `${username} (${myColor})` },
-                { fill: myIdx === 0 ? '#b91c1c' : '#1d4ed8', stroke: myIdx === 0 ? '#f87171' : '#60a5fa', label: `${oppName} (${oppColor})`  },
+                { fill: '#1d4ed8', stroke: '#60a5fa', label: `${username} (${myColor})` },
+                { fill: '#b91c1c', stroke: '#f87171', label: `${oppName} (${oppColor})`  },
               ] as const).map(({ fill, stroke, label }) => (
                 <Box key={label} sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
                   <svg width={12} height={12} viewBox="0 0 12 12">
@@ -209,7 +208,7 @@ export default function MultiplayerGame({
             )}
           </Box>
 
-          {moveError && <Alert severity="error" sx={{ mt: 1 }}>{moveError}</Alert>}
+          {moveError && <Alert severity="error" sx={{ mt: 1 }} data-testid="mp-move-error">{moveError}</Alert>}
 
           {isFinished && (
             <Button
