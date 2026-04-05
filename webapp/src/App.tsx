@@ -8,8 +8,9 @@ import GameView from './components/game/GameView';
 import GameHistory from './components/game/GameHistory';
 import LandingView from './components/layout/LandingView';
 import ProfileView from './components/layout/ProfileView';
+import LeaderboardView from './components/layout/LeaderboardView';
 
-export type AppView = 'landing' | 'game' | 'history' | 'profile';
+export type AppView = 'landing' | 'game' | 'history' | 'profile' | 'leaderboard';
 export type AuthView = 'login' | 'register';
 
 function App() {
@@ -69,6 +70,8 @@ function App() {
     }
 
     switch (appView) {
+      case 'leaderboard':
+        return <LeaderboardView />;
       case 'profile':
         return (
           <ProfileView
