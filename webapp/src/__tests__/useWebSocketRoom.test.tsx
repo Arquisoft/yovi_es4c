@@ -259,3 +259,62 @@ describe('useWebSocketRoom', () => {
     expect(result.current.state.error).toBe('Sala no encontrada')
   })
 })
+
+  // ── onerror / onclose ───────────────────────────────────────────────────
+
+  test('onerror pone status en error con mensaje de conexión', () => {
+    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    act(() => { result.current.createRoom(5) })
+    act(() => { mockWsInstance!.onerror?.({} as Event) })
+    expect(result.current.state.status).toBe('error')
+    expect(result.current.state.error).toBe('Error de conexión WebSocket')
+  })
+
+  test('onclose con code≠1000 durante waiting pone status en error', () => {
+    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    act(() => { result.current.createRoom(5) })
+    act(() => { mockWsInstance!.receive({ type: 'room_created', roomCode: 'TST001', boardSize: 5 }) })
+    expect(result.current.state.status).toBe('waiting')
+    act(() => { mockWsInstance!.close(1006) })
+    expect(result.current.state.status).toBe('error')
+    expect(result.current.state.error).toBe('Conexión perdida')
+  })
+
+  test('onclose con code≠1000 durante playing pone status en error', () => {
+    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    act(() => { result.current.createRoom(5) })
+    act(() => { mockWsInstance!.receive({ type: 'game_start', opponentName: 'Bob', playerIndex: 0, boardSize: 5 }) })
+    expect(result.current.state.status).toBe('playing')
+    act(() => { mockWsInstance!.close(1006) })
+    expect(result.current.state.status).toBe('error')
+  })
+
+  test('onclose con code=1000 no cambia el status', () => {
+    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    act(() => { result.current.createRoom(5) })
+    act(() => { mockWsInstance!.receive({ type: 'room_created', roomCode: 'TST001', boardSize: 5 }) })
+    act(() => { mockWsInstance!.close(1000) })
+    expect(result.current.state.status).toBe('waiting') // sin cambio
+  })
+
+  test('mensaje con tipo desconocido no lanza error', () => {
+    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    act(() => { result.current.createRoom(5) })
+    expect(() => {
+      act(() => { mockWsInstance!.receive({ type: 'unknown_type', data: 'something' }) })
+    }).not.toThrow()
+    expect(result.current.state.status).toBe('connecting')
+  })
+
+  test('onmessage con JSON inválido no lanza — maneja el catch silenciosamente', () => {
+    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    act(() => { result.current.createRoom(5) })
+    // Enviar datos no-JSON directamente
+    expect(() => {
+      act(() => {
+        mockWsInstance!.onmessage?.({ data: 'esto-no-es-json{{{' } as MessageEvent)
+      })
+    }).not.toThrow()
+    // El status no cambia por el catch silencioso
+    expect(result.current.state.status).toBe('connecting')
+  })

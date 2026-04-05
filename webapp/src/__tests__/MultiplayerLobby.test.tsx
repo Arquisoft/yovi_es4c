@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent, act } from "@testing-library/react"
 import userEvent from '@testing-library/user-event'
 import { describe, expect, test, vi, afterEach } from 'vitest'
 import '@testing-library/jest-dom'
@@ -142,5 +142,74 @@ describe('MultiplayerLobby', () => {
   test('en estado error sigue mostrando las tabs', () => {
     render(<MultiplayerLobby {...defaultProps} roomState={errorState} />)
     expect(screen.getByTestId('tab-create')).toBeInTheDocument()
+  })
+
+  // ── Copiar código ────────────────────────────────────────────────────────
+
+  test('al pulsar el icono de copiar llama a clipboard.writeText', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText },
+      configurable: true,
+      writable: true,
+    })
+    render(<MultiplayerLobby {...defaultProps} roomState={waitingState} />)
+    fireEvent.click(screen.getByTitle(/copiar código/i))
+    expect(writeText).toHaveBeenCalledWith('ABC123')
+  })
+
+  test('muestra ¡Copiado! tras pulsar el botón de copiar', async () => {
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: vi.fn().mockResolvedValue(undefined) },
+      configurable: true,
+      writable: true,
+    })
+    render(<MultiplayerLobby {...defaultProps} roomState={waitingState} />)
+    fireEvent.click(screen.getByTitle(/copiar código/i))
+    expect(screen.getByText(/copiado/i)).toBeInTheDocument()
+  })
+
+  test('¡Copiado! desaparece tras 2 segundos', async () => {
+    vi.useFakeTimers()
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: vi.fn().mockResolvedValue(undefined) },
+      configurable: true,
+      writable: true,
+    })
+    render(<MultiplayerLobby {...defaultProps} roomState={waitingState} />)
+    fireEvent.click(screen.getByTitle(/copiar código/i))
+    expect(screen.getByText(/copiado/i)).toBeInTheDocument()
+    await act(async () => { vi.advanceTimersByTime(2100) })
+    expect(screen.queryByText(/copiado/i)).not.toBeInTheDocument()
+    vi.useRealTimers()
+  })
+
+  // ── Chat ──────────────────────────────────────────────────────────────────
+
+  test('NO muestra panel de chat en estado waiting', () => {
+    render(<MultiplayerLobby {...defaultProps} roomState={waitingState} />)
+    expect(screen.queryByTestId('lobby-chat-box')).not.toBeInTheDocument()
+  })
+
+  // ── Enter en campo unirse ─────────────────────────────────────────────────
+
+  test('Enter con código de 6 caracteres llama a onJoinRoom', () => {
+    const onJoinRoom = vi.fn()
+    render(<MultiplayerLobby {...defaultProps} roomState={idleState} onJoinRoom={onJoinRoom} />)
+    fireEvent.click(screen.getByTestId('tab-join'))
+    const input = screen.getByTestId('join-code-input')
+    fireEvent.change(input, { target: { value: 'XYZ789' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(onJoinRoom).toHaveBeenCalledWith('XYZ789')
+  })
+
+  test('Enter con código corto no llama a onJoinRoom', () => {
+    const onJoinRoom = vi.fn()
+    render(<MultiplayerLobby {...defaultProps} roomState={idleState} onJoinRoom={onJoinRoom} />)
+    fireEvent.click(screen.getByTestId('tab-join'))
+    const input = screen.getByTestId('join-code-input')
+    fireEvent.change(input, { target: { value: 'AB' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(onJoinRoom).not.toHaveBeenCalled()
   })
 })
