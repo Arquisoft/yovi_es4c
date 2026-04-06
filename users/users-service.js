@@ -289,6 +289,12 @@ app.get('/api/users/:userId/stats', async (req, res) => {
       beatenBots: wins,
       memberSince,
     });
+    } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    conn.release();
+  }
+});
 // ---------------------------------------------------------------------------
 // POST /api/play
 //
