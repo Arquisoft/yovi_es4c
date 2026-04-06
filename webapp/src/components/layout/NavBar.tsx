@@ -169,13 +169,4 @@ export default function NavBar({
   );
 }
 
-interface NavBarProps {
-  isAuthenticated: boolean;
-  username: string;
-  currentView: AppView;
-  onNavigate: (view: AppView) => void;
-  onLoginClick: () => void;
-  onLogout: () => void;
-}
 
-}
