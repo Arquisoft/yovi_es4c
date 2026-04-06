@@ -21,6 +21,6 @@ CREATE TABLE IF NOT EXISTS game_players (
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_games_created_at ON games(created_at);
-CREATE INDEX IF NOT EXISTS idx_game_players_game_id ON game_players(game_id);
-CREATE INDEX IF NOT EXISTS idx_game_players_user_id ON game_players(user_id);
+CREATE INDEX idx_games_created_at ON games(created_at);
+CREATE INDEX idx_game_players_game_id ON game_players(game_id);
+CREATE INDEX idx_game_players_user_id ON game_players(user_id);
