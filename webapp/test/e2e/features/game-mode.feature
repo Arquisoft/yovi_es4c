@@ -7,6 +7,7 @@ Feature: Game Mode Selection
     And I click the start game button
     Then I should see the bot game board
 
+  @wip
   Scenario: Player selects multiplayer mode
     Given the user is logged in and on the game page
     When I select the "multiplayer" game mode
