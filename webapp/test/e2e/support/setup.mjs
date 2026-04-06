@@ -12,7 +12,7 @@ setWorldConstructor(CustomWorld)
 
 Before(async function () {
   // Allow turning off headless mode and enabling slow motion/devtools via env vars
-  const headless = false
+  const headless = true
   const slowMo = 0
   const devtools = false
 
