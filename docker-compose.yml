@@ -2,7 +2,7 @@ services:
 
   # ── TLS termination proxy ────────────────────────────────────────────────
   nginx:
-    image: ghcr.io/arquisoft/yovi_es4c-nginx:latest
+    build: ./nginx
     container_name: nginx
     restart: unless-stopped
     ports:
@@ -105,14 +105,14 @@ services:
       - monitor-net
 
   mysql:
-    image: mysql:8.0
+    build: ./mysql
+    image: ghcr.io/arquisoft/yovi_es4c-mysql:latest
     container_name: mysql
     environment:
       - MYSQL_ROOT_PASSWORD=secret
       - MYSQL_DATABASE=yovi
     volumes:
       - mysql-data:/var/lib/mysql
-      - ./webapp/BDD/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "3306:3306"
     networks:

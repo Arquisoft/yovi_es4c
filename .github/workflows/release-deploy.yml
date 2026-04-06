@@ -217,6 +217,26 @@ jobs:
           registry: ghcr.io
           workdir: nginx
 
+  docker-push-mysql:
+    name: Publish mysql image
+    runs-on: ubuntu-latest
+    needs: e2e
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Publish to Registry (mysql)
+        uses: elgohr/Publish-Docker-Github-Action@v5
+        with:
+          name: ${{ github.repository_owner }}/${{ github.event.repository.name }}-mysql
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+          workdir: mysql
+
   deploy:
     name: Deploy over SSH
     runs-on: ubuntu-latest
@@ -227,6 +247,7 @@ jobs:
       - docker-push-gateway
       - docker-push-ws-server
       - docker-push-nginx
+      - docker-push-mysql
     steps:
       - name: Deploy over SSH
         uses: fifsky/ssh-action@master
@@ -236,5 +257,5 @@ jobs:
           key: ${{ secrets.DEPLOY_KEY }}
           command: |
             wget https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/master/docker-compose.yml -O docker-compose.yml
-            docker compose down
+            docker compose down -v
             DOMAIN=${{ secrets.DEPLOY_HOST }} docker compose up -d --pull always
