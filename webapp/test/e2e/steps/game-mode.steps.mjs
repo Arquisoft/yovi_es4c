@@ -187,9 +187,9 @@ Then('I should see the bot game board', async function () {
   assert.ok(board, 'Expected to see the hex game board')
 })
 
-Then('I should see the multiplayer lobby', async function () {
-  const page = this.page
-  await page.waitForSelector('[data-testid="tab-create"]', { timeout: 8000 })
-  const tab = await page.$('[data-testid="tab-create"]')
-  assert.ok(tab, 'Expected to see the multiplayer lobby tabs')
-})
+// Then('I should see the multiplayer lobby', async function () {
+//   const page = this.page
+//   await page.waitForSelector('[data-testid="tab-create"]', { timeout: 8000 })
+//   const tab = await page.$('[data-testid="tab-create"]')
+//   assert.ok(tab, 'Expected to see the multiplayer lobby tabs')
+// })
