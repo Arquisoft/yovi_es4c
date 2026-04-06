@@ -391,24 +391,12 @@ describe('POST /api/games/seed', () => {
   });
 });
 
+
 // ── GET /api/users/:userId/stats ──────────────────────────────────────────────
 describe('GET /api/users/:userId/stats', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.spyOn(pool, 'getConnection').mockResolvedValue(mockConn);
-// ── GET /api/leaderboard ──────────────────────────────────────────────────────
-describe('GET /api/leaderboard', () => {
-  const entries = [
-    { userId: 1, username: 'Ana',  gamesPlayed: 20, wins: 15, winRate: 75.00 },
-    { userId: 2, username: 'Luis', gamesPlayed: 18, wins: 10, winRate: 55.56 },
-  ];
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.spyOn(pool, 'getConnection').mockResolvedValue(mockConn);
-    mockConn.query
-      .mockResolvedValueOnce([[{ total: 2 }]])  // COUNT query
-      .mockResolvedValueOnce([entries]);          // SELECT ranking
   });
 
   afterEach(() => {
@@ -417,12 +405,12 @@ describe('GET /api/leaderboard', () => {
 
   it('Válido: devuelve las estadísticas correctas para un usuario con partidas', async () => {
     mockConn.query
-      .mockResolvedValueOnce([[                                               // SELECT games
+      .mockResolvedValueOnce([[
         { yen: 'a/b/c', created_at: '2026-03-29T21:06:00.000Z', is_winner: true },
         { yen: 'a/b',   created_at: '2026-03-28T10:00:00.000Z', is_winner: false },
         { yen: 'a/b/c', created_at: '2026-03-27T10:00:00.000Z', is_winner: true },
       ]])
-      .mockResolvedValueOnce([[{ created_at: '2026-01-15T10:00:00.000Z' }]]); // SELECT users;
+      .mockResolvedValueOnce([[{ created_at: '2026-01-15T10:00:00.000Z' }]]);
 
     const res = await request(app).get('/api/users/1/stats');
 
@@ -439,7 +427,7 @@ describe('GET /api/leaderboard', () => {
   it('Válido: devuelve estadísticas vacías para un usuario sin partidas', async () => {
     mockConn.query
       .mockResolvedValueOnce([[]])
-      .mockResolvedValueOnce([[{ created_at: '2026-01-15T10:00:00.000Z' }]]); // SELECT users; // SELECT games → sin partidas
+      .mockResolvedValueOnce([[{ created_at: '2026-01-15T10:00:00.000Z' }]]);
 
     const res = await request(app).get('/api/users/1/stats');
 
@@ -485,8 +473,8 @@ describe('GET /api/leaderboard', () => {
 
   it('Válido: memberSince es null si el usuario no existe en la tabla users', async () => {
     mockConn.query
-      .mockResolvedValueOnce([[]])  // SELECT users → no encontrado
-      .mockResolvedValueOnce([[]]); // SELECT games → sin partidas
+      .mockResolvedValueOnce([[]])
+      .mockResolvedValueOnce([[]]); 
 
     const res = await request(app).get('/api/users/999/stats');
 
@@ -516,6 +504,28 @@ describe('GET /api/leaderboard', () => {
     await request(app).get('/api/users/1/stats');
 
     expect(mockConn.release).toHaveBeenCalledTimes(1);
+  });
+});
+
+// ── GET /api/leaderboard ──────────────────────────────────────────────────────
+describe('GET /api/leaderboard', () => {
+  const entries = [
+    { userId: 1, username: 'Ana',  gamesPlayed: 20, wins: 15, winRate: 75.00 },
+    { userId: 2, username: 'Luis', gamesPlayed: 18, wins: 10, winRate: 55.56 },
+  ];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(pool, 'getConnection').mockResolvedValue(mockConn);
+    mockConn.query
+      .mockResolvedValueOnce([[{ total: 2 }]])
+      .mockResolvedValueOnce([entries]);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('Valido: devuelve 200 con data y pagination', async () => {
     const res = await request(app).get('/api/leaderboard');
 
@@ -573,7 +583,7 @@ describe('GET /api/leaderboard', () => {
     mockConn.query.mockReset();
     mockConn.query
       .mockResolvedValueOnce([[{ total: 0 }]])
-      .mockResolvedValueOnce([[]]); // sin filas
+      .mockResolvedValueOnce([[]]);
 
     const res = await request(app).get('/api/leaderboard');
 
