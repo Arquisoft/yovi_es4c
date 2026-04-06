@@ -32,6 +32,10 @@ ifndef::imagesdir[:imagesdir: ../images]
 | Peticiones HTTP del frontend o bots externos
 | Redirige al microservicio correspondiente (users o gamey)
 
+| Nginx proxy
+| Recibe peticiones HTTPS del frontend
+| Transforma y envia las peticiones HTTPS en HTTP al backend
+
 | Servidor WebSocket (ws-server)
 | Mensajes de sala: create, join, board_update, game_over, chat
 | Empareja jugadores, retransmite movimientos y chat entre oponentes
@@ -83,13 +87,13 @@ Los usuarios interactúan a través de la interfaz web mediante HTTP y WebSocket
 [options="header",cols="1,2"]
 |===
 |Entrada/Salida | Canal
-| Movimiento del usuario (vs bot) | HTTP → Gateway → Gamey Engine (`/v1/game/play`)
-| Movimiento del usuario (multijugador) | HTTP → Gateway → Gamey Engine + WebSocket broadcast al oponente
+| Movimiento del usuario (vs bot) | HTTPS → Nginx proxy → HTTP → Gateway → Gamey Engine (`/v1/game/play`)
+| Movimiento del usuario (multijugador) | HTTPS → Nginx proxy → HTTP → Gateway → Gamey Engine + WebSocket broadcast al oponente
 | Visualización del tablero | Renderizado SVG en la SPA (estado recibido de Gamey)
 | Petición de jugada del bot interno | HTTP → Gateway → Gamey Engine (`/v1/ybot/choose/{botId}`)
 | Petición de partida bot-vs-bot | HTTP → Gateway → Users Service → Gamey Engine (`POST /api/play`)
 | Chat en sala multijugador | WebSocket bidireccional (cliente ↔ ws-server ↔ oponente)
-| Guardado de partida | HTTP → Gateway → Users Service → MySQL
-| Historial de partidas | HTTP → Gateway → Users Service → MySQL
-| Registro/login de usuario | HTTP → Gateway → Users Service → MySQL
+| Guardado de partida | HTTPS → Nginx proxy → → Gateway → Users Service → MySQL
+| Historial de partidas | HTTPS → Nginx proxy → → Gateway → Users Service → MySQL
+| Registro/login de usuario | HTTPS → Nginx proxy → → Gateway → Users Service → MySQL
 |===

@@ -49,7 +49,7 @@ Contained Building Blocks::
 |===
 | **Bloque** | **Responsabilidad**
 | WebApp | SPA que proporciona la interfaz de usuario: selección de modo, tablero de juego, historial, multijugador.
-| Nginx | Servidor web y proxy inverso: sirve los estáticos de React, redirige HTTP al gateway y WebSocket al ws-server.
+| Nginx | Servidor web y proxy inverso: sirve los estáticos de React, redirige HTTP al gateway y WebSocket al ws-server. Establece la comunicación del frontend en HTTPS.
 | Gateway | Punto de entrada HTTP único. Enruta peticiones REST al servicio correcto (users o gamey).
 | Users Service | API REST de usuarios y partidas. Gestiona registro, login, guardado de partidas y el endpoint `/api/play`.
 | Gamey Engine | Motor de juego en Rust. Valida movimientos, comprueba victorias y ejecuta los algoritmos de bot.
@@ -59,7 +59,7 @@ Contained Building Blocks::
 
 Important Interfaces::
 
-- HTTP/JSON entre WebApp y Gateway (puerto 80, Nginx proxy).
+- HTTPS/JSON entre WebApp y Gateway (puerto 80, Nginx proxy).
 - WebSocket `ws://<host>/ws` entre WebApp y WS-Server (Nginx proxy).
 - HTTP/JSON interno entre Gateway y Users Service (puerto 3000).
 - HTTP/JSON interno entre Gateway y Gamey Engine (puerto 4000).
@@ -87,6 +87,8 @@ La WebApp sigue la arquitectura SPA con componentes React organizados por funcio
 | `GameHistory` | Historial de partidas con miniatura del tablero. Usa la misma geometría que `HexBoard`.
 | `useWebSocketRoom` | Hook que encapsula todo el protocolo WebSocket: conexión, sala, mensajes, estado.
 | `gameyClient.ts` | Cliente HTTP para la API Rust: `makeHumanMove`, `chooseMove`.
+| `ProfileView` | Perfil del usuario en donde puede ver sus estadísticas.
+| `LeaderboardView` | Tabla con el ranking de los jugadores, actualmente los ordena por número de victorias.
 |===
 
 Interaction::
