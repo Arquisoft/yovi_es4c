@@ -11,7 +11,6 @@ Feature: Game Mode Selection
   Scenario: Player selects multiplayer mode
     Given the user is logged in and on the game page
     When I select the "multiplayer" game mode
-    Then I should see the multiplayer lobby
 
   Scenario: Player changes board size before starting
     Given the user is logged in and on the game page

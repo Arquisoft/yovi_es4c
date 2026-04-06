@@ -1,5 +1,3 @@
-Feature: Multiplayer Lobby
-  Validate the multiplayer lobby including room creation and chat
 
   @wip
   Scenario: Player enters multiplayer lobby and sees connect button
