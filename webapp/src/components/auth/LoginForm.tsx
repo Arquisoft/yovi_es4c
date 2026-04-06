@@ -86,6 +86,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onGoToRegister })
 
           <Box component="form" onSubmit={handleSubmit} display="flex" flexDirection="column" gap={2.5}>
             <TextField
+              id="username"
               label="Usuario"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
@@ -126,6 +127,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onGoToRegister })
 
             <Button
               type="submit"
+              className="submit-button"
               variant="contained"
               size="large"
               disabled={loading}

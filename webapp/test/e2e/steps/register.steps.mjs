@@ -26,8 +26,8 @@ Given('the register page is open', async function () {
   await page.waitForLoadState('networkidle')
 
   // Si hay landing page, esperar a que aparezca el botón Register here
-  await page.waitForSelector('button:has-text("Register here")', { timeout: 10000 })
-  await page.click('button:has-text("Register here")')
+  await page.waitForSelector('button:has-text("Jugar ahora")', { timeout: 10000 })
+  await page.click('button:has-text("Jugar ahora")')
 })
 
 When('I enter {string} as the username and submit', async function (username) {
