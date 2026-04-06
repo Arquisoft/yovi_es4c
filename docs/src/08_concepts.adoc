@@ -3,114 +3,138 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-concepts]]
 == Cross-cutting Concepts
 
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Content
-This section describes overall, principal regulations and solution ideas that are relevant in multiple parts (= cross-cutting) of your system.
-Such concepts are often related to multiple building blocks.
-They can include many different topics, such as
-
-* models, especially domain models
-* architecture or design patterns
-* rules for using specific technology
-* principal, often technical decisions of an overarching (= cross-cutting) nature
-* implementation rules
-
-
-.Motivation
-Concepts form the basis for _conceptual integrity_ (consistency, homogeneity) of the architecture. 
-Thus, they are an important contribution to achieve inner qualities of your system.
-
-Some of these concepts cannot be assigned to individual building blocks, e.g. security or safety. 
-
-
-.Form
-The form can be varied:
-
-* concept papers with any kind of structure
-* cross-cutting model excerpts or scenarios using notations of the architecture views
-* sample implementations, especially for technical concepts
-* reference to typical usage of standard frameworks (e.g. using Hibernate for object/relational mapping)
-
-.Structure
-A potential (but not mandatory) structure for this section could be:
-
-* Domain concepts
-* User Experience concepts (UX)
-* Safety and security concepts
-* Architecture and design patterns
-* "Under-the-hood"
-* development concepts
-* operational concepts
-
-Note: it might be difficult to assign individual concepts to one specific topic
-on this list.
-
-image::08-concepts-EN.drawio.png["Possible topics for crosscutting concepts"]
-
-
-.Further Information
-
-See https://docs.arc42.org/section-8/[Concepts] in the arc42 documentation.
-****
-endif::arc42help[]
-
-
 === Modelo de Dominio
 
 El sistema sigue un modelo de dominio centrado en la separación de responsabilidades:
-* **Usuarios:** gestión de cuentas, autenticación y autorización.
-* **Juego:** lógica de reglas, estado del juego y comportamiento de bots.
-* **Interacción Web:** comunicación entre frontend y backend mediante APIs REST.
-  
-Este modelo asegura consistencia en todo el sistema y permite mantener la integridad conceptual entre los diferentes servicios.
+
+* **Usuarios:** gestión de cuentas, autenticación y autorización (Users Service).
+* **Partidas:** lógica de reglas, estado YEN, bots y validación de movimientos (Gamey Engine).
+* **Salas multijugador:** emparejamiento, sincronización en tiempo real y chat (WS-Server).
+* **Interacción Web:** comunicación entre frontend y backend mediante HTTP REST y WebSocket.
+
+=== Notación YEN
+
+El estado de todas las partidas se representa mediante la notación YEN (formato JSON):
+
+[source,json]
+----
+{
+  "size":    5,
+  "turn":    0,
+  "players": ["B", "R"],
+  "layout":  "./../.../..../....."
+}
+----
+
+* `layout`: filas separadas por `/`, cada carácter es `.` (vacío), `B` (Azul) o `R` (Rojo).
+* `turn`: índice del jugador cuyo turno es (0 o 1).
+* `players`: identificadores de los jugadores en orden.
+
+=== Comunicación en Tiempo Real — WebSocket de Salas
+
+El módulo `ws-server` implementa un protocolo de salas propio sobre WebSocket puro.
+
+**Principio de diseño clave**: el servidor WS **no contiene lógica de juego**.
+Solo empareja jugadores y retransmite mensajes. La validación de movimientos siempre
+la realiza la API Rust (`/v1/game/play`). Esto garantiza que la lógica del juego
+sea la misma para todos los modos (bot y multijugador).
+
+Protocolo de mensajes::
+
+[cols="1,1,2", options="header"]
+|===
+| Tipo | Dirección | Descripción
+| `create` | Cliente → Servidor | Crea sala nueva. Recibe `roomCode` de 6 chars.
+| `join` | Cliente → Servidor | Se une a sala existente por `roomCode`.
+| `room_created` | Servidor → Cliente | Confirmación de sala creada con `roomCode`.
+| `game_start` | Servidor → Ambos | La sala está llena. Incluye `playerIndex` asignado aleatoriamente.
+| `board_update` | Cliente → Servidor → Oponente | Nuevo estado del tablero tras un movimiento.
+| `game_over` | Cliente → Servidor → Oponente | Partida terminada con el ganador.
+| `chat` | Cliente → Servidor → Oponente | Mensaje de texto. El servidor añade el campo `from`.
+| `error` | Servidor → Cliente | Error de sala, conexión perdida o bot no encontrado.
+|===
+
+Asignación aleatoria de color::
+Cuando el segundo jugador se une a la sala, el servidor asigna los índices (0=Azul, 1=Rojo)
+aleatoriamente mediante `Math.random() < 0.5`. Esto garantiza equidad en partidas entre humanos.
+
+=== Geometría del Tablero Hexagonal
+
+El tablero usa hexágonos **flat-top** (lados planos arriba/abajo, vértices a izquierda y derecha)
+en forma de pirámide centrada: la fila 0 tiene 1 celda arriba y la fila n-1 tiene n celdas abajo.
+
+La fórmula de centrado por fila:
+
+[source]
+----
+offsetX(row) = (n - 1 - row) × (√3 · r) / 2
+cx(row, col) = offsetX(row) + col × √3 · r
+cy(row)      = row × 1.5 · r
+----
+
+La función `buildHexGeometry` y `flatHexPoints` se exportan desde `HexBoard.tsx` y son
+reutilizadas por `GameHistory.tsx` (miniaturas del historial), garantizando que ambas
+representaciones son geométricamente idénticas.
+
+=== API de Competición — `POST /api/play`
+
+El endpoint `/api/play` implementa el patrón **orquestación en el servidor**: el cliente
+envía una jugada y recibe el estado tras las dos jugadas (la suya y la del bot) en una
+sola petición HTTP. Esto es ideal para partidas bot-vs-bot automatizadas.
+
+Internamente se encadenan 3 llamadas a Gamey Engine:
+
+1. `POST /v1/game/play` → aplica la jugada del cliente.
+2. `POST /v1/ybot/choose/{botId}` → el bot elige su respuesta.
+3. `POST /v1/game/play` → aplica la jugada del bot.
+
+Si el cliente gana en el paso 1, los pasos 2 y 3 se omiten y `bot_move` es `null`.
+
+Bots disponibles: `random_bot` (aleatorio), `greedy_bot` (codicioso), `minimax_bot` (minimax profundidad 2).
+
+=== Experiencia de Usuario al Finalizar Partida
+
+Al terminar una partida vs bot, el tablero permanece visible con el resultado.
+El guardado en la base de datos se realiza **en background** (sin `await` bloqueante),
+de forma que la UI responde inmediatamente. El jugador ve dos botones:
+
+* **"Jugar de nuevo"**: reinicia el tablero con la misma configuración (mismo tamaño, dificultad y quién empieza) sin volver al menú.
+* **"Volver al menú"**: navega al `GameModeSelector` para elegir nueva configuración o modo.
 
 === Experiencia de Usuario (UX)
 
-- La interfaz WebApp sigue el patrón SPA (Single Page Application) para ofrecer fluidez y rapidez.
-- Navegación intuitiva mediante rutas y vistas organizadas.
-- Formularios de registro y login que validan datos antes de enviarlos al backend.
-- Mensajes de error y éxito consistentes en toda la aplicación.
+- La interfaz sigue el patrón SPA para ofrecer fluidez y rapidez.
+- Selección de modo de juego previa a la partida: modo (bot/multijugador), tamaño del tablero (mínimo 5, sin límite superior), dificultad del bot y elección de quién empieza.
+- En modo multijugador: pantalla de lobby con pestañas "Crear sala" / "Unirse a sala", con código de 6 caracteres y chat disponible antes y durante la partida.
+- Mensajes de error y estado consistentes en toda la aplicación.
 
 === Seguridad y Autenticación
 
-- Gestión de autenticación en Users Service con credenciales básicas.
-- Comunicación segura mediante HTTPS (recomendado en despliegues reales).
-- Validación de datos de entrada en frontend y backend para evitar errores o exploits comunes.
-- Roles de usuario potencialmente diferenciados para acceso a distintas funcionalidades del juego.
+- Contraseñas hasheadas con bcrypt (salt rounds = 10) en Users Service.
+- Validación de datos de entrada en frontend y backend.
+- Nginx como punto de entrada único: los puertos internos no están expuestos al exterior.
+- El servidor WebSocket no requiere autenticación formal (partidas anónimas por código).
 
 === Patrones de Arquitectura y Diseño
 
-- Arquitectura **modular por servicios**:
-  - WebApp: presentación.
-  - Users Service: backend REST.
-  - Gamey Engine: lógica del juego.
-- Separación de responsabilidades para facilitar mantenimiento y despliegue independiente.
-- Uso de **MVC simplificado** en Users Service (Rutas → Controladores → Modelos).
-- Patrón **cliente‑servidor** para comunicación WebApp ↔ Backend.
-- Contenerización con **Docker** para aislar servicios y garantizar reproducibilidad.
-
-=== Detalles Técnicos (“Under-the-hood”)
-
-- WebApp utiliza React + TypeScript + Vite.
-- Users Service implementado en Node.js + Express.
-- Gamey Engine implementado en Rust, siguiendo estructura modular (core, bot, web).
-- Comunicación entre servicios mediante JSON sobre HTTP.
-- Docker Compose como orquestador de los contenedores para facilitar despliegue local y pruebas.
+- **Microservicios**: cada servicio tiene una responsabilidad clara y se despliega en un contenedor Docker independiente.
+- **Proxy inverso (Nginx)**: punto de entrada único para HTTP y WebSocket.
+- **Gateway pattern**: el gateway de Spring Boot enruta peticiones REST al servicio correcto.
+- **Orquestación en servidor** (`/api/play`): el servidor compone múltiples llamadas internas y devuelve un resultado unificado al cliente.
+- **Hook de estado** (`useWebSocketRoom`): encapsula todo el ciclo de vida del WebSocket en un hook React reutilizable.
+- **Geometría compartida**: `buildHexGeometry` exportada para reutilización sin duplicar código.
 
 === Conceptos de Desarrollo
 
-- Uso de npm y Cargo para gestión de dependencias y scripts de compilación.
-- Estructura de carpetas consistente para mantener claridad y escalabilidad.
-- Pruebas unitarias básicas en frontend y backend.
-- Separación de configuración y código para facilitar cambios de entorno.
-  
+- TypeScript estricto en el frontend con tipos compartidos entre componentes.
+- Tests unitarios con Vitest + Testing Library (frontend) y Vitest + Supertest (users service).
+- Tests E2E con Playwright + Cucumber. Las APIs externas se mockean con `page.route()` y `page.addInitScript()` (WebSocket falso inyectado en el navegador).
+- Cobertura de código reportada a SonarCloud.
+
 === Conceptos Operativos
 
-- Cada servicio corre de manera independiente en contenedores Docker.
-- Red interna de Docker para comunicación entre servicios.
-- Posibilidad de despliegue independiente de WebApp, Users Service o Gamey Engine.
-- Logs y errores manejados por cada servicio de forma local; integrable con sistemas de logging centralizados en el futuro.
-
+- Docker Compose como orquestador en desarrollo y producción.
+- Variables de entorno para configurar URLs entre servicios sin hardcodear IPs.
+- Prometheus + Grafana para monitorización de métricas del Users Service.
+- Logs locales por servicio; integrables con sistemas centralizados en el futuro.
+- El timeout del proxy WebSocket en Nginx se configura a 3600s para mantener partidas largas.

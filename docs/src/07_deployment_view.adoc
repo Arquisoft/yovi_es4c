@@ -1,150 +1,126 @@
 ifndef::imagesdir[:imagesdir: ../images]
 
 [[section-deployment-view]]
-
-
 == Deployment View
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Content
-The deployment view describes:
-
- 1. technical infrastructure used to execute your system, with infrastructure elements like geographical locations, environments, computers, processors, channels and net topologies as well as other infrastructure elements and
-
-2. mapping of (software) building blocks to that infrastructure elements.
-
-Often systems are executed in different environments, e.g. development environment, test environment, production environment. In such cases you should document all relevant environments.
-
-Especially document a deployment view if your software is executed as distributed system with more than one computer, processor, server or container or when you design and construct your own hardware processors and chips.
-
-From a software perspective it is sufficient to capture only those elements of an infrastructure that are needed to show a deployment of your building blocks. Hardware architects can go beyond that and describe an infrastructure to any level of detail they need to capture.
-
-.Motivation
-Software does not run without hardware.
-This underlying infrastructure can and will influence a system and/or some
-cross-cutting concepts. Therefore, there is a need to know the infrastructure.
-
-.Form
-
-Maybe a highest level deployment diagram is already contained in section 3.2. as
-technical context with your own infrastructure as ONE black box. In this section one can
-zoom into this black box using additional deployment diagrams:
-
-* UML offers deployment diagrams to express that view. Use it, probably with nested diagrams,
-when your infrastructure is more complex.
-* When your (hardware) stakeholders prefer other kinds of diagrams rather than a deployment diagram, let them use any kind that is able to show nodes and channels of the infrastructure.
-
-
-.Further Information
-
-See https://docs.arc42.org/section-7/[Deployment View] in the arc42 documentation.
-
-****
-endif::arc42help[]
-
 === Infrastructure Level 1
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Describe (usually in a combination of diagrams, tables, and text):
-
-* distribution of a system to multiple locations, environments, computers, processors, .., as well as physical connections between them
-* important justifications or motivations for this deployment structure
-* quality and/or performance features of this infrastructure
-* mapping of software artifacts to elements of this infrastructure
-
-For multiple environments or alternative deployments please copy and adapt this section of arc42 for all relevant environments.
-****
-endif::arc42help[]
-
-_**<Overview Diagram>**_
 
 [plantuml, deployment-overview, png]
 ----
 @startuml
-node "Máquina virtual Azure" {
-    cloud "Docker" {
-        node "Contenedor - WebApp" as WebApp
-        node "Contenedor - Users Service" as UsersService
-        node "Contenedor - Gamey Engine" as Gamey
-        database "MySQL DB" as DB
-    }
+skinparam linetype ortho
+
+node "Máquina virtual Azure (Linux)" {
+  cloud "Docker Compose" {
+    node "webapp:80\n(Nginx)" as Nginx
+    node "gateway:8080\n(Spring Boot)" as GW
+    node "users:3000\n(Node.js)" as US
+    node "gamey:4000\n(Rust + Axum)" as GE
+    node "ws-server:8081\n(Node.js + ws)" as WS
+    database "mysql:3306\n(MySQL 8.0)" as DB
+  }
 }
-WebApp --> UsersService: REST HTTP
-WebApp --> Gamey: REST HTTP
-UsersService --> DB: Queries
-Gamey --> DB: Estado de juego
+
+actor "Navegador / Bot" as Client
+
+Client --> Nginx : HTTP :80\nWebSocket :80
+Nginx --> GW : HTTP proxy\n(/api, /v1, /login...)
+Nginx --> WS : WebSocket proxy\n(/ws)
+GW --> US : HTTP :3000
+GW --> GE : HTTP :4000
+US --> GE : HTTP :4000\n(api/play)
+US --> DB : SQL :3306
 @enduml
 ----
 
 Motivation::
 
-La infraestructura usa una máquina virtual en Azure que ejecuta Docker para aislar y contener
-los servicios. Esto permite un control completo sobre la ejecución de contenedores, facilita
-el despliegue reproducible y permite escalar cada contenedor independientemente en la misma VM.
-Azure SQL Database gestiona la persistencia de datos.
+Todo el tráfico exterior entra por el puerto 80 (Nginx), que actúa como proxy inverso.
+Solo Nginx está expuesto al exterior; el resto de servicios se comunican por la red interna de Docker.
+Esto simplifica la configuración de firewall, evita problemas de CORS y habilita el proxy WebSocket.
 
-Quality and/or Performance Features::
+Puertos expuestos al exterior::
 
-- Contenedores aislados mediante Docker dentro de la VM.
-- Fácil gestión de actualizaciones y despliegues mediante CI/CD.
-- Red interna de baja latencia entre contenedores.
-- Persistencia gestionada con Azure SQL Database (replicación y backups automáticos).
-- Seguridad: firewall de VM y conexión segura a base de datos.
+[cols="1,1,2", options="header"]
+|===
+| Puerto | Servicio | Descripción
+| 80 | Nginx (webapp) | SPA React + proxy HTTP y WebSocket
+| 9090 | Prometheus | Métricas (solo acceso interno/admin)
+| 9091 | Grafana | Dashboards de monitorización
+| 3306 | MySQL | Acceso directo a BD (solo desarrollo local)
+|===
 
-Mapping of Building Blocks to Infrastructure::
+Mapping Building Blocks → Infrastructure::
+
 [cols="1,2", options="header"]
 |===
-| Bloque de Construcción | Elemento de Infraestructura
-| WebApp | Contenedor Docker dentro de la VM Azure
-| Users Service | Contenedor Docker dentro de la VM Azure
-| Gamey Engine | Contenedor Docker dentro de la VM Azure
-| Base de Datos | MySQL Database
+| Bloque | Contenedor Docker
+| WebApp (React + Nginx) | `webapp` — imagen multi-stage Node+Nginx
+| Gateway | `gateway` — Spring Boot JAR en JRE 21
+| Users Service | `users` — Node.js 22
+| Gamey Engine | `gamey` — binario Rust compilado en Alpine
+| WS-Server | `ws-server` — Node.js 20 Alpine
+| MySQL | `mysql` — imagen oficial MySQL 8.0
 |===
 
-=== Infrastructure Level 2
+---
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Here you can include the internal structure of (some) infrastructure elements from level 1.
+=== Infrastructure Level 2 — Nginx como proxy
 
-Please copy the structure from level 1 for each selected element.
-****
-endif::arc42help[]
-
-==== Docker Host en VM Azure
-
-Diagrama:
-
-[plantuml, "Docker Host Deployment", png]
+[plantuml, "Nginx Routing", png]
 ----
 @startuml
-skinparam shadowing false
 skinparam linetype ortho
 
-node "Azure VM (Linux)" as VM {
-    node "Docker Host" as DockerHost {
-        component "WebApp (React + TS)" as WebApp
-        component "Users Service (Node.js)" as UsersService
-        component "Gamey Engine (Rust)" as Gamey
-        database "Database (MySQL)" as DB
-    }
+rectangle "Nginx (puerto 80)" {
+  rectangle "location /" as L1
+  rectangle "location /api/" as L2
+  rectangle "location /v1/" as L3
+  rectangle "location /login\n/createuser\n/status" as L4
+  rectangle "location /ws\n(WebSocket)" as L5
 }
 
-WebApp --> UsersService : REST HTTP
-WebApp --> Gamey : REST HTTP
-UsersService --> DB : Queries
-Gamey --> DB : Estado de juego
+node "Archivos estáticos\n(dist React)" as Static
+node "gateway:8080" as GW
+node "ws-server:8081" as WS
 
+L1 --> Static : serve SPA
+L2 --> GW : HTTP proxy
+L3 --> GW : HTTP proxy
+L4 --> GW : HTTP proxy
+L5 --> WS : WebSocket proxy\n(Upgrade headers)
 @enduml
 ----
 
+La configuración del proxy WebSocket en Nginx requiere los headers especiales:
 
-Todos los servicios backend y frontend se ejecutan en contenedores Docker sobre la misma VM.
-Cada contenedor está aislado, puede reiniciarse independientemente y comparte la red interna
-para comunicación rápida entre servicios.
+[source,nginx]
+----
+location /ws {
+    proxy_pass         http://ws-server:8081;
+    proxy_http_version 1.1;
+    proxy_set_header   Upgrade    $http_upgrade;
+    proxy_set_header   Connection "Upgrade";
+    proxy_read_timeout 3600s;
+}
+----
 
+Sin estos headers, Nginx no haría el handshake HTTP→WebSocket y la conexión fallaría.
+
+---
+
+=== Infrastructure Level 2 — Variables de entorno por servicio
+
+[cols="1,1,2", options="header"]
+|===
+| Servicio | Variable | Valor en Docker
+| gateway | `USERS_SERVICE_URL` | `http://users:3000`
+| gateway | `GAMEY_SERVICE_URL` | `http://gamey:4000`
+| users | `DB_HOST` | `mysql`
+| users | `DB_PORT` | `3306`
+| users | `GAMEY_SERVICE_URL` | `http://gamey:4000`
+| webapp (build) | `VITE_API_URL` | `http://localhost:80`
+| webapp (build) | `VITE_GAMEY_URL` | `http://localhost:80`
+| webapp (build) | `VITE_WS_URL` | `ws://localhost:80/ws`
+| ws-server | `WS_PORT` | `8081`
+|===

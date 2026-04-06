@@ -2,6 +2,7 @@ import { AppBar, Box, Button, Chip, Container, IconButton, Toolbar, Tooltip, Typ
 import HexagonIcon from '@mui/icons-material/Hexagon';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import HistoryIcon from '@mui/icons-material/History';
+import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 import LoginIcon from '@mui/icons-material/Login';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
@@ -30,6 +31,7 @@ export default function NavBar({
         { view: 'game' as AppView, label: 'Jugar', icon: <SportsEsportsIcon fontSize="small" /> },
         { view: 'history' as AppView, label: 'Historial', icon: <HistoryIcon fontSize="small" /> },
         { view: 'profile' as AppView, label: 'Perfil', icon: <AccountCircleIcon fontSize="small" /> },
+        { view: 'leaderboard' as AppView, label: 'Ranking',   icon: <LeaderboardIcon fontSize="small" /> },
       ]
     : [];
 
@@ -131,6 +133,7 @@ export default function NavBar({
                   <IconButton
                     onClick={onLogout}
                     size="small"
+                    data-testid="btn-logout"
                     sx={{
                       color: '#7a9bb5',
                       border: '1px solid #ff3d7122',
@@ -175,3 +178,4 @@ interface NavBarProps {
   onLogout: () => void;
 }
 
+}

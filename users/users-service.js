@@ -34,6 +34,9 @@ const pool = mysql.createPool({
   timezone: 'Z'
 });
 
+// URL base del servicio gamey (Rust) — para el endpoint /api/play
+const GAMEY_URL = process.env.GAMEY_SERVICE_URL || 'http://gamey:4000'; //NOSONAR: gamey es el hostname del contenedor Docker del servicio de juego. En local, se puede usar http://localhost:4000
+
 const initializeDatabase = async () => {  /* c8 ignore start*/
   let conn;
   try {
@@ -103,7 +106,6 @@ app.post('/createuser', async (req, res) => {
 
   const conn = await pool.getConnection();
   try {
-    // Check if username already exists
     const [existing] = await conn.query('SELECT id FROM users WHERE name = ?', [username]);
     if (existing.length > 0) {
       return res.status(409).json({ error: 'Username already taken' });
@@ -112,7 +114,6 @@ app.post('/createuser', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
     await conn.query('INSERT INTO users (name, password) VALUES (?, ?)', [username, hashedPassword]);
 
-    // Simulate processing delay
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     res.json({ message: `Hello ${username}! welcome to the course!` });
@@ -288,6 +289,157 @@ app.get('/api/users/:userId/stats', async (req, res) => {
       beatenBots: wins,
       memberSince,
     });
+// ---------------------------------------------------------------------------
+// POST /api/play
+//
+// Endpoint para partidas bot-vs-bot o test de bots (competición).
+// Recibe una jugada del jugador, la valida vía Rust, pide respuesta al bot
+// y devuelve el estado tras ambas jugadas en una sola llamada.
+//
+// Body:
+//   {
+//     "yen":        { size, turn, players, layout },  // estado actual
+//     "coords":     { x, y, z },                       // jugada del jugador
+//     "player_idx": 0,                                 // 0 o 1
+//     "bot_id":     "random_bot"                       // bot oponente
+//   }
+//
+// Response:
+//   {
+//     "yen":         { ... },        // estado final
+//     "status":      "Ongoing",
+//     "winner":      null,
+//     "player_move": { x, y, z },   // coords aplicadas del jugador
+//     "bot_move":    { x, y, z }    // coords del bot (null si el jugador ya ganó)
+//   }
+// ---------------------------------------------------------------------------
+app.post('/api/play', async (req, res) => {
+  const { yen, coords, player_idx, bot_id } = req.body || {};
+
+  // ── Validación de campos obligatorios ──────────────────────────────────────
+  if (!yen || !coords || player_idx === undefined || player_idx === null || !bot_id) {
+    return res.status(400).json({ error: 'Missing required fields: yen, coords, player_idx, bot_id' });
+  }
+  if (typeof bot_id !== 'string' || bot_id.trim() === '') {
+    return res.status(400).json({ error: 'bot_id must not be empty' });
+  }
+
+  const API = `${GAMEY_URL}/v1`;
+
+  try {
+    // ── Paso 1: aplicar jugada del jugador ────────────────────────────────────
+    const playResp = await fetch(`${API}/game/play`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ yen, coords, player_idx }),
+    });
+
+    if (!playResp.ok) {
+      const errBody = await playResp.json().catch(() => ({ error: playResp.statusText }));
+      return res.status(playResp.status).json(errBody);
+    }
+
+    const playResult = await playResp.json();
+
+    // ── Si el jugador ya ganó, devolver sin turno del bot ─────────────────────
+    if (playResult.status === 'Finished') {
+      return res.json({
+        yen:         playResult.yen,
+        status:      playResult.status,
+        winner:      playResult.winner,
+        player_move: coords,
+        bot_move:    null,
+      });
+    }
+
+    // ── Paso 2: el bot elige su jugada ────────────────────────────────────────
+    const chooseResp = await fetch(`${API}/ybot/choose/${encodeURIComponent(bot_id)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(playResult.yen),
+    });
+
+    if (!chooseResp.ok) {
+      const errBody = await chooseResp.json().catch(() => ({ error: chooseResp.statusText }));
+      return res.status(chooseResp.status).json(errBody);
+    }
+
+    const chooseResult = await chooseResp.json();
+    const botCoords    = chooseResult.coords;
+    const botPlayerIdx = player_idx === 0 ? 1 : 0;
+
+    // ── Paso 3: aplicar jugada del bot ────────────────────────────────────────
+    const botPlayResp = await fetch(`${API}/game/play`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ yen: playResult.yen, coords: botCoords, player_idx: botPlayerIdx }),
+    });
+
+    if (!botPlayResp.ok) {
+      const errBody = await botPlayResp.json().catch(() => ({ error: botPlayResp.statusText }));
+      return res.status(botPlayResp.status).json(errBody);
+    }
+
+    const finalResult = await botPlayResp.json();
+
+    // ── Respuesta unificada ───────────────────────────────────────────────────
+    return res.json({
+      yen:         finalResult.yen,
+      status:      finalResult.status,
+      winner:      finalResult.winner ?? null,
+      player_move: coords,
+      bot_move:    botCoords,
+    });
+
+  } catch (err) {
+    return res.status(502).json({ error: `Error comunicando con el servicio de juego: ${err.message}` });
+  }
+});
+
+// GET /api/leaderboard — ranking paginado de usuarios registrados
+app.get('/api/leaderboard', async (req, res) => {
+  const limit  = Math.min(parseInt(req.query.limit  ?? 20, 10), 100);
+  const offset = Math.max(parseInt(req.query.offset ?? 0,  10), 0);
+
+  if (isNaN(limit) || isNaN(offset)) {
+    return res.status(400).json({ error: 'limit and offset must be integers' });
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    // Total de usuarios con al menos una partida registrada (para la paginación)
+    const [[{ total }]] = await conn.query(`
+      SELECT COUNT(DISTINCT u.id) AS total
+      FROM users u
+      JOIN game_players gp ON gp.user_id = u.id
+    `);
+
+    // Ranking: ordenado por victorias DESC, winRate DESC como desempate
+    const [rows] = await conn.query(`
+      SELECT
+        u.id          AS userId,
+        u.name        AS username,
+        COUNT(gp.id)  AS gamesPlayed,
+        SUM(gp.is_winner)                                    AS wins,
+        ROUND(SUM(gp.is_winner) / COUNT(gp.id) * 100, 2)    AS winRate
+      FROM users u
+      JOIN game_players gp ON gp.user_id = u.id
+      GROUP BY u.id, u.name
+      ORDER BY wins DESC, winRate DESC
+      LIMIT ? OFFSET ?
+    `, [limit, offset]);
+
+    // Añadir el número de puesto real teniendo en cuenta el offset
+    const data = rows.map((row, i) => ({
+      rank:        offset + i + 1,
+      userId:      row.userId,
+      username:    row.username,
+      gamesPlayed: row.gamesPlayed,
+      wins:        row.wins,
+      winRate:     row.winRate,
+    }));
+
+    res.json({ data, pagination: { total, limit, offset } });
   } catch (err) {
     res.status(500).json({ error: err.message });
   } finally {
@@ -301,5 +453,6 @@ if (require.main === module) {
   });
 }
 app.pool = pool;
-app._bcrypt = bcrypt;  // exponer para tests
+app._bcrypt = bcrypt;
+app._gameyUrl = GAMEY_URL; // exponer para tests
 module.exports = app;

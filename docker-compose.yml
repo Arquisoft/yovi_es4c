@@ -1,19 +1,41 @@
 services:
+
+  # ── TLS termination proxy ────────────────────────────────────────────────
+  nginx:
+    image: nginx:stable-alpine
+    container_name: nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d/app.conf:/etc/nginx/conf.d/app.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - gateway
+      - webapp
+      - ws-server
+    networks:
+      - monitor-net
+
+  # ── API Gateway (Spring Boot) ────────────────────────────────────────────
   gateway:
     build: ./gateway
     container_name: gateway
     image: ghcr.io/arquisoft/yovi_es4c-gateway:latest
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     environment:
       - USERS_SERVICE_URL=http://users:3000
       - GAMEY_SERVICE_URL=http://gamey:4000
+      - CORS_ALLOWED_ORIGINS=https://localhost
     depends_on:
       - users
       - gamey
     networks:
       - monitor-net
 
+  # ── Users service (Node.js) ───────────────────────────────────────────────
   users:
     build: ./users
     container_name: users
@@ -31,21 +53,37 @@ services:
     networks:
       - monitor-net
 
+  # ── WebSocket server ─────────────────────────────────────────────────────
+  ws-server:
+    build: ./webapp/ws-server
+    container_name: ws-server
+    image: ghcr.io/arquisoft/yovi_es4c-ws-server:latest
+    expose:
+      - "8081"
+    environment:
+      - WS_PORT=8081
+    networks:
+      - monitor-net
+
+  # ── Webapp (React + Nginx) ────────────────────────────────────────────────
   webapp:
     build:
       context: ./webapp
       args:
-        - VITE_API_URL=http://localhost:8080
-        - VITE_GAMEY_URL=http://localhost:8080
+        - VITE_API_URL=https://localhost/api
+        - VITE_GAMEY_URL=https://localhost
+        - VITE_WS_URL=wss://localhost/ws
     container_name: webapp
     image: ghcr.io/arquisoft/yovi_es4c-webapp:latest
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     depends_on:
       - gateway
+      - ws-server
     networks:
       - monitor-net
 
+  # ── Gamey service (Rust) ──────────────────────────────────────────────────
   gamey:
     build: ./gamey
     container_name: gamey
@@ -55,6 +93,7 @@ services:
     networks:
       - monitor-net
 
+  # ── Monitoring ────────────────────────────────────────────────────────────
   prometheus:
     image: prom/prometheus
     container_name: prometheus

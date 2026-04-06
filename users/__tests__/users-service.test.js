@@ -396,6 +396,19 @@ describe('GET /api/users/:userId/stats', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.spyOn(pool, 'getConnection').mockResolvedValue(mockConn);
+// ── GET /api/leaderboard ──────────────────────────────────────────────────────
+describe('GET /api/leaderboard', () => {
+  const entries = [
+    { userId: 1, username: 'Ana',  gamesPlayed: 20, wins: 15, winRate: 75.00 },
+    { userId: 2, username: 'Luis', gamesPlayed: 18, wins: 10, winRate: 55.56 },
+  ];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(pool, 'getConnection').mockResolvedValue(mockConn);
+    mockConn.query
+      .mockResolvedValueOnce([[{ total: 2 }]])  // COUNT query
+      .mockResolvedValueOnce([entries]);          // SELECT ranking
   });
 
   afterEach(() => {
@@ -503,5 +516,107 @@ describe('GET /api/users/:userId/stats', () => {
     await request(app).get('/api/users/1/stats');
 
     expect(mockConn.release).toHaveBeenCalledTimes(1);
+  it('Valido: devuelve 200 con data y pagination', async () => {
+    const res = await request(app).get('/api/leaderboard');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty('data');
+    expect(res.body).toHaveProperty('pagination');
+  });
+
+  it('Valido: cada entrada incluye rank, userId, username, gamesPlayed, wins y winRate', async () => {
+    const res = await request(app).get('/api/leaderboard');
+
+    expect(res.statusCode).toBe(200);
+    const first = res.body.data[0];
+    expect(first).toHaveProperty('rank', 1);
+    expect(first).toHaveProperty('userId', 1);
+    expect(first).toHaveProperty('username', 'Ana');
+    expect(first).toHaveProperty('gamesPlayed', 20);
+    expect(first).toHaveProperty('wins', 15);
+    expect(first).toHaveProperty('winRate', 75.00);
+  });
+
+  it('Valido: el rank se calcula sumando el offset al índice', async () => {
+    mockConn.query.mockReset();
+    mockConn.query
+      .mockResolvedValueOnce([[{ total: 25 }]])
+      .mockResolvedValueOnce([entries]);
+
+    const res = await request(app).get('/api/leaderboard?limit=2&offset=10');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.data[0].rank).toBe(11);
+    expect(res.body.data[1].rank).toBe(12);
+  });
+
+  it('Valido: la paginación refleja total, limit y offset correctamente', async () => {
+    mockConn.query.mockReset();
+    mockConn.query
+      .mockResolvedValueOnce([[{ total: 42 }]])
+      .mockResolvedValueOnce([entries]);
+
+    const res = await request(app).get('/api/leaderboard?limit=5&offset=10');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.pagination).toEqual({ total: 42, limit: 5, offset: 10 });
+  });
+
+  it('Valido: usa limit=20 y offset=0 por defecto si no se pasan parámetros', async () => {
+    await request(app).get('/api/leaderboard');
+
+    const selectCall = mockConn.query.mock.calls.find(c => c[0].includes('LIMIT'));
+    expect(selectCall[1]).toEqual([20, 0]);
+  });
+
+  it('Valido: devuelve data vacío y total=0 si no hay jugadores con partidas', async () => {
+    mockConn.query.mockReset();
+    mockConn.query
+      .mockResolvedValueOnce([[{ total: 0 }]])
+      .mockResolvedValueOnce([[]]); // sin filas
+
+    const res = await request(app).get('/api/leaderboard');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.data).toEqual([]);
+    expect(res.body.pagination.total).toBe(0);
+  });
+
+  it('Valido: limit se capa a 100 aunque se pida más', async () => {
+    await request(app).get('/api/leaderboard?limit=999&offset=0');
+
+    const selectCall = mockConn.query.mock.calls.find(c => c[0].includes('LIMIT'));
+    expect(selectCall[1][0]).toBe(100);
+  });
+
+  it('Valido: offset negativo se normaliza a 0', async () => {
+    await request(app).get('/api/leaderboard?limit=10&offset=-5');
+
+    const selectCall = mockConn.query.mock.calls.find(c => c[0].includes('LIMIT'));
+    expect(selectCall[1][1]).toBe(0);
+  });
+
+  it('Espera error: devuelve 400 si limit no es un número', async () => {
+    const res = await request(app).get('/api/leaderboard?limit=abc&offset=0');
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toBe('limit and offset must be integers');
+  });
+
+  it('Espera error: devuelve 400 si offset no es un número', async () => {
+    const res = await request(app).get('/api/leaderboard?limit=10&offset=xyz');
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.error).toBe('limit and offset must be integers');
+  });
+
+  it('Espera error: devuelve 500 si la base de datos lanza un error', async () => {
+    mockConn.query.mockReset();
+    mockConn.query.mockRejectedValueOnce(new Error('DB connection lost'));
+
+    const res = await request(app).get('/api/leaderboard');
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.error).toBe('DB connection lost');
   });
 });

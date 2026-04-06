@@ -96,7 +96,6 @@ export default function ProfileView({ userId, username }: ProfileViewProps) {
   return (
     <Box sx={{ minHeight: 'calc(100vh - 64px)', background: `radial-gradient(ellipse 60% 40% at 50% 0%, #7c3aed08 0%, transparent 60%), #060b18`, py: 4 }}>
       <Container maxWidth="md">
-        {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 4 }}>
           <AccountCircleIcon sx={{ color: '#00e5ff', fontSize: 22, filter: 'drop-shadow(0 0 4px #00e5ff88)' }} />
           <Typography variant="h5" sx={{ fontFamily: '"Orbitron"', fontWeight: 700, letterSpacing: '0.08em', color: '#e8f4fd' }}>PERFIL</Typography>
@@ -107,9 +106,7 @@ export default function ProfileView({ userId, username }: ProfileViewProps) {
           <Box display="flex" justifyContent="center" py={8}><CircularProgress sx={{ color: '#00e5ff' }} /></Box>
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {/* User card */}
             <Paper sx={{ p: 3, border: '1px solid #00e5ff15', display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
-              {/* Avatar */}
               <Box sx={{
                 width: 72, height: 72, borderRadius: '50%', flexShrink: 0,
                 background: 'linear-gradient(135deg, #1d4ed8 0%, #0ea5e9 100%)',
@@ -141,7 +138,6 @@ export default function ProfileView({ userId, username }: ProfileViewProps) {
               <WinRateRing rate={winRate} />
             </Paper>
 
-            {/* Stats grid */}
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
               <StatCard icon={<SportsEsportsIcon />} label="Partidas" value={stats?.totalGames ?? 0} />
               <StatCard icon={<EmojiEventsIcon />} label="Victorias" value={stats?.wins ?? 0} accent="#00e676" />
@@ -151,7 +147,6 @@ export default function ProfileView({ userId, username }: ProfileViewProps) {
 
             <Divider sx={{ borderColor: '#00e5ff0a' }} />
 
-            {/* Extra insights */}
             <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
               <Paper sx={{ p: 2.5, border: '1px solid #00e5ff15' }}>
                 <Typography sx={{ color: '#4a6a85', fontSize: '0.7rem', fontFamily: '"Rajdhani"', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.1em', mb: 1.5 }}>
