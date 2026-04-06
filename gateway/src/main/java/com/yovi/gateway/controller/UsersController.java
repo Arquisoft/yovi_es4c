@@ -15,6 +15,7 @@ import org.springframework.web.client.RestTemplate;
  *  - GET  /api/games        → users:3000/api/games
  *  - POST /api/games        → users:3000/api/games
  *  - POST /api/games/seed   → users:3000/api/games/seed
+ *  - GET  /api/leaderboard     → users:3000/api/leaderboard
  */
 @RestController
 public class UsersController {
@@ -51,6 +52,18 @@ public class UsersController {
     @PostMapping("/api/games/seed")
     public ResponseEntity<String> seedGames(@RequestBody(required = false) String body) {
         return forward(usersUrl + "/api/games/seed", "POST", body);
+    }
+
+    @GetMapping("/api/leaderboard")
+    public ResponseEntity<String> getLeaderboard(
+            @RequestParam(defaultValue = "20")  int limit,
+            @RequestParam(defaultValue = "0")   int offset) {
+        String url = usersUrl + "/api/leaderboard?limit=" + limit + "&offset=" + offset;
+        try {
+            return restTemplate.getForEntity(url, String.class);
+        } catch (HttpStatusCodeException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).body(ex.getResponseBodyAsString());
+        }
     }
 
     private ResponseEntity<String> forward(String url, String method, String body) {

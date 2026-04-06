@@ -157,4 +157,51 @@ class UsersControllerTest {
 
         mockServer.verify();
     }
+
+     // --- GET /api/leaderboard ---
+ 
+    @Test
+    void getLeaderboard_returnsLeaderboardFromUpstream() throws Exception {
+        String responseBody = "{\"data\":[{\"rank\":1,\"userId\":1,\"username\":\"Ana\",\"gamesPlayed\":20,\"wins\":15,\"winRate\":75.0}],\"pagination\":{\"total\":1,\"limit\":20,\"offset\":0}}";
+ 
+        mockServer.expect(requestTo("http://users-mock:3000/api/leaderboard?limit=20&offset=0"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(responseBody, MediaType.APPLICATION_JSON));
+ 
+        mockMvc.perform(get("/api/leaderboard"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(responseBody));
+ 
+        mockServer.verify();
+    }
+ 
+    @Test
+    void getLeaderboard_forwardsLimitAndOffsetToUpstream() throws Exception {
+        String responseBody = "{\"data\":[],\"pagination\":{\"total\":42,\"limit\":5,\"offset\":10}}";
+ 
+        mockServer.expect(requestTo("http://users-mock:3000/api/leaderboard?limit=5&offset=10"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(responseBody, MediaType.APPLICATION_JSON));
+ 
+        mockMvc.perform(get("/api/leaderboard")
+                        .param("limit", "5")
+                        .param("offset", "10"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(responseBody));
+ 
+        mockServer.verify();
+    }
+ 
+    @Test
+    void getLeaderboard_propagatesUpstreamServerError() throws Exception {
+        mockServer.expect(requestTo("http://users-mock:3000/api/leaderboard?limit=20&offset=0"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("{\"error\":\"DB connection lost\"}"));
+ 
+        mockMvc.perform(get("/api/leaderboard"))
+                .andExpect(status().isInternalServerError());
+ 
+        mockServer.verify();
+    }
 }

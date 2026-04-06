@@ -339,6 +339,57 @@ app.post('/api/play', async (req, res) => {
   }
 });
 
+// GET /api/leaderboard — ranking paginado de usuarios registrados
+app.get('/api/leaderboard', async (req, res) => {
+  const limit  = Math.min(parseInt(req.query.limit  ?? 20, 10), 100);
+  const offset = Math.max(parseInt(req.query.offset ?? 0,  10), 0);
+
+  if (isNaN(limit) || isNaN(offset)) {
+    return res.status(400).json({ error: 'limit and offset must be integers' });
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    // Total de usuarios con al menos una partida registrada (para la paginación)
+    const [[{ total }]] = await conn.query(`
+      SELECT COUNT(DISTINCT u.id) AS total
+      FROM users u
+      JOIN game_players gp ON gp.user_id = u.id
+    `);
+
+    // Ranking: ordenado por victorias DESC, winRate DESC como desempate
+    const [rows] = await conn.query(`
+      SELECT
+        u.id          AS userId,
+        u.name        AS username,
+        COUNT(gp.id)  AS gamesPlayed,
+        SUM(gp.is_winner)                                    AS wins,
+        ROUND(SUM(gp.is_winner) / COUNT(gp.id) * 100, 2)    AS winRate
+      FROM users u
+      JOIN game_players gp ON gp.user_id = u.id
+      GROUP BY u.id, u.name
+      ORDER BY wins DESC, winRate DESC
+      LIMIT ? OFFSET ?
+    `, [limit, offset]);
+
+    // Añadir el número de puesto real teniendo en cuenta el offset
+    const data = rows.map((row, i) => ({
+      rank:        offset + i + 1,
+      userId:      row.userId,
+      username:    row.username,
+      gamesPlayed: row.gamesPlayed,
+      wins:        row.wins,
+      winRate:     row.winRate,
+    }));
+
+    res.json({ data, pagination: { total, limit, offset } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  } finally {
+    conn.release();
+  }
+});
+
 if (require.main === module) {
   app.listen(port, () => {
     console.log(`User Service listening at http://localhost:${port}`)
