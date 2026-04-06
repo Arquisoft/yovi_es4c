@@ -57,6 +57,7 @@ public class UsersController {
     @GetMapping("/api/users/{userId}/stats")
     public ResponseEntity<String> getUserStats(@PathVariable String userId) {
         return forward(usersUrl + "/api/users/" + userId + "/stats", "GET", null);
+    }
     @GetMapping("/api/leaderboard")
     public ResponseEntity<String> getLeaderboard(
             @RequestParam(defaultValue = "20")  int limit,
@@ -84,5 +85,4 @@ public class UsersController {
             return ResponseEntity.status(ex.getStatusCode()).body(ex.getResponseBodyAsString());
         }
     }
-}
 }
