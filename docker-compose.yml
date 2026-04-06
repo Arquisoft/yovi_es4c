@@ -2,7 +2,7 @@ services:
 
   # ── TLS termination proxy ────────────────────────────────────────────────
   nginx:
-    build: ./nginx
+    image: ghcr.io/arquisoft/yovi_es4c-nginx:latest
     container_name: nginx
     restart: unless-stopped
     ports:
