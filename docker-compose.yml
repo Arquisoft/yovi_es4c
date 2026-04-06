@@ -2,6 +2,7 @@ services:
 
   # ── TLS termination proxy ────────────────────────────────────────────────
   nginx:
+    build: ./nginx
     image: ghcr.io/arquisoft/yovi_es4c-nginx:latest
     container_name: nginx
     restart: unless-stopped
@@ -10,7 +11,6 @@ services:
       - "443:443"
     environment:
       - DOMAIN=${DOMAIN:-localhost}
-    # Los certs ya no se montan desde host — los genera el entrypoint
     networks:
       - monitor-net
     depends_on:
@@ -20,6 +20,7 @@ services:
 
   # ── API Gateway (Spring Boot) ────────────────────────────────────────────
   gateway:
+    build: ./gateway
     container_name: gateway
     image: ghcr.io/arquisoft/yovi_es4c-gateway:latest
     expose:
@@ -36,6 +37,7 @@ services:
 
   # ── Users service (Node.js) ───────────────────────────────────────────────
   users:
+    build: ./users
     container_name: users
     image: ghcr.io/arquisoft/yovi_es4c-users:latest
     expose:
@@ -53,6 +55,7 @@ services:
 
   # ── WebSocket server ─────────────────────────────────────────────────────
   ws-server:
+    build: ./webapp/ws-server
     container_name: ws-server
     image: ghcr.io/arquisoft/yovi_es4c-ws-server:latest
     expose:
@@ -64,6 +67,12 @@ services:
 
   # ── Webapp (React + Nginx) ────────────────────────────────────────────────
   webapp:
+    build:
+      context: ./webapp
+      args:
+        - VITE_API_URL=https://${DOMAIN:-localhost}
+        - VITE_GAMEY_URL=https://${DOMAIN:-localhost}
+        - VITE_WS_URL=wss://${DOMAIN:-localhost}/ws
     container_name: webapp
     image: ghcr.io/arquisoft/yovi_es4c-webapp:latest
     expose:
@@ -76,6 +85,7 @@ services:
 
   # ── Gamey service (Rust) ──────────────────────────────────────────────────
   gamey:
+    build: ./gamey
     container_name: gamey
     image: ghcr.io/arquisoft/yovi_es4c-gamey:latest
     expose:
@@ -95,6 +105,7 @@ services:
       - monitor-net
 
   mysql:
+    build: ./mysql
     image: ghcr.io/arquisoft/yovi_es4c-mysql:latest
     container_name: mysql
     environment:
