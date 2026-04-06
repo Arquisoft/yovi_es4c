@@ -12,7 +12,6 @@ env:
   IMAGE_TAG: ${{ github.event.release.tag_name }}
 
 jobs:
-  # ── Tests Node (webapp + users) ─────────────────────────────────────────────
   test-node:
     name: Run node unit tests
     runs-on: ubuntu-latest
@@ -42,7 +41,6 @@ jobs:
           VITE_GAMEY_URL: http://localhost:8080
           VITE_WS_URL: ws://localhost:8081
 
-  # ── Tests Rust (gamey) ──────────────────────────────────────────────────────
   test-rust:
     name: Run rust (gamey) tests
     runs-on: ubuntu-latest
@@ -58,7 +56,6 @@ jobs:
           cd gamey
           cargo test
 
-  # ── Tests E2E ───────────────────────────────────────────────────────────────
   e2e:
     name: Run E2E tests
     runs-on: ubuntu-latest
@@ -96,7 +93,6 @@ jobs:
           VITE_GAMEY_URL: http://localhost:8080
           VITE_WS_URL: ws://localhost:8081
 
-  # ── Publish: users ──────────────────────────────────────────────────────────
   docker-push-users:
     name: Publish users image
     runs-on: ubuntu-latest
@@ -117,7 +113,6 @@ jobs:
           registry: ghcr.io
           workdir: users
 
-  # ── Publish: gateway ────────────────────────────────────────────────────────
   docker-push-gateway:
     name: Publish gateway image
     runs-on: ubuntu-latest
@@ -138,7 +133,6 @@ jobs:
           registry: ghcr.io
           workdir: gateway
 
-  # ── Publish: webapp ─────────────────────────────────────────────────────────
   docker-push-webapp:
     name: Publish webapp image
     runs-on: ubuntu-latest
@@ -159,11 +153,10 @@ jobs:
           registry: ghcr.io
           workdir: webapp
           buildargs: |
-                      VITE_API_URL=http://${{ secrets.DEPLOY_HOST }}
-                      VITE_GAMEY_URL=http://${{ secrets.DEPLOY_HOST }}
-                      VITE_WS_URL=ws://${{ secrets.DEPLOY_HOST }}/ws
+                      VITE_API_URL=https://${{ secrets.DEPLOY_HOST }}
+                      VITE_GAMEY_URL=https://${{ secrets.DEPLOY_HOST }}
+                      VITE_WS_URL=wss://${{ secrets.DEPLOY_HOST }}/ws
 
-  # ── Publish: gamey ──────────────────────────────────────────────────────────
   docker-push-gamey:
     name: Publish gamey image
     runs-on: ubuntu-latest
@@ -184,7 +177,6 @@ jobs:
           registry: ghcr.io
           workdir: gamey
 
-  # ── Publish: ws-server ──────────────────────────────────────────────────────
   docker-push-ws-server:
     name: Publish ws-server image
     runs-on: ubuntu-latest
@@ -205,7 +197,6 @@ jobs:
           registry: ghcr.io
           workdir: webapp/ws-server
 
-  # ── Deploy ──────────────────────────────────────────────────────────────────
   deploy:
     name: Deploy over SSH
     runs-on: ubuntu-latest
