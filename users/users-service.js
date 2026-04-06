@@ -232,6 +232,63 @@ app.post('/api/games/seed', async (req, res) => {
   }
 });
 
+// GET /api/users/:userId/stats
+app.get('/api/users/:userId/stats', async (req, res) => {
+  const userId = parseInt(req.params.userId, 10);
+  if (isNaN(userId)) return res.status(400).json({ error: 'Invalid userId' });
+
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query(
+      `SELECT g.yen, g.created_at, gp.is_winner
+       FROM game_players gp
+       JOIN games g ON g.id = gp.game_id
+       WHERE gp.user_id = ?
+       ORDER BY g.created_at DESC`,
+      [userId]
+    );
+
+    const totalGames = rows.length;
+    const wins = rows.filter(r => r.is_winner).length;
+    const losses = totalGames - wins;
+    const winRate = totalGames > 0 ? Math.round((wins / totalGames) * 100) : 0;
+    
+
+    let currentStreak = 0;
+    for (const r of rows) {
+      if (r.is_winner) currentStreak++;
+      else break;
+    }
+
+    const dayCount = {};
+    rows.forEach(r => {
+      const day = new Date(r.created_at).toLocaleDateString('es-ES', { weekday: 'long' });
+      dayCount[day] = (dayCount[day] ?? 0) + 1;
+    });
+    const topDayEntry = Object.entries(dayCount).sort((a, b) => b[1] - a[1])[0];
+    const topDay = topDayEntry?.[0] ?? null;
+    const topDayCount = topDayEntry?.[1] ?? 0;
+
+    const lastGame = rows[0]?.created_at ?? null;
+
+    const [userRows] = await conn.query(
+      'SELECT created_at FROM users WHERE id = ?',
+      [userId]
+    );
+    const memberSince = userRows[0]?.created_at ?? null;
+
+    res.json({
+      totalGames,
+      wins,
+      losses,
+      winRate,
+      currentStreak,
+      topDay,
+      topDayCount,
+      lastGame,
+      beatenBots: wins,
+      memberSince,
+    });
 // ---------------------------------------------------------------------------
 // POST /api/play
 //

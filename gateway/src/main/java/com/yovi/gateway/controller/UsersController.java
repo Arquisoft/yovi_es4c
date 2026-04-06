@@ -54,6 +54,9 @@ public class UsersController {
         return forward(usersUrl + "/api/games/seed", "POST", body);
     }
 
+    @GetMapping("/api/users/{userId}/stats")
+    public ResponseEntity<String> getUserStats(@PathVariable String userId) {
+        return forward(usersUrl + "/api/users/" + userId + "/stats", "GET", null);
     @GetMapping("/api/leaderboard")
     public ResponseEntity<String> getLeaderboard(
             @RequestParam(defaultValue = "20")  int limit,

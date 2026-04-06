@@ -177,3 +177,5 @@ interface NavBarProps {
   onLoginClick: () => void;
   onLogout: () => void;
 }
+
+}

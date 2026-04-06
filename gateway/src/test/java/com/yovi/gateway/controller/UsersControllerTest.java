@@ -158,6 +158,37 @@ class UsersControllerTest {
         mockServer.verify();
     }
 
+    // --- GET /api/users/{userId}/stats ---
+
+        @Test
+        void getUserStats_returnsStatsFromUpstream() throws Exception {
+        String responseBody = "{\"totalGames\":10,\"wins\":7,\"losses\":3,\"winRate\":70," +
+                "\"currentStreak\":3,\"topDay\":\"lunes\",\"topDayCount\":4," +
+                "\"lastGame\":\"2026-03-29T21:06:00.000Z\",\"beatenBots\":7," +
+                "\"memberSince\":\"2026-01-15T10:00:00.000Z\"}";
+
+        mockServer.expect(requestTo("http://users-mock:3000/api/users/1/stats"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withSuccess(responseBody, MediaType.APPLICATION_JSON));
+
+        mockMvc.perform(get("/api/users/1/stats"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(responseBody));
+
+        mockServer.verify();
+        }
+
+        @Test
+        void getUserStats_propagatesUpstreamError() throws Exception {
+        mockServer.expect(requestTo("http://users-mock:3000/api/users/99/stats"))
+                .andExpect(method(HttpMethod.GET))
+                .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR).body("{\"error\":\"db error\"}"));
+
+        mockMvc.perform(get("/api/users/99/stats"))
+                .andExpect(status().isInternalServerError());
+
+        mockServer.verify();
+        }
      // --- GET /api/leaderboard ---
  
     @Test

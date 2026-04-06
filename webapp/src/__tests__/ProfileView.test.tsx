@@ -1,95 +1,169 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
-import '@testing-library/jest-dom'
 import ProfileView from '../components/layout/ProfileView'
+import { describe, expect, test, vi, beforeEach } from 'vitest'
+import '@testing-library/jest-dom'
 
-const mockFetch = vi.fn()
-vi.stubGlobal('fetch', mockFetch)
+const mockStats = {
+  totalGames: 10,
+  wins: 7,
+  losses: 3,
+  winRate: 70,
+  currentStreak: 3,
+  topDay: 'lunes',
+  topDayCount: 4,
+  lastGame: '2026-03-29T21:06:00.000Z',
+  beatenBots: 7,
+  memberSince: '2026-01-15T10:00:00.000Z',
+}
 
-const makeGame = (id: number, userId: number | null, isWinner: boolean, created_at = '2024-06-01T10:00:00Z') => ({
-  id,
-  yen: './...',
-  created_at,
-  players: [
-    { id: id * 10, game_id: id, user_id: userId, player_name: 'Alice', is_winner: isWinner },
-    { id: id * 10 + 1, game_id: id, user_id: null, player_name: 'Bot', is_winner: !isWinner },
-  ],
+beforeEach(() => {
+  vi.restoreAllMocks()
 })
 
 describe('ProfileView', () => {
-  beforeEach(() => vi.clearAllMocks())
 
-  it('muestra el título PERFIL', async () => {
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [] })
-    render(<ProfileView userId={1} username="Alice" />)
-    await waitFor(() => expect(screen.getByText('PERFIL')).toBeInTheDocument())
-  })
+  test('Muestra el spinner mientras carga', () => {
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockStats,
+    } as Response)
 
-  it('muestra el nombre de usuario', async () => {
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [] })
-    render(<ProfileView userId={1} username="Alice" />)
-    await waitFor(() => expect(screen.getByText('Alice')).toBeInTheDocument())
-  })
+    render(<ProfileView userId={1} username="Sergio" />)
 
-  it('muestra sin rango si no hay partidas', async () => {
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [] })
-    render(<ProfileView userId={1} username="Alice" />)
-    await waitFor(() => expect(screen.getByText('Sin rango')).toBeInTheDocument())
-  })
-
-  it('muestra las estadísticas correctas con partidas', async () => {
-    const games = [
-      makeGame(1, 1, true),
-      makeGame(2, 1, true),
-      makeGame(3, 1, false),
-    ]
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => games })
-    render(<ProfileView userId={1} username="Alice" />)
-
-    await waitFor(() => {
-      // 3 partidas totales
-      expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(1)
-    })
-    // Verificar victorias y derrotas usando el contexto de etiquetas
-    await waitFor(() => {
-      const labels = screen.getAllByText(/victorias|derrotas|partidas/i)
-      expect(labels.length).toBeGreaterThan(0)
-    })
-  })
-
-  it('muestra winRate correcto', async () => {
-    const games = [makeGame(1, 1, true), makeGame(2, 1, false)]
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => games })
-    render(<ProfileView userId={1} username="Alice" />)
-    await waitFor(() => expect(screen.getByText('50%')).toBeInTheDocument())
-  })
-
-  it('muestra mensaje cuando no hay partidas', async () => {
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => [] })
-    render(<ProfileView userId={1} username="Alice" />)
-    await waitFor(() => {
-      expect(screen.getByText(/aún no tienes partidas/i)).toBeInTheDocument()
-    })
-  })
-
-  it('muestra el spinner mientras carga', () => {
-    mockFetch.mockImplementationOnce(() => new Promise(() => {}))
-    render(<ProfileView userId={1} username="Alice" />)
     expect(screen.getByRole('progressbar')).toBeInTheDocument()
   })
 
-  it('muestra datos vacíos si fetch falla', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('Network error'))
-    render(<ProfileView userId={1} username="Alice" />)
+  test('No hace fetch si userId es null', async () => {
+    const fetchSpy = vi.spyOn(global, 'fetch')
+
+    render(<ProfileView userId={null} username="Sergio" />)
+
+    await waitFor(() => {
+      expect(fetchSpy).not.toHaveBeenCalled()
+    })
+  })
+
+  test('Muestra el nombre de usuario', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockStats,
+    } as Response)
+
+    render(<ProfileView userId={1} username="Sergio" />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/sergio/i)).toBeInTheDocument()
+    })
+  })
+
+  test('Muestra las estadísticas correctamente tras la llamada a la API', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+        ok: true,
+        json: async () => mockStats,
+    } as Response)
+
+    render(<ProfileView userId={1} username="Sergio" />)
+
+    await waitFor(() => {
+        expect(screen.getByText('10')).toBeInTheDocument()
+        expect(screen.getAllByText('7').length).toBeGreaterThanOrEqual(2)
+        expect(screen.getAllByText('3').length).toBeGreaterThanOrEqual(2)
+        expect(screen.getByText('70%')).toBeInTheDocument()
+    })
+})
+
+  test('Muestra el día más activo y su conteo', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockStats,
+    } as Response)
+
+    render(<ProfileView userId={1} username="Sergio" />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/lunes/i)).toBeInTheDocument()
+      expect(screen.getByText(/4 partidas ese día/i)).toBeInTheDocument()
+    })
+  })
+
+  test('Muestra la fecha de registro y la última partida formateadas', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockStats,
+    } as Response)
+
+    render(<ProfileView userId={1} username="Sergio" />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/se unió el:/i)).toBeInTheDocument()
+      expect(screen.getByText(/última partida:/i)).toBeInTheDocument()
+    })
+  })
+
+  test('Muestra el rango correcto según el winRate', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ...mockStats, winRate: 70 }),
+    } as Response)
+
+    render(<ProfileView userId={1} username="Sergio" />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/avanzado/i)).toBeInTheDocument()
+    })
+  })
+
+  test('Muestra "Sin rango" si no hay partidas', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ...mockStats, totalGames: 0, winRate: 0 }),
+    } as Response)
+
+    render(<ProfileView userId={1} username="Sergio" />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/sin rango/i)).toBeInTheDocument()
+    })
+  })
+
+  test('Muestra el mensaje de sin partidas cuando totalGames es 0', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ...mockStats, totalGames: 0, winRate: 0 }),
+    } as Response)
+
+    render(<ProfileView userId={1} username="Sergio" />)
+
     await waitFor(() => {
       expect(screen.getByText(/aún no tienes partidas/i)).toBeInTheDocument()
     })
   })
 
-  it('muestra rango Maestro con winRate >= 80%', async () => {
-    const games = Array.from({ length: 5 }, (_, i) => makeGame(i + 1, 1, true))
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => games })
-    render(<ProfileView userId={1} username="Alice" />)
-    await waitFor(() => expect(screen.getByText('Maestro')).toBeInTheDocument())
+  test('Muestra el mensaje de sin partidas si la API falla', async () => {
+    vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+      ok: false,
+    } as Response)
+
+    render(<ProfileView userId={1} username="Sergio" />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/aún no tienes partidas/i)).toBeInTheDocument()
+    })
   })
+
+  test('Llama a la API con la URL correcta', async () => {
+    const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockStats,
+    } as Response)
+
+    render(<ProfileView userId={42} username="Sergio" />)
+
+    await waitFor(() => {
+      expect(fetchSpy).toHaveBeenCalledWith(
+        expect.stringContaining('/api/users/42/stats')
+      )
+    })
+  })
+
 })
