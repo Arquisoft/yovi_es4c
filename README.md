@@ -14,14 +14,18 @@ The project is divided into three main components, each in its own directory:
 - `users/`: A backend service for managing users, built with Node.js and Express.
 - `gamey/`: A Rust game engine and bot service.
 - `docs/`: Architecture documentation sources following Arc42 template
+- `gateway/`: A Java SpringBoot gateway made for managing entrance to the system
+- `nginx/`: A proxy made for redirecting HTTPS encrypted access petitions to the gateway as HTTP 
+
+
 
 Each component has its own `package.json` file with the necessary scripts to run and test the application.
 
 ## Basic Features
-
+- **User Login**: The web application provides a simple form to login existing users.
 - **User Registration**: The web application provides a simple form to register new users.
-- **User Service**: The user service receives the registration request, simulates some processing, and returns a welcome message.
-- **GameY**: A basic Game engine which only chooses a random piece.
+- **User Service**: The user service receives the registration/login request, does the coherent action and shows a menu where the user can select to either check up statistics, their games' history and also play against a bot or a human player hosting a room (provided through a code)
+- **GameY**: A basic Game engine which only chooses a random piece and also has multiplayer.
 
 ## Components
 
