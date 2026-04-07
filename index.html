@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.26">
+<meta name="generator" content="Asciidoctor 2.0.23">
 <title>yovi_es4c</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -116,6 +116,7 @@ h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title str
 :not(pre):not([class^=L])>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background:#f7f7f8;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed}
 pre{color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;line-height:1.45;text-rendering:optimizeSpeed}
 pre code,pre pre{color:inherit;font-size:inherit;line-height:inherit}
+pre>code{display:block}
 pre.nowrap,pre.nowrap pre{white-space:pre;word-wrap:normal}
 em em{font-style:normal}
 strong strong{font-weight:400}
@@ -218,7 +219,6 @@ table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
 .literalblock pre,.listingblock>.content>pre:not(.highlight),.listingblock>.content>pre[class=highlight],.listingblock>.content>pre[class^="highlight "]{background:#f7f7f8}
 .literalblock.output pre{color:#f7f7f8;background:rgba(0,0,0,.9)}
 .listingblock>.content{position:relative}
-.listingblock pre>code{display:block}
 .listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:inherit;opacity:.5}
 .listingblock:hover code[data-lang]::before{display:block}
 .listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:inherit;opacity:.5}
@@ -478,37 +478,48 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#section-building-block-view">5. Building Block View</a>
 <ul class="sectlevel2">
 <li><a href="#_whitebox_overall_system">5.1. Whitebox Overall System</a></li>
-<li><a href="#_level_2">5.2. Level 2</a></li>
-<li><a href="#_level_3">5.3. Level 3</a></li>
+<li><a href="#_level_2_bloques_internos_relevantes">5.2. Level 2 — Bloques internos relevantes</a></li>
+<li><a href="#_level_3_geometría_del_tablero_hexagonal">5.3. Level 3 — Geometría del tablero hexagonal</a></li>
 </ul>
 </li>
 <li><a href="#section-runtime-view">6. Runtime View</a>
 <ul class="sectlevel2">
-<li><a href="#_resgistro_del_usuario">6.1. Resgistro del usuario</a></li>
-<li><a href="#_partida_a_y">6.2. Partida a Y</a></li>
+<li><a href="#_registro_del_usuario">6.1. Registro del usuario</a></li>
+<li><a href="#_partida_vs_bot">6.2. Partida vs Bot</a></li>
+<li><a href="#_partida_multijugador_websocket">6.3. Partida Multijugador (WebSocket)</a></li>
+<li><a href="#_competición_bot_vs_bot_post_apiplay">6.4. Competición Bot vs Bot (<code>POST /api/play</code>)</a></li>
+<li><a href="#_fin_de_partida_vs_bot_experiencia_del_usuario">6.5. Fin de partida vs Bot — Experiencia del usuario</a></li>
 </ul>
 </li>
 <li><a href="#section-deployment-view">7. Deployment View</a>
 <ul class="sectlevel2">
 <li><a href="#_infrastructure_level_1">7.1. Infrastructure Level 1</a></li>
-<li><a href="#_infrastructure_level_2">7.2. Infrastructure Level 2</a></li>
+<li><a href="#_infrastructure_level_2_nginx_como_proxy">7.2. Infrastructure Level 2 — Nginx como proxy</a></li>
+<li><a href="#_infrastructure_level_2_variables_de_entorno_por_servicio">7.3. Infrastructure Level 2 — Variables de entorno por servicio</a></li>
 </ul>
 </li>
 <li><a href="#section-concepts">8. Cross-cutting Concepts</a>
 <ul class="sectlevel2">
 <li><a href="#_modelo_de_dominio">8.1. Modelo de Dominio</a></li>
-<li><a href="#_experiencia_de_usuario_ux">8.2. Experiencia de Usuario (UX)</a></li>
-<li><a href="#_seguridad_y_autenticación">8.3. Seguridad y Autenticación</a></li>
-<li><a href="#_patrones_de_arquitectura_y_diseño">8.4. Patrones de Arquitectura y Diseño</a></li>
-<li><a href="#_detalles_técnicos_under_the_hood">8.5. Detalles Técnicos (“Under-the-hood”)</a></li>
-<li><a href="#_conceptos_de_desarrollo">8.6. Conceptos de Desarrollo</a></li>
-<li><a href="#_conceptos_operativos">8.7. Conceptos Operativos</a></li>
+<li><a href="#_notación_yen">8.2. Notación YEN</a></li>
+<li><a href="#_comunicación_en_tiempo_real_websocket_de_salas">8.3. Comunicación en Tiempo Real — WebSocket de Salas</a></li>
+<li><a href="#_geometría_del_tablero_hexagonal">8.4. Geometría del Tablero Hexagonal</a></li>
+<li><a href="#_api_de_competición_post_apiplay">8.5. API de Competición — <code>POST /api/play</code></a></li>
+<li><a href="#_experiencia_de_usuario_al_finalizar_partida">8.6. Experiencia de Usuario al Finalizar Partida</a></li>
+<li><a href="#_experiencia_de_usuario_ux">8.7. Experiencia de Usuario (UX)</a></li>
+<li><a href="#_seguridad_y_autenticación">8.8. Seguridad y Autenticación</a></li>
+<li><a href="#_patrones_de_arquitectura_y_diseño">8.9. Patrones de Arquitectura y Diseño</a></li>
+<li><a href="#_conceptos_de_desarrollo">8.10. Conceptos de Desarrollo</a></li>
+<li><a href="#_conceptos_operativos">8.11. Conceptos Operativos</a></li>
 </ul>
 </li>
 <li><a href="#section-design-decisions">9. Architecture Decisions</a>
 <ul class="sectlevel2">
 <li><a href="#_mysql_como_bbdd_del_proyecto">9.1. MySQL como BBDD del proyecto</a></li>
-<li><a href="#_azure_como_infraestructura_de_despliegue_máquina_virtual">9.2. Azure como infraestructura de despliegue (Máquina Virtual)</a></li>
+<li><a href="#_azure_como_infraestructura_de_despliegue">9.2. Azure como infraestructura de despliegue</a></li>
+<li><a href="#_nginx_como_proxy_inverso_único_puerto_80">9.3. Nginx como proxy inverso único (puerto 80)</a></li>
+<li><a href="#_servidor_websocket_independiente_ws_server">9.4. Servidor WebSocket independiente (<code>ws-server</code>)</a></li>
+<li><a href="#_endpoint_apiplay_en_users_service">9.5. Endpoint <code>/api/play</code> en Users Service</a></li>
 </ul>
 </li>
 <li><a href="#section-quality-scenarios">10. Quality Requirements</a>
@@ -831,30 +842,50 @@ jugar al juego Y, permitiendo tanto la interacción de usuarios humanos como la 
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Usuario</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Accede a la aplicación, realiza movimientos, consulta historial</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Visualización del tablero, resultados de la partida, historial</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Usuario humano</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Accede a la aplicación, selecciona modo de juego, realiza movimientos, consulta historial</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Visualización del tablero, resultado de la partida, historial de partidas</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Bot externo</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Solicitudes al API (posición en formato YEN, peticiones de jugadas)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Respuesta con el siguiente movimiento en formato YEN</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Jugador multijugador (sala)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Crea o se une a una sala mediante código de 6 caracteres; envía movimientos y mensajes de chat</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Actualizaciones del tablero en tiempo real, mensajes de chat del oponente</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bot externo (competición)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Envía estado YEN + jugada + bot_id al endpoint <code>POST /api/play</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estado del tablero tras la jugada del bot oponente, resultado de la partida</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Sistema Yovi</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Recibe movimientos y peticiones</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Gestiona partidas, usuarios y lógica del juego</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Recibe movimientos, peticiones de estado y mensajes de sala</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gestiona partidas, usuarios, salas WebSocket y lógica del juego</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Módulo de lógica (Rust)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Estado del tablero en formato YEN</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Resultado de la partida o siguiente movimiento sugerido</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Módulo de lógica (Rust/Gamey)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estado del tablero en formato YEN + coordenadas de la jugada</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nuevo estado YEN validado, status de la partida, jugada del bot</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gateway (Spring Boot)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Peticiones HTTP del frontend o bots externos</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Redirige al microservicio correspondiente (users o gamey)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nginx proxy</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Recibe peticiones HTTPS del frontend</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Transforma y envia las peticiones HTTPS en HTTP al backend</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Servidor WebSocket (ws-server)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mensajes de sala: create, join, board_update, game_over, chat</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Empareja jugadores, retransmite movimientos y chat entre oponentes</p></td>
 </tr>
 </tbody>
 </table>
 <div class="paragraph">
 <p>El sistema Yovi actúa como intermediario entre los usuarios, los bots externos y el módulo de lógica del juego.
-Los usuarios interactúan a través de la interfaz web, mientras que los bots lo hacen mediante el API.</p>
+Los usuarios interactúan a través de la interfaz web mediante HTTP y WebSocket, mientras que los bots lo hacen mediante el endpoint REST <code>/api/play</code>.</p>
 </div>
 <hr>
 </div>
@@ -875,24 +906,39 @@ Los usuarios interactúan a través de la interfaz web, mientras que los bots lo
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Usuario ↔ Aplicación web</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Usuario ↔ WebApp (SPA)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Navegador web</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP/HTTPS, TypeScript/React</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP/HTTPS, React + TypeScript + Material UI</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Aplicación web ↔ API</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WebApp ↔ Gateway (REST)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Peticiones HTTP/HTTPS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JSON, puerto 80 (Nginx proxy → gateway:8080)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WebApp ↔ Servidor WebSocket</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Conexión WebSocket persistente</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ws:// o wss://, protocolo de salas propio, puerto 80 (Nginx proxy → ws-server:8081)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gateway ↔ Users Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Red interna Docker, HTTP</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JSON, puerto 3000</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gateway ↔ Gamey Engine</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Red interna Docker, HTTP</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JSON + notación YEN, puerto 4000</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Users Service ↔ MySQL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Red interna Docker, TCP</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SQL, puerto 3306</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bot externo ↔ Gateway</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Peticiones HTTP</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">JSON</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Aplicación web ↔ Módulo de lógica</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Servicios web</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP/HTTPS + JSON</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Bot externo ↔ API</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Peticiones HTTP</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">JSON</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JSON, <code>POST /api/play</code>, puerto 80</p></td>
 </tr>
 </tbody>
 </table>
@@ -913,24 +959,40 @@ Los usuarios interactúan a través de la interfaz web, mientras que los bots lo
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Movimiento del usuario</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Agente de usuario (HTTP)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Movimiento del usuario (vs bot)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HTTPS → Nginx proxy → HTTP → Gateway → Gamey Engine (<code>/v1/game/play</code>)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Movimiento del usuario (multijugador)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HTTPS → Nginx proxy → HTTP → Gateway → Gamey Engine + WebSocket broadcast al oponente</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Visualización del tablero</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Agente de usuario (HTTP)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Renderizado SVG en la SPA (estado recibido de Gamey)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Petición de jugada (bot)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">API HTTP (JSON)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Petición de jugada del bot interno</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP → Gateway → Gamey Engine (<code>/v1/ybot/choose/{botId}</code>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Respuesta del sistema</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">API HTTP (JSON)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Petición de partida bot-vs-bot</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP → Gateway → Users Service → Gamey Engine (<code>POST /api/play</code>)</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Comunicación con módulo Rust</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Servicios web (HTTP + JSON)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Chat en sala multijugador</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WebSocket bidireccional (cliente ↔ ws-server ↔ oponente)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Guardado de partida</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HTTPS → Nginx proxy → → Gateway → Users Service → MySQL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Historial de partidas</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HTTPS → Nginx proxy → → Gateway → Users Service → MySQL</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Registro/login de usuario</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HTTPS → Nginx proxy → → Gateway → Users Service → MySQL</p></td>
 </tr>
 </tbody>
 </table>
@@ -1034,107 +1096,22 @@ La estrategia general se basa en los siguientes aspectos:</p>
 <div class="sect1">
 <h2 id="section-building-block-view">5. Building Block View</h2>
 <div class="sectionbody">
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<div class="title">Content</div>
-<p>The building block view shows the static decomposition of the system into building blocks (modules, components, subsystems, classes, interfaces, packages, libraries, frameworks, layers, partitions, tiers, functions, macros, operations, data structures, &#8230;&#8203;) as well as their dependencies (relationships, associations, &#8230;&#8203;)</p>
-</div>
-<div class="paragraph">
-<p>This view is mandatory for every architecture documentation.
-In analogy to a house this is the <em>floor plan</em>.</p>
-</div>
-<div class="paragraph">
-<div class="title">Motivation</div>
-<p>Maintain an overview of your source code by making its structure understandable through
-abstraction.</p>
-</div>
-<div class="paragraph">
-<p>This allows you to communicate with your stakeholder on an abstract level without disclosing implementation details.</p>
-</div>
-<div class="paragraph">
-<div class="title">Form</div>
-<p>The building block view is a hierarchical collection of black boxes and white boxes
-(see figure below) and their descriptions.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="./images/05_building_blocks-EN.png" alt="Hierarchy of building blocks">
-</div>
-</div>
-<div class="paragraph">
-<p><strong>Level 1</strong> is the white box description of the overall system together with black
-box descriptions of all contained building blocks.</p>
-</div>
-<div class="paragraph">
-<p><strong>Level 2</strong> zooms into some building blocks of level 1.
-Thus it contains the white box description of selected building blocks of level 1, together with black box descriptions of their internal building blocks.</p>
-</div>
-<div class="paragraph">
-<p><strong>Level 3</strong> zooms into selected building blocks of level 2, and so on.</p>
-</div>
-<div class="paragraph">
-<div class="title">Further Information</div>
-<p>See <a href="https://docs.arc42.org/section-5/">Building Block View</a> in the arc42 documentation.</p>
-</div>
-</div>
-</div>
 <div class="sect2">
 <h3 id="_whitebox_overall_system">5.1. Whitebox Overall System</h3>
-<div class="sidebarblock arc42help">
-<div class="content">
 <div class="paragraph">
-<p>Here you describe the decomposition of the overall system using the following white box template. It contains</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>an overview diagram</p>
-</li>
-<li>
-<p>a motivation for the decomposition</p>
-</li>
-<li>
-<p>black box descriptions of the contained building blocks. For these we offer you alternatives:</p>
-<div class="ulist">
-<ul>
-<li>
-<p>use <em>one</em> table for a short and pragmatic overview of all contained building blocks and their interfaces</p>
-</li>
-<li>
-<p>use a list of black box descriptions of the building blocks according to the black box template (see below).
-Depending on your choice of tool this list could be sub-chapters (in text files), sub-pages (in a Wiki) or nested elements (in a modeling tool).</p>
-</li>
-</ul>
-</div>
-</li>
-<li>
-<p>(optional:) important interfaces, that are not explained in the black box templates of a building block, but are very important for understanding the white box.
-Since there are so many ways to specify interfaces why do not provide a specific template for them.
- In the worst case you have to specify and describe syntax, semantics, protocols, error handling,
- restrictions, versions, qualities, necessary compatibilities and many things more.
-In the best case you will get away with examples or simple signatures.</p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="paragraph">
-<p><em><strong>Diagrama</strong></em></p>
+<p><em><strong>Diagrama de bloques del sistema completo</strong></em></p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/building-block-overview.png" alt="building block overview" width="296" height="262">
+<img src="./images/building-block-overview.png" alt="building block overview" width="688" height="638">
 </div>
 </div>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Motivation</dt>
 <dd>
-<p>El sistema se descompone en servicios independientes (microservicios) para separar claramente
-la capa de presentación, la gestión de usuarios y la lógica principal del juego.
-Esta modularización mejora la mantenibilidad, la escalabilidad y permite el
-despliegue independiente de cada componente mediante contenedores Docker.</p>
+<p>El sistema se descompone en microservicios independientes para separar la presentación, la gestión de usuarios/partidas, la lógica del juego y la comunicación en tiempo real.
+Nginx actúa como punto de entrada único en producción, eliminando la exposición de puertos internos al exterior y habilitando el proxy WebSocket.</p>
 </dd>
 <dt class="hdlist1">Contained Building Blocks</dt>
 </dl>
@@ -1146,26 +1123,38 @@ despliegue independiente de cada componente mediante contenedores Docker.</p>
 </colgroup>
 <thead>
 <tr>
-<th class="tableblock halign-left valign-top"><strong>Name</strong></th>
-<th class="tableblock halign-left valign-top"><strong>Responsibility</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Bloque</strong></th>
+<th class="tableblock halign-left valign-top"><strong>Responsabilidad</strong></th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">WebApp</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Aplicación SPA que proporciona la interfaz de usuario y se comunica con los servicios backend.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SPA que proporciona la interfaz de usuario: selección de modo, tablero de juego, historial, multijugador.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nginx</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Servidor web y proxy inverso: sirve los estáticos de React, redirige HTTP al gateway y WebSocket al ws-server. Establece la comunicación del frontend en HTTPS.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gateway</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Punto de entrada HTTP único. Enruta peticiones REST al servicio correcto (users o gamey).</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">API REST responsable de la gestión de usuarios y lógica de autenticación.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API REST de usuarios y partidas. Gestiona registro, login, guardado de partidas y el endpoint <code>/api/play</code>.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Gamey Engine</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Motor principal que implementa la lógica del juego y la gestión de bots.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Motor de juego en Rust. Valida movimientos, comprueba victorias y ejecuta los algoritmos de bot.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Documentation</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Documentación arquitectónica y técnica del sistema basada en arc42.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WS-Server</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Servidor WebSocket de salas multijugador. Empareja jugadores por código, retransmite movimientos y chat.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MySQL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Persistencia de usuarios, partidas y jugadores.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1176,265 +1165,36 @@ despliegue independiente de cada componente mediante contenedores Docker.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Comunicación REST HTTP entre WebApp y Users Service.</p>
+<p>HTTPS/JSON entre WebApp y Gateway (puerto 80, Nginx proxy).</p>
 </li>
 <li>
-<p>Comunicación REST HTTP entre WebApp y Gamey Engine.</p>
+<p>WebSocket <code>ws://&lt;host&gt;/ws</code> entre WebApp y WS-Server (Nginx proxy).</p>
 </li>
 <li>
-<p>Comunicación interna entre servicios mediante red Docker.</p>
+<p>HTTP/JSON interno entre Gateway y Users Service (puerto 3000).</p>
 </li>
 <li>
-<p>Intercambio de datos en formato JSON.</p>
+<p>HTTP/JSON interno entre Gateway y Gamey Engine (puerto 4000).</p>
+</li>
+<li>
+<p>HTTP/JSON interno entre Users Service y Gamey Engine (para <code>/api/play</code>).</p>
+</li>
+<li>
+<p>SQL entre Users Service y MySQL (puerto 3306).</p>
 </li>
 </ul>
 </div>
 </dd>
 </dl>
 </div>
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<p>Insert your explanations of black boxes from level 1:</p>
-</div>
-<div class="paragraph">
-<p>If you use tabular form you will only describe your black boxes with name and
-responsibility according to the following schema:</p>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 66.6667%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top"><strong>Name</strong></th>
-<th class="tableblock halign-left valign-top"><strong>Responsibility</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>&lt;black box 1&gt;</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"> <em>&lt;Text&gt;</em></p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>&lt;black box 2&gt;</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"> <em>&lt;Text&gt;</em></p></td>
-</tr>
-</tbody>
-</table>
-<div class="paragraph">
-<p>If you use a list of black box descriptions then you fill in a separate black box template for every important building block .
-Its headline is the name of the black box.</p>
-</div>
-</div>
-</div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 33.3333%;">
-<col style="width: 66.6667%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-left valign-top"><strong>Name</strong></th>
-<th class="tableblock halign-left valign-top"><strong>Responsibility</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">WebApp</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Frontend SPA que proporciona la interfaz de usuario y comunica con los servicios backend.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Backend REST responsable de la gestión de usuarios y autenticación.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Gamey Engine</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Motor del juego que implementa la lógica y gestión de bots.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Documentation</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Contiene la documentación arquitectónica y técnica del sistema.</p></td>
-</tr>
-</tbody>
-</table>
-<div class="sect3">
-<h4 id="_webapp">5.1.1. WebApp</h4>
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<p>Here you describe &lt;black box 1&gt;
-according the the following black box template:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Purpose/Responsibility</p>
-</li>
-<li>
-<p>Interface(s), when they are not extracted as separate paragraphs. This interfaces may include qualities and performance characteristics.</p>
-</li>
-<li>
-<p>(Optional) Quality-/Performance characteristics of the black box, e.g.availability, run time behavior, &#8230;&#8203;.</p>
-</li>
-<li>
-<p>(Optional) directory/file location</p>
-</li>
-<li>
-<p>(Optional) Fulfilled requirements (if you need traceability to requirements).</p>
-</li>
-<li>
-<p>(Optional) Open issues/problems/risks</p>
-</li>
-</ul>
-</div>
-</div>
-</div>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Interfaces</dt>
-<dd>
-<div class="ulist">
-<ul>
-<li>
-<p>Consume los endpoints REST expuestos por Users Service.</p>
-</li>
-<li>
-<p>Se comunica con Gamey Engine para operaciones relacionadas con el juego.</p>
-</li>
-<li>
-<p>Utiliza HTTP y JSON como protocolo y formato de intercambio.</p>
-</li>
-</ul>
-</div>
-</dd>
-<dt class="hdlist1">Localización</dt>
-<dd>
-<div class="ulist">
-<ul>
-<li>
-<p>/webapp</p>
-</li>
-</ul>
-</div>
-</dd>
-</dl>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_users_service">5.1.2. Users Service</h4>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Interfaces</dt>
-<dd>
-<div class="ulist">
-<ul>
-<li>
-<p>Expone endpoints REST (por ejemplo, creación y consulta de usuarios).</p>
-</li>
-<li>
-<p>Comunicación mediante HTTP y JSON.</p>
-</li>
-</ul>
-</div>
-</dd>
-<dt class="hdlist1">Localización</dt>
-<dd>
-<div class="ulist">
-<ul>
-<li>
-<p>/users</p>
-</li>
-</ul>
-</div>
-</dd>
-</dl>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_gamey_engine">5.1.3. Gamey Engine</h4>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Interfaces</dt>
-<dd>
-<div class="ulist">
-<ul>
-<li>
-<p>Expone endpoints HTTP para operaciones del juego.</p>
-</li>
-<li>
-<p>Intercambio de datos estructurados en JSON.</p>
-</li>
-</ul>
-</div>
-</dd>
-<dt class="hdlist1">Localización</dt>
-<dd>
-<div class="ulist">
-<ul>
-<li>
-<p>/gamey</p>
-</li>
-</ul>
-</div>
-</dd>
-</dl>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_documentation">5.1.4. Documentation</h4>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Interfaces</dt>
-<dd>
-<div class="ulist">
-<ul>
-<li>
-<p>Archivos estáticos en formato AsciiDoc.</p>
-</li>
-</ul>
-</div>
-</dd>
-<dt class="hdlist1">Localización</dt>
-<dd>
-<div class="ulist">
-<ul>
-<li>
-<p>/docs</p>
-</li>
-</ul>
-</div>
-</dd>
-</dl>
-</div>
-</div>
+<hr>
 </div>
 <div class="sect2">
-<h3 id="_level_2">5.2. Level 2</h3>
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<p>Here you can specify the inner structure of (some) building blocks from level 1 as white boxes.</p>
-</div>
-<div class="paragraph">
-<p>You have to decide which building blocks of your system are important enough to justify such a detailed description.
-Please prefer relevance over completeness. Specify important, surprising, risky, complex or volatile building blocks.
-Leave out normal, simple, boring or standardized parts of your system</p>
-</div>
-</div>
-</div>
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<p>&#8230;&#8203;describes the internal structure of <em>building block 1</em>.</p>
-</div>
-</div>
-</div>
+<h3 id="_level_2_bloques_internos_relevantes">5.2. Level 2 — Bloques internos relevantes</h3>
 <div class="sect3">
 <h4 id="_white_box_webapp">5.2.1. White Box WebApp</h4>
 <div class="paragraph">
-<p>La WebApp sigue la estructura típica de una SPA basada en React.</p>
+<p>La WebApp sigue la arquitectura SPA con componentes React organizados por funcionalidad.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1449,20 +1209,52 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">App.tsx</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Punto de entrada de la aplicación y configuración de rutas.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>App.tsx</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Punto de entrada: gestión de autenticación y navegación entre vistas.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Views</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Componentes de nivel página.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GameModeSelector</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pantalla previa al juego: elige modo (bot/multijugador), tamaño de tablero, dificultad y quién empieza.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Components</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Componentes reutilizables de interfaz.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GameView</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Orquestador de modos: transición entre selector → bot game / mp-lobby → mp-game.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Services</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Lógica de comunicación con APIs backend.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>Game</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Partida vs bot: alterna turno humano y turno bot llamando a la API Rust. Al terminar muestra botones "Jugar de nuevo" y "Volver al menú".</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>HexBoard</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tablero SVG hexagonal (flat-top, pirámide centrada). Geometría exportada y compartida con <code>GameHistory</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MultiplayerLobby</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sala de espera: crear sala (obtiene código) o unirse con código. Chat en tiempo real.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>MultiplayerGame</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Partida multijugador: tablero + chat lateral. Movimientos vía API Rust + broadcast WebSocket.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GameHistory</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Historial de partidas con miniatura del tablero. Usa la misma geometría que <code>HexBoard</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>useWebSocketRoom</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hook que encapsula todo el protocolo WebSocket: conexión, sala, mensajes, estado.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>gameyClient.ts</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cliente HTTP para la API Rust: <code>makeHumanMove</code>, <code>chooseMove</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ProfileView</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Perfil del usuario en donde puede ver sus estadísticas.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LeaderboardView</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tabla con el ranking de los jugadores, actualmente los ordena por número de victorias.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1473,10 +1265,16 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Los componentes llaman a la capa Services.</p>
+<p><code>GameModeSelector</code> → <code>GameView</code> via prop <code>onStart(config)</code>.</p>
 </li>
 <li>
-<p>Services realiza peticiones HTTP a los servicios backend.</p>
+<p><code>Game</code> llama a <code>gameyClient.ts</code> para cada movimiento (humano y bot).</p>
+</li>
+<li>
+<p><code>MultiplayerGame</code> llama a <code>gameyClient.ts</code> para validar el movimiento y luego usa <code>useWebSocketRoom.broadcastMove</code> para notificar al oponente.</p>
+</li>
+<li>
+<p><code>useWebSocketRoom</code> mantiene la conexión WebSocket abierta durante toda la partida.</p>
 </li>
 </ul>
 </div>
@@ -1487,7 +1285,7 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 <div class="sect3">
 <h4 id="_white_box_users_service">5.2.2. White Box Users Service</h4>
 <div class="paragraph">
-<p>API REST basada en Express estructurada por rutas y controladores.</p>
+<p>API REST basada en Express con acceso directo a MySQL y llamadas HTTP internas a Gamey.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1496,51 +1294,42 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 </colgroup>
 <thead>
 <tr>
-<th class="tableblock halign-left valign-top">Componente</th>
+<th class="tableblock halign-left valign-top">Endpoint</th>
 <th class="tableblock halign-left valign-top">Responsabilidad</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Server</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Configuración e inicialización del servidor Express.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /createuser</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Registro de usuario con contraseña hasheada (bcrypt).</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Routes</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Definición de endpoints REST.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /login</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Autenticación, devuelve <code>userId</code>.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Controllers</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Lógica de gestión de peticiones.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /api/games</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Lista todas las partidas con sus jugadores.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Models</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Estructuras de datos de usuario.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /api/games</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Guarda una partida finalizada en MySQL.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /api/games/seed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Inserta partidas de ejemplo.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /api/play</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Endpoint de competición</strong>: aplica jugada del jugador + respuesta del bot en una sola llamada. Llama internamente a Gamey Engine 3 veces.</p></td>
 </tr>
 </tbody>
 </table>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Interaction</dt>
-<dd>
-<div class="ulist">
-<ul>
-<li>
-<p>Las rutas delegan en los controladores.</p>
-</li>
-<li>
-<p>Los controladores procesan la lógica y devuelven respuestas JSON.</p>
-</li>
-</ul>
-</div>
-</dd>
-</dl>
-</div>
 </div>
 <div class="sect3">
 <h4 id="_white_box_gamey_engine">5.2.3. White Box Gamey Engine</h4>
 <div class="paragraph">
-<p>Proyecto en Rust estructurado siguiendo convenciones de Cargo.</p>
+<p>Proyecto en Rust con estructura modular expuesto como servidor HTTP con Axum.</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1549,126 +1338,95 @@ Leave out normal, simple, boring or standardized parts of your system</p>
 </colgroup>
 <thead>
 <tr>
-<th class="tableblock halign-left valign-top">Componente</th>
+<th class="tableblock halign-left valign-top">Módulo</th>
 <th class="tableblock halign-left valign-top">Responsabilidad</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">main.rs</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Punto de entrada de la aplicación.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>core/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Reglas del juego, estado YEN, validación de movimientos, detección de victoria.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">core</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Lógica de reglas y estado del juego.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bot/</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Implementaciones de bots: <code>random_bot</code>, <code>greedy_bot</code>, <code>minimax_bot</code>.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">bot</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Gestión y comportamiento de bots.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bot_server/play.rs</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Handler <code>POST /v1/game/play</code>: valida y aplica un movimiento.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">web</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Capa de exposición HTTP.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>bot_server/choose.rs</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Handler <code>POST /v1/ybot/choose/{botId}</code>: el bot elige su jugada.</p></td>
 </tr>
 </tbody>
 </table>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Interaction</dt>
-<dd>
-<div class="ulist">
-<ul>
-<li>
-<p>La capa web expone endpoints HTTP.</p>
-</li>
-<li>
-<p>El módulo core ejecuta la lógica del juego.</p>
-</li>
-<li>
-<p>El módulo bot integra comportamiento automatizado.</p>
-</li>
-</ul>
 </div>
-</dd>
-</dl>
+<div class="sect3">
+<h4 id="_white_box_ws_server">5.2.4. White Box WS-Server</h4>
+<div class="paragraph">
+<p>Servidor Node.js con la librería <code>ws</code>. No contiene lógica de juego.</p>
 </div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Función</th>
+<th class="tableblock halign-left valign-top">Responsabilidad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>handleCreate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Crea sala con código único de 6 caracteres alfanuméricos. El creador espera.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>handleJoin</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Une al segundo jugador. Asigna <code>playerIndex</code> <strong>aleatoriamente</strong> (0=Azul, 1=Rojo).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>handleForward</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Retransmite <code>board_update</code>, <code>game_over</code> y <code>chat</code> entre los dos jugadores de la sala.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>handleClose</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Notifica al oponente si un jugador se desconecta. Limpia la sala.</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_level_3">5.3. Level 3</h3>
-<div class="sidebarblock arc42help">
+<h3 id="_level_3_geometría_del_tablero_hexagonal">5.3. Level 3 — Geometría del tablero hexagonal</h3>
+<div class="sect3">
+<h4 id="_buildhexgeometry_hexboard_tsx">5.3.1. <code>buildHexGeometry</code> (HexBoard.tsx)</h4>
+<div class="paragraph">
+<p>Función exportada que calcula las posiciones de todas las celdas del tablero triangular.
+Usa hexágonos <strong>flat-top</strong> (lados planos arriba/abajo) en forma de pirámide centrada:</p>
+</div>
+<div class="listingblock">
 <div class="content">
+<pre class="highlight"><code>colStep  = √3 · r                          // separación horizontal
+rowStep  = 1.5 · r                         // separación vertical
+offsetX(row) = (n - 1 - row) · colStep / 2 // centrado por fila
+cx(row, col) = offsetX(row) + col · colStep
+cy(row)      = row · rowStep</code></pre>
+</div>
+</div>
 <div class="paragraph">
-<p>Here you can specify the inner structure of (some) building blocks from level 2 as white boxes.</p>
-</div>
-<div class="paragraph">
-<p>When you need more detailed levels of your architecture please copy this
-part of arc42 for additional levels.</p>
-</div>
-</div>
-</div>
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<p>Specifies the internal structure of <em>building block x.1</em>.</p>
-</div>
+<p>La misma función es importada por <code>GameHistory.tsx</code> para garantizar que el miniboard del historial es geométricamente idéntico al tablero principal.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_white_box_gamey_engine_core">5.3.1. White Box Gamey Engine Core</h4>
-<div class="paragraph">
-<p>El módulo core encapsula las reglas del juego y la gestión del estado.</p>
+<h4 id="_post_apiplay_flujo_interno">5.3.2. <code>POST /api/play</code> — Flujo interno</h4>
+<div class="imageblock">
+<div class="content">
+<img src="./images/api-play-flow.png" alt="api play flow" width="619" height="479">
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p>Representación del estado del juego.</p>
-</li>
-<li>
-<p>Validación de reglas.</p>
-</li>
-<li>
-<p>Transiciones de estado.</p>
-</li>
-<li>
-<p>Gestión de errores.</p>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Responsabilidad</dt>
-<dd>
-<p>Garantizar la ejecución determinista de la lógica del juego de forma independiente a la interfaz web.</p>
-</dd>
-</dl>
-</div>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_white_box_webapp_services_layer">5.3.2. White Box WebApp Services Layer</h4>
-<div class="paragraph">
-<p>Capa encargada de encapsular toda la comunicación HTTP.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Cliente de API.</p>
-</li>
-<li>
-<p>Llamadas fetch/axios.</p>
-</li>
-<li>
-<p>Gestión de errores.</p>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Responsabilidad</dt>
-<dd>
-<p>Desacoplar los componentes de interfaz de los detalles de comunicación con el backend.</p>
-</dd>
-</dl>
-</div>
-</li>
-</ul>
 </div>
 <div style="page-break-after: always;"></div>
 </div>
@@ -1678,139 +1436,106 @@ part of arc42 for additional levels.</p>
 <div class="sect1">
 <h2 id="section-runtime-view">6. Runtime View</h2>
 <div class="sectionbody">
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<div class="title">Contents</div>
-<p>The runtime view describes concrete behavior and interactions of the system’s building blocks in form of scenarios from the following areas:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>important use cases or features: how do building blocks execute them?</p>
-</li>
-<li>
-<p>interactions at critical external interfaces: how do building blocks cooperate with users and neighboring systems?</p>
-</li>
-<li>
-<p>operation and administration: launch, start-up, stop</p>
-</li>
-<li>
-<p>error and exception scenarios</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Remark: The main criterion for the choice of possible scenarios (sequences, workflows) is their <strong>architectural relevance</strong>. It is <strong>not</strong> important to describe a large number of scenarios. You should rather document a representative selection.</p>
-</div>
-<div class="paragraph">
-<div class="title">Motivation</div>
-<p>You should understand how (instances of) building blocks of your system perform their job and communicate at runtime.
-You will mainly capture scenarios in your documentation to communicate your architecture to stakeholders that are less willing or able to read and understand the static models (building block view, deployment view).</p>
-</div>
-<div class="paragraph">
-<div class="title">Form</div>
-<p>There are many notations for describing scenarios, e.g.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>numbered list of steps (in natural language)</p>
-</li>
-<li>
-<p>activity diagrams or flow charts</p>
-</li>
-<li>
-<p>sequence diagrams</p>
-</li>
-<li>
-<p>BPMN or EPCs (event process chains)</p>
-</li>
-<li>
-<p>state machines</p>
-</li>
-<li>
-<p>&#8230;&#8203;</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<div class="title">Further Information</div>
-<p>See <a href="https://docs.arc42.org/section-6/">Runtime View</a> in the arc42 documentation.</p>
-</div>
-</div>
-</div>
 <div class="sect2">
-<h3 id="_resgistro_del_usuario">6.1. Resgistro del usuario</h3>
+<h3 id="_registro_del_usuario">6.1. Registro del usuario</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Caso</dt>
 <dd>
-<div class="ulist">
-<ul>
-<li>
-<p>El usuario entra en la página web e inicia el proceso de registrarse para poder echar unas partidas.</p>
-<div class="ulist">
-<ul>
-<li>
-<p>La WebApp envía los datos del formulario al Users Service para validación y creación de la cuenta.</p>
-</li>
-<li>
-<p>Users Service valida los datos, crea al usuario y devuelve la confirmación.</p>
-</li>
-</ul>
-</div>
-</li>
-</ul>
-</div>
+<p>El usuario accede a la página web e inicia el proceso de registro para poder jugar partidas.</p>
 </dd>
 </dl>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Registro%20de%20Usuario.png" alt="Registro de Usuario" width="618" height="365">
+<img src="./images/Registro%20de%20Usuario.png" alt="Registro de Usuario" width="1061" height="426">
 </div>
 </div>
+<hr>
 </div>
 <div class="sect2">
-<h3 id="_partida_a_y">6.2. Partida a Y</h3>
+<h3 id="_partida_vs_bot">6.2. Partida vs Bot</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Caso</dt>
 <dd>
+<p>El usuario selecciona el modo vs bot, configura tamaño, dificultad y quién empieza, y juega una partida completa.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Partida%20vs%20Bot.png" alt="Partida vs Bot" width="1168" height="923">
+</div>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_partida_multijugador_websocket">6.3. Partida Multijugador (WebSocket)</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Caso</dt>
+<dd>
+<p>Dos jugadores crean y se unen a una sala, juegan una partida con chat en tiempo real.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Partida%20Multijugador.png" alt="Partida Multijugador" width="1126" height="1001">
+</div>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_competición_bot_vs_bot_post_apiplay">6.4. Competición Bot vs Bot (<code>POST /api/play</code>)</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Caso</dt>
+<dd>
+<p>Un bot externo (o script de testing) quiere hacer una jugada y recibir la respuesta del bot de la aplicación en una sola llamada HTTP.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Bot%20vs%20Bot.png" alt="Bot vs Bot" width="1001" height="521">
+</div>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_fin_de_partida_vs_bot_experiencia_del_usuario">6.5. Fin de partida vs Bot — Experiencia del usuario</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Caso</dt>
+<dd>
+<p>La partida termina y el usuario decide si jugar de nuevo o ver el historial.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>El usuario comienza una nueva partida.</p>
+<p>La partida se guarda en MySQL <strong>en background</strong> (el usuario no espera).</p>
+</li>
+<li>
+<p>Se muestran simultáneamente dos botones:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>La WebApp solicita al Gamey Engine que cree una nueva sesión de juego.</p>
+<p><strong>"Jugar de nuevo"</strong>: reinicia el tablero con la misma configuración sin volver al menú.</p>
 </li>
 <li>
-<p>Gamey Engine inicializa el estado de la partida y registra los bots necesarios.</p>
-</li>
-<li>
-<p>Gamey Engine devuelve a la WebApp el estado inicial de la partida.</p>
-</li>
-<li>
-<p>La WebApp muestra al usuario el tablero o interfaz de juego lista para interactuar.</p>
+<p><strong>"Volver al menú"</strong>: navega al <code>GameModeSelector</code> para elegir nueva configuración.</p>
 </li>
 </ul>
 </div>
+</li>
+<li>
+<p>El historial de partidas se refresca automáticamente cuando el usuario navega a esa vista.</p>
 </li>
 </ul>
 </div>
 </dd>
 </dl>
-</div>
-<div class="paragraph">
-<p>Diagrama de secuencia representativo:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="./images/Inicio%20de%20Partida.png" alt="Inicio de Partida" width="592" height="365">
-</div>
 </div>
 <div style="page-break-after: always;"></div>
 </div>
@@ -1819,128 +1544,63 @@ You will mainly capture scenarios in your documentation to communicate your arch
 <div class="sect1">
 <h2 id="section-deployment-view">7. Deployment View</h2>
 <div class="sectionbody">
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<div class="title">Content</div>
-<p>The deployment view describes:</p>
-</div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>technical infrastructure used to execute your system, with infrastructure elements like geographical locations, environments, computers, processors, channels and net topologies as well as other infrastructure elements and</p>
-</li>
-<li>
-<p>mapping of (software) building blocks to that infrastructure elements.</p>
-</li>
-</ol>
-</div>
-<div class="paragraph">
-<p>Often systems are executed in different environments, e.g. development environment, test environment, production environment. In such cases you should document all relevant environments.</p>
-</div>
-<div class="paragraph">
-<p>Especially document a deployment view if your software is executed as distributed system with more than one computer, processor, server or container or when you design and construct your own hardware processors and chips.</p>
-</div>
-<div class="paragraph">
-<p>From a software perspective it is sufficient to capture only those elements of an infrastructure that are needed to show a deployment of your building blocks. Hardware architects can go beyond that and describe an infrastructure to any level of detail they need to capture.</p>
-</div>
-<div class="paragraph">
-<div class="title">Motivation</div>
-<p>Software does not run without hardware.
-This underlying infrastructure can and will influence a system and/or some
-cross-cutting concepts. Therefore, there is a need to know the infrastructure.</p>
-</div>
-<div class="paragraph">
-<div class="title">Form</div>
-<p>Maybe a highest level deployment diagram is already contained in section 3.2. as
-technical context with your own infrastructure as ONE black box. In this section one can
-zoom into this black box using additional deployment diagrams:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>UML offers deployment diagrams to express that view. Use it, probably with nested diagrams,
-when your infrastructure is more complex.</p>
-</li>
-<li>
-<p>When your (hardware) stakeholders prefer other kinds of diagrams rather than a deployment diagram, let them use any kind that is able to show nodes and channels of the infrastructure.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<div class="title">Further Information</div>
-<p>See <a href="https://docs.arc42.org/section-7/">Deployment View</a> in the arc42 documentation.</p>
-</div>
-</div>
-</div>
 <div class="sect2">
 <h3 id="_infrastructure_level_1">7.1. Infrastructure Level 1</h3>
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<p>Describe (usually in a combination of diagrams, tables, and text):</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>distribution of a system to multiple locations, environments, computers, processors, .., as well as physical connections between them</p>
-</li>
-<li>
-<p>important justifications or motivations for this deployment structure</p>
-</li>
-<li>
-<p>quality and/or performance features of this infrastructure</p>
-</li>
-<li>
-<p>mapping of software artifacts to elements of this infrastructure</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>For multiple environments or alternative deployments please copy and adapt this section of arc42 for all relevant environments.</p>
-</div>
-</div>
-</div>
-<div class="paragraph">
-<p><em><strong>&lt;Overview Diagram&gt;</strong></em></p>
-</div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/deployment-overview.png" alt="deployment overview" width="520" height="354">
+<img src="./images/deployment-overview.png" alt="deployment overview" width="678" height="638">
 </div>
 </div>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Motivation</dt>
 <dd>
-<p>La infraestructura usa una máquina virtual en Azure que ejecuta Docker para aislar y contener
-los servicios. Esto permite un control completo sobre la ejecución de contenedores, facilita
-el despliegue reproducible y permite escalar cada contenedor independientemente en la misma VM.
-Azure SQL Database gestiona la persistencia de datos.</p>
+<p>Todo el tráfico exterior entra por el puerto 80 (Nginx), que actúa como proxy inverso.
+Solo Nginx está expuesto al exterior; el resto de servicios se comunican por la red interna de Docker.
+Esto simplifica la configuración de firewall, evita problemas de CORS y habilita el proxy WebSocket.</p>
 </dd>
-<dt class="hdlist1">Quality and/or Performance Features</dt>
-<dd>
-<div class="ulist">
-<ul>
-<li>
-<p>Contenedores aislados mediante Docker dentro de la VM.</p>
-</li>
-<li>
-<p>Fácil gestión de actualizaciones y despliegues mediante CI/CD.</p>
-</li>
-<li>
-<p>Red interna de baja latencia entre contenedores.</p>
-</li>
-<li>
-<p>Persistencia gestionada con Azure SQL Database (replicación y backups automáticos).</p>
-</li>
-<li>
-<p>Seguridad: firewall de VM y conexión segura a base de datos.</p>
-</li>
-</ul>
+<dt class="hdlist1">Puertos expuestos al exterior</dt>
+</dl>
 </div>
-</dd>
-<dt class="hdlist1">Mapping of Building Blocks to Infrastructure</dt>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Puerto</th>
+<th class="tableblock halign-left valign-top">Servicio</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">80</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nginx (webapp)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SPA React + proxy HTTP y WebSocket</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9090</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prometheus</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Métricas (solo acceso interno/admin)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">9091</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Grafana</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Dashboards de monitorización</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3306</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MySQL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Acceso directo a BD (solo desarrollo local)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Mapping Building Blocks → Infrastructure</dt>
 </dl>
 </div>
 <table class="tableblock frame-all grid-all stretch">
@@ -1950,301 +1610,438 @@ Azure SQL Database gestiona la persistencia de datos.</p>
 </colgroup>
 <thead>
 <tr>
-<th class="tableblock halign-left valign-top">Bloque de Construcción</th>
-<th class="tableblock halign-left valign-top">Elemento de Infraestructura</th>
+<th class="tableblock halign-left valign-top">Bloque</th>
+<th class="tableblock halign-left valign-top">Contenedor Docker</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">WebApp</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Contenedor Docker dentro de la VM Azure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WebApp (React + Nginx)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>webapp</code> — imagen multi-stage Node+Nginx</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gateway</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>gateway</code> — Spring Boot JAR en JRE 21</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Contenedor Docker dentro de la VM Azure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>users</code> — Node.js 22</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Gamey Engine</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Contenedor Docker dentro de la VM Azure</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>gamey</code> — binario Rust compilado en Alpine</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Base de Datos</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MySQL Database</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">WS-Server</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ws-server</code> — Node.js 20 Alpine</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MySQL</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mysql</code> — imagen oficial MySQL 8.0</p></td>
 </tr>
 </tbody>
 </table>
+<hr>
 </div>
 <div class="sect2">
-<h3 id="_infrastructure_level_2">7.2. Infrastructure Level 2</h3>
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<p>Here you can include the internal structure of (some) infrastructure elements from level 1.</p>
-</div>
-<div class="paragraph">
-<p>Please copy the structure from level 1 for each selected element.</p>
-</div>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_docker_host_en_vm_azure">7.2.1. Docker Host en VM Azure</h4>
-<div class="paragraph">
-<p>Diagrama:</p>
-</div>
+<h3 id="_infrastructure_level_2_nginx_como_proxy">7.2. Infrastructure Level 2 — Nginx como proxy</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Docker%20Host%20Deployment.png" alt="Docker Host Deployment" width="444" height="353">
+<img src="./images/Nginx%20Routing.png" alt="Nginx Routing" width="711" height="638">
 </div>
 </div>
 <div class="paragraph">
-<p>Todos los servicios backend y frontend se ejecutan en contenedores Docker sobre la misma VM.
-Cada contenedor está aislado, puede reiniciarse independientemente y comparte la red interna
-para comunicación rápida entre servicios.</p>
+<p>La configuración del proxy WebSocket en Nginx requiere los headers especiales:</p>
 </div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-nginx" data-lang="nginx">location /ws {
+    proxy_pass         http://ws-server:8081;
+    proxy_http_version 1.1;
+    proxy_set_header   Upgrade    $http_upgrade;
+    proxy_set_header   Connection "Upgrade";
+    proxy_read_timeout 3600s;
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Sin estos headers, Nginx no haría el handshake HTTP→WebSocket y la conexión fallaría.</p>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_infrastructure_level_2_variables_de_entorno_por_servicio">7.3. Infrastructure Level 2 — Variables de entorno por servicio</h3>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Servicio</th>
+<th class="tableblock halign-left valign-top">Variable</th>
+<th class="tableblock halign-left valign-top">Valor en Docker</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">gateway</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>USERS_SERVICE_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://users:3000" class="bare">http://users:3000</a></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">gateway</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GAMEY_SERVICE_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://gamey:4000" class="bare">http://gamey:4000</a></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">users</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DB_HOST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>mysql</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">users</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>DB_PORT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>3306</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">users</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GAMEY_SERVICE_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://gamey:4000" class="bare">http://gamey:4000</a></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">webapp (build)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>VITE_API_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://localhost:80" class="bare">http://localhost:80</a></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">webapp (build)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>VITE_GAMEY_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code><a href="http://localhost:80" class="bare">http://localhost:80</a></code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">webapp (build)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>VITE_WS_URL</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ws://localhost:80/ws</code></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">ws-server</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>WS_PORT</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>8081</code></p></td>
+</tr>
+</tbody>
+</table>
 <div style="page-break-after: always;"></div>
-</div>
 </div>
 </div>
 </div>
 <div class="sect1">
 <h2 id="section-concepts">8. Cross-cutting Concepts</h2>
 <div class="sectionbody">
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<div class="title">Content</div>
-<p>This section describes overall, principal regulations and solution ideas that are relevant in multiple parts (= cross-cutting) of your system.
-Such concepts are often related to multiple building blocks.
-They can include many different topics, such as</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>models, especially domain models</p>
-</li>
-<li>
-<p>architecture or design patterns</p>
-</li>
-<li>
-<p>rules for using specific technology</p>
-</li>
-<li>
-<p>principal, often technical decisions of an overarching (= cross-cutting) nature</p>
-</li>
-<li>
-<p>implementation rules</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<div class="title">Motivation</div>
-<p>Concepts form the basis for <em>conceptual integrity</em> (consistency, homogeneity) of the architecture.
-Thus, they are an important contribution to achieve inner qualities of your system.</p>
-</div>
-<div class="paragraph">
-<p>Some of these concepts cannot be assigned to individual building blocks, e.g. security or safety.</p>
-</div>
-<div class="paragraph">
-<div class="title">Form</div>
-<p>The form can be varied:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>concept papers with any kind of structure</p>
-</li>
-<li>
-<p>cross-cutting model excerpts or scenarios using notations of the architecture views</p>
-</li>
-<li>
-<p>sample implementations, especially for technical concepts</p>
-</li>
-<li>
-<p>reference to typical usage of standard frameworks (e.g. using Hibernate for object/relational mapping)</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<div class="title">Structure</div>
-<p>A potential (but not mandatory) structure for this section could be:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Domain concepts</p>
-</li>
-<li>
-<p>User Experience concepts (UX)</p>
-</li>
-<li>
-<p>Safety and security concepts</p>
-</li>
-<li>
-<p>Architecture and design patterns</p>
-</li>
-<li>
-<p>"Under-the-hood"</p>
-</li>
-<li>
-<p>development concepts</p>
-</li>
-<li>
-<p>operational concepts</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>Note: it might be difficult to assign individual concepts to one specific topic
-on this list.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="./images/08-concepts-EN.drawio.png" alt="Possible topics for crosscutting concepts">
-</div>
-</div>
-<div class="paragraph">
-<div class="title">Further Information</div>
-<p>See <a href="https://docs.arc42.org/section-8/">Concepts</a> in the arc42 documentation.</p>
-</div>
-</div>
-</div>
 <div class="sect2">
 <h3 id="_modelo_de_dominio">8.1. Modelo de Dominio</h3>
 <div class="paragraph">
-<p>El sistema sigue un modelo de dominio centrado en la separación de responsabilidades:
-* <strong>Usuarios:</strong> gestión de cuentas, autenticación y autorización.
-* <strong>Juego:</strong> lógica de reglas, estado del juego y comportamiento de bots.
-* <strong>Interacción Web:</strong> comunicación entre frontend y backend mediante APIs REST.</p>
+<p>El sistema sigue un modelo de dominio centrado en la separación de responsabilidades:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Usuarios:</strong> gestión de cuentas, autenticación y autorización (Users Service).</p>
+</li>
+<li>
+<p><strong>Partidas:</strong> lógica de reglas, estado YEN, bots y validación de movimientos (Gamey Engine).</p>
+</li>
+<li>
+<p><strong>Salas multijugador:</strong> emparejamiento, sincronización en tiempo real y chat (WS-Server).</p>
+</li>
+<li>
+<p><strong>Interacción Web:</strong> comunicación entre frontend y backend mediante HTTP REST y WebSocket.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_notación_yen">8.2. Notación YEN</h3>
+<div class="paragraph">
+<p>El estado de todas las partidas se representa mediante la notación YEN (formato JSON):</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-json" data-lang="json">{
+  "size":    5,
+  "turn":    0,
+  "players": ["B", "R"],
+  "layout":  "./../.../..../....."
+}</code></pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>layout</code>: filas separadas por <code>/</code>, cada carácter es <code>.</code> (vacío), <code>B</code> (Azul) o <code>R</code> (Rojo).</p>
+</li>
+<li>
+<p><code>turn</code>: índice del jugador cuyo turno es (0 o 1).</p>
+</li>
+<li>
+<p><code>players</code>: identificadores de los jugadores en orden.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_comunicación_en_tiempo_real_websocket_de_salas">8.3. Comunicación en Tiempo Real — WebSocket de Salas</h3>
+<div class="paragraph">
+<p>El módulo <code>ws-server</code> implementa un protocolo de salas propio sobre WebSocket puro.</p>
 </div>
 <div class="paragraph">
-<p>Este modelo asegura consistencia en todo el sistema y permite mantener la integridad conceptual entre los diferentes servicios.</p>
+<p><strong>Principio de diseño clave</strong>: el servidor WS <strong>no contiene lógica de juego</strong>.
+Solo empareja jugadores y retransmite mensajes. La validación de movimientos siempre
+la realiza la API Rust (<code>/v1/game/play</code>). Esto garantiza que la lógica del juego
+sea la misma para todos los modos (bot y multijugador).</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Protocolo de mensajes</dt>
+</dl>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Tipo</th>
+<th class="tableblock halign-left valign-top">Dirección</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>create</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cliente → Servidor</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Crea sala nueva. Recibe <code>roomCode</code> de 6 chars.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>join</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cliente → Servidor</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Se une a sala existente por <code>roomCode</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>room_created</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Servidor → Cliente</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Confirmación de sala creada con <code>roomCode</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>game_start</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Servidor → Ambos</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">La sala está llena. Incluye <code>playerIndex</code> asignado aleatoriamente.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>board_update</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cliente → Servidor → Oponente</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nuevo estado del tablero tras un movimiento.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>game_over</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cliente → Servidor → Oponente</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Partida terminada con el ganador.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>chat</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Cliente → Servidor → Oponente</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Mensaje de texto. El servidor añade el campo <code>from</code>.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>error</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Servidor → Cliente</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Error de sala, conexión perdida o bot no encontrado.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Asignación aleatoria de color</dt>
+<dd>
+<p>Cuando el segundo jugador se une a la sala, el servidor asigna los índices (0=Azul, 1=Rojo)
+aleatoriamente mediante <code>Math.random() &lt; 0.5</code>. Esto garantiza equidad en partidas entre humanos.</p>
+</dd>
+</dl>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_experiencia_de_usuario_ux">8.2. Experiencia de Usuario (UX)</h3>
+<h3 id="_geometría_del_tablero_hexagonal">8.4. Geometría del Tablero Hexagonal</h3>
+<div class="paragraph">
+<p>El tablero usa hexágonos <strong>flat-top</strong> (lados planos arriba/abajo, vértices a izquierda y derecha)
+en forma de pirámide centrada: la fila 0 tiene 1 celda arriba y la fila n-1 tiene n celdas abajo.</p>
+</div>
+<div class="paragraph">
+<p>La fórmula de centrado por fila:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>offsetX(row) = (n - 1 - row) × (√3 · r) / 2
+cx(row, col) = offsetX(row) + col × √3 · r
+cy(row)      = row × 1.5 · r</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>La función <code>buildHexGeometry</code> y <code>flatHexPoints</code> se exportan desde <code>HexBoard.tsx</code> y son
+reutilizadas por <code>GameHistory.tsx</code> (miniaturas del historial), garantizando que ambas
+representaciones son geométricamente idénticas.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_api_de_competición_post_apiplay">8.5. API de Competición — <code>POST /api/play</code></h3>
+<div class="paragraph">
+<p>El endpoint <code>/api/play</code> implementa el patrón <strong>orquestación en el servidor</strong>: el cliente
+envía una jugada y recibe el estado tras las dos jugadas (la suya y la del bot) en una
+sola petición HTTP. Esto es ideal para partidas bot-vs-bot automatizadas.</p>
+</div>
+<div class="paragraph">
+<p>Internamente se encadenan 3 llamadas a Gamey Engine:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p><code>POST /v1/game/play</code> → aplica la jugada del cliente.</p>
+</li>
+<li>
+<p><code>POST /v1/ybot/choose/{botId}</code> → el bot elige su respuesta.</p>
+</li>
+<li>
+<p><code>POST /v1/game/play</code> → aplica la jugada del bot.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Si el cliente gana en el paso 1, los pasos 2 y 3 se omiten y <code>bot_move</code> es <code>null</code>.</p>
+</div>
+<div class="paragraph">
+<p>Bots disponibles: <code>random_bot</code> (aleatorio), <code>greedy_bot</code> (codicioso), <code>minimax_bot</code> (minimax profundidad 2).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_experiencia_de_usuario_al_finalizar_partida">8.6. Experiencia de Usuario al Finalizar Partida</h3>
+<div class="paragraph">
+<p>Al terminar una partida vs bot, el tablero permanece visible con el resultado.
+El guardado en la base de datos se realiza <strong>en background</strong> (sin <code>await</code> bloqueante),
+de forma que la UI responde inmediatamente. El jugador ve dos botones:</p>
+</div>
 <div class="ulist">
 <ul>
 <li>
-<p>La interfaz WebApp sigue el patrón SPA (Single Page Application) para ofrecer fluidez y rapidez.</p>
+<p><strong>"Jugar de nuevo"</strong>: reinicia el tablero con la misma configuración (mismo tamaño, dificultad y quién empieza) sin volver al menú.</p>
 </li>
 <li>
-<p>Navegación intuitiva mediante rutas y vistas organizadas.</p>
-</li>
-<li>
-<p>Formularios de registro y login que validan datos antes de enviarlos al backend.</p>
-</li>
-<li>
-<p>Mensajes de error y éxito consistentes en toda la aplicación.</p>
+<p><strong>"Volver al menú"</strong>: navega al <code>GameModeSelector</code> para elegir nueva configuración o modo.</p>
 </li>
 </ul>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_seguridad_y_autenticación">8.3. Seguridad y Autenticación</h3>
+<h3 id="_experiencia_de_usuario_ux">8.7. Experiencia de Usuario (UX)</h3>
 <div class="ulist">
 <ul>
 <li>
-<p>Gestión de autenticación en Users Service con credenciales básicas.</p>
+<p>La interfaz sigue el patrón SPA para ofrecer fluidez y rapidez.</p>
 </li>
 <li>
-<p>Comunicación segura mediante HTTPS (recomendado en despliegues reales).</p>
+<p>Selección de modo de juego previa a la partida: modo (bot/multijugador), tamaño del tablero (mínimo 5, sin límite superior), dificultad del bot y elección de quién empieza.</p>
 </li>
 <li>
-<p>Validación de datos de entrada en frontend y backend para evitar errores o exploits comunes.</p>
+<p>En modo multijugador: pantalla de lobby con pestañas "Crear sala" / "Unirse a sala", con código de 6 caracteres y chat disponible antes y durante la partida.</p>
 </li>
 <li>
-<p>Roles de usuario potencialmente diferenciados para acceso a distintas funcionalidades del juego.</p>
+<p>Mensajes de error y estado consistentes en toda la aplicación.</p>
 </li>
 </ul>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_patrones_de_arquitectura_y_diseño">8.4. Patrones de Arquitectura y Diseño</h3>
+<h3 id="_seguridad_y_autenticación">8.8. Seguridad y Autenticación</h3>
 <div class="ulist">
 <ul>
 <li>
-<p>Arquitectura <strong>modular por servicios</strong>:</p>
+<p>Contraseñas hasheadas con bcrypt (salt rounds = 10) en Users Service.</p>
 </li>
 <li>
-<p>WebApp: presentación.</p>
+<p>Validación de datos de entrada en frontend y backend.</p>
 </li>
 <li>
-<p>Users Service: backend REST.</p>
+<p>Nginx como punto de entrada único: los puertos internos no están expuestos al exterior.</p>
 </li>
 <li>
-<p>Gamey Engine: lógica del juego.</p>
-</li>
-<li>
-<p>Separación de responsabilidades para facilitar mantenimiento y despliegue independiente.</p>
-</li>
-<li>
-<p>Uso de <strong>MVC simplificado</strong> en Users Service (Rutas → Controladores → Modelos).</p>
-</li>
-<li>
-<p>Patrón <strong>cliente‑servidor</strong> para comunicación WebApp ↔ Backend.</p>
-</li>
-<li>
-<p>Contenerización con <strong>Docker</strong> para aislar servicios y garantizar reproducibilidad.</p>
+<p>El servidor WebSocket no requiere autenticación formal (partidas anónimas por código).</p>
 </li>
 </ul>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_detalles_técnicos_under_the_hood">8.5. Detalles Técnicos (“Under-the-hood”)</h3>
+<h3 id="_patrones_de_arquitectura_y_diseño">8.9. Patrones de Arquitectura y Diseño</h3>
 <div class="ulist">
 <ul>
 <li>
-<p>WebApp utiliza React + TypeScript + Vite.</p>
+<p><strong>Microservicios</strong>: cada servicio tiene una responsabilidad clara y se despliega en un contenedor Docker independiente.</p>
 </li>
 <li>
-<p>Users Service implementado en Node.js + Express.</p>
+<p><strong>Proxy inverso (Nginx)</strong>: punto de entrada único para HTTP y WebSocket.</p>
 </li>
 <li>
-<p>Gamey Engine implementado en Rust, siguiendo estructura modular (core, bot, web).</p>
+<p><strong>Gateway pattern</strong>: el gateway de Spring Boot enruta peticiones REST al servicio correcto.</p>
 </li>
 <li>
-<p>Comunicación entre servicios mediante JSON sobre HTTP.</p>
+<p><strong>Orquestación en servidor</strong> (<code>/api/play</code>): el servidor compone múltiples llamadas internas y devuelve un resultado unificado al cliente.</p>
 </li>
 <li>
-<p>Docker Compose como orquestador de los contenedores para facilitar despliegue local y pruebas.</p>
+<p><strong>Hook de estado</strong> (<code>useWebSocketRoom</code>): encapsula todo el ciclo de vida del WebSocket en un hook React reutilizable.</p>
+</li>
+<li>
+<p><strong>Geometría compartida</strong>: <code>buildHexGeometry</code> exportada para reutilización sin duplicar código.</p>
 </li>
 </ul>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_conceptos_de_desarrollo">8.6. Conceptos de Desarrollo</h3>
+<h3 id="_conceptos_de_desarrollo">8.10. Conceptos de Desarrollo</h3>
 <div class="ulist">
 <ul>
 <li>
-<p>Uso de npm y Cargo para gestión de dependencias y scripts de compilación.</p>
+<p>TypeScript estricto en el frontend con tipos compartidos entre componentes.</p>
 </li>
 <li>
-<p>Estructura de carpetas consistente para mantener claridad y escalabilidad.</p>
+<p>Tests unitarios con Vitest + Testing Library (frontend) y Vitest + Supertest (users service).</p>
 </li>
 <li>
-<p>Pruebas unitarias básicas en frontend y backend.</p>
+<p>Tests E2E con Playwright + Cucumber. Las APIs externas se mockean con <code>page.route()</code> y <code>page.addInitScript()</code> (WebSocket falso inyectado en el navegador).</p>
 </li>
 <li>
-<p>Separación de configuración y código para facilitar cambios de entorno.</p>
+<p>Cobertura de código reportada a SonarCloud.</p>
 </li>
 </ul>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_conceptos_operativos">8.7. Conceptos Operativos</h3>
+<h3 id="_conceptos_operativos">8.11. Conceptos Operativos</h3>
 <div class="ulist">
 <ul>
 <li>
-<p>Cada servicio corre de manera independiente en contenedores Docker.</p>
+<p>Docker Compose como orquestador en desarrollo y producción.</p>
 </li>
 <li>
-<p>Red interna de Docker para comunicación entre servicios.</p>
+<p>Variables de entorno para configurar URLs entre servicios sin hardcodear IPs.</p>
 </li>
 <li>
-<p>Posibilidad de despliegue independiente de WebApp, Users Service o Gamey Engine.</p>
+<p>Prometheus + Grafana para monitorización de métricas del Users Service.</p>
 </li>
 <li>
-<p>Logs y errores manejados por cada servicio de forma local; integrable con sistemas de logging centralizados en el futuro.</p>
+<p>Logs locales por servicio; integrables con sistemas centralizados en el futuro.</p>
+</li>
+<li>
+<p>El timeout del proxy WebSocket en Nginx se configura a 3600s para mantener partidas largas.</p>
 </li>
 </ul>
 </div>
@@ -2255,50 +2052,6 @@ on this list.</p>
 <div class="sect1">
 <h2 id="section-design-decisions">9. Architecture Decisions</h2>
 <div class="sectionbody">
-<div class="sidebarblock arc42help">
-<div class="content">
-<div class="paragraph">
-<div class="title">Contents</div>
-<p>Important, expensive, large scale or risky architecture decisions including rationales.
-With "decisions" we mean selecting one alternative based on given criteria.</p>
-</div>
-<div class="paragraph">
-<p>Please use your judgement to decide whether an architectural decision should be documented
-here in this central section or whether you better document it locally
-(e.g. within the white box template of one building block).</p>
-</div>
-<div class="paragraph">
-<p>Avoid redundancy.
-Refer to section 4, where you already captured the most important decisions of your architecture.</p>
-</div>
-<div class="paragraph">
-<div class="title">Motivation</div>
-<p>Stakeholders of your system should be able to comprehend and retrace your decisions.</p>
-</div>
-<div class="paragraph">
-<div class="title">Form</div>
-<p>Various options:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>ADR (<a href="https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions">Documenting Architecture Decisions</a>) for every important decision</p>
-</li>
-<li>
-<p>List or table, ordered by importance and consequences or:</p>
-</li>
-<li>
-<p>more detailed in form of separate sections per decision</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<div class="title">Further Information</div>
-<p>See <a href="https://docs.arc42.org/section-9/">Architecture Decisions</a> in the arc42 documentation.
-There you will find links and examples about ADR.</p>
-</div>
-</div>
-</div>
 <div class="sect2">
 <h3 id="_mysql_como_bbdd_del_proyecto">9.1. MySQL como BBDD del proyecto</h3>
 <div class="dlist">
@@ -2309,21 +2062,7 @@ There you will find links and examples about ADR.</p>
 </dd>
 <dt class="hdlist1">Contexto</dt>
 <dd>
-<p>Se requiere un sistema de persistencia para almacenar los datos de los usuarios, partidas y estado del juego.
-La solución debe ser flexible, integrarse correctamente con el ecosistema tecnológico elegido y facilitar el desarrollo y despliegue del proyecto.</p>
-</dd>
-<dt class="hdlist1">Alternativas consideradas</dt>
-<dd>
-<div class="ulist">
-<ul>
-<li>
-<p>Otras bases de datos relacionales.</p>
-</li>
-<li>
-<p>Bases de datos no relacionales.</p>
-</li>
-</ul>
-</div>
+<p>Se requiere un sistema de persistencia para almacenar los datos de los usuarios, partidas y jugadores.</p>
 </dd>
 <dt class="hdlist1">Justificación</dt>
 </dl>
@@ -2336,27 +2075,23 @@ La solución debe ser flexible, integrarse correctamente con el ecosistema tecno
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Modelo relacional</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MySQL permite estructurar los datos en tablas normalizadas, ideal para usuarios, partidas y relaciones entre entidades del juego.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MySQL permite estructurar los datos en tablas normalizadas (users, games, game_players), ideal para las relaciones entre entidades del juego.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Integridad de datos</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Garantiza consistencia mediante claves primarias, foráneas y restricciones, evitando errores de duplicidad o pérdida de información.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Claves foráneas entre game_players y games/users garantizan consistencia.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Madurez y soporte</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">MySQL es estable, ampliamente documentado y compatible con la mayoría de frameworks y lenguajes backend.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tecnología estable, ampliamente documentada y compatible con Node.js (mysql2/promise).</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Adopción del equipo de desarrollo</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Es una tecnología que todo el equipo de desarrollador ha empleado en algún otro proyecto.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Rendimiento</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Adecuado para cargas moderadas, asegurando tiempos de respuesta rápidos en operaciones comunes.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adopción del equipo</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tecnología conocida por todos los miembros del equipo.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Facilidad de despliegue</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Compatible con Docker y entornos cloud, lo que facilita levantar instancias de forma reproducible.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compatible con Docker; imagen oficial mysql:8.0.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2367,22 +2102,20 @@ La solución debe ser flexible, integrarse correctamente con el ecosistema tecno
 <div class="ulist">
 <ul>
 <li>
-<p>Se adopta un esquema relacional que requiere planificación previa de las tablas y relaciones.</p>
+<p>Esquema relacional que requiere planificación previa de tablas y relaciones.</p>
 </li>
 <li>
-<p>Cambios estructurales en el futuro pueden requerir migraciones más cuidadosas que en una base de datos NoSQL.</p>
-</li>
-<li>
-<p>Se asegura integridad y consistencia de los datos, facilitando mantenimiento y auditorías.</p>
+<p>Cambios estructurales requieren migraciones. Se mitiga con <code>CREATE TABLE IF NOT EXISTS</code> en el arranque.</p>
 </li>
 </ul>
 </div>
 </dd>
 </dl>
 </div>
+<hr>
 </div>
 <div class="sect2">
-<h3 id="_azure_como_infraestructura_de_despliegue_máquina_virtual">9.2. Azure como infraestructura de despliegue (Máquina Virtual)</h3>
+<h3 id="_azure_como_infraestructura_de_despliegue">9.2. Azure como infraestructura de despliegue</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Estado</dt>
@@ -2391,24 +2124,60 @@ La solución debe ser flexible, integrarse correctamente con el ecosistema tecno
 </dd>
 <dt class="hdlist1">Contexto</dt>
 <dd>
-<p>Se requiere un entorno donde desplegar la aplicación backend, la base de datos y los servicios asociados, garantizando disponibilidad, escalabilidad y acceso remoto seguro.
-La solución debe integrarse fácilmente con el ecosistema tecnológico del proyecto y permitir un despliegue sencillo y controlado.</p>
+<p>Se requiere un entorno cloud para desplegar la aplicación con acceso desde Internet.</p>
+</dd>
+<dt class="hdlist1">Justificación</dt>
+</dl>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Adopción del equipo</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tecnología conocida por todos los miembros del equipo.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">IaaS con control total</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Máquina virtual Linux con Docker: control completo del entorno.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Escalabilidad</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Posibilidad de ajustar recursos (CPU, RAM) según necesidad.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Integración CI/CD</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Compatible con GitHub Actions para despliegue automático.</p></td>
+</tr>
+</tbody>
+</table>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_nginx_como_proxy_inverso_único_puerto_80">9.3. Nginx como proxy inverso único (puerto 80)</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Estado</dt>
+<dd>
+<p>Aceptada.</p>
+</dd>
+<dt class="hdlist1">Contexto</dt>
+<dd>
+<p>La webapp está empaquetada como archivos estáticos (Vite build) que necesitan ser servidos.
+El frontend necesita comunicarse con el gateway (HTTP) y el servidor WebSocket (WS)
+sin exponer puertos internos al exterior.</p>
 </dd>
 <dt class="hdlist1">Alternativas consideradas</dt>
 <dd>
 <div class="ulist">
 <ul>
 <li>
-<p>AWS EC2.</p>
+<p>Exponer directamente los puertos de gateway (8080) y ws-server (8081) al cliente.</p>
 </li>
 <li>
-<p>Google Compute Engine.</p>
-</li>
-<li>
-<p>Servidores on-premise.</p>
-</li>
-<li>
-<p>Otros proveedores cloud.</p>
+<p>Usar un API Gateway externo (Kong, Traefik).</p>
 </li>
 </ul>
 </div>
@@ -2423,32 +2192,24 @@ La solución debe integrarse fácilmente con el ecosistema tecnológico del proy
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Adopción del equipo de desarrollo</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Es una tecnología que todo el equipo de desarrollador ha empleado en algún otro proyecto.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Punto de entrada único</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El cliente solo necesita conocer un host y puerto (80). Simplifica configuración y firewall.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Infraestructura como servicio (IaaS)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Azure permite crear y configurar máquinas virtuales con control total sobre el sistema operativo y el entorno de ejecución.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Proxy WebSocket</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nginx maneja el handshake HTTP→WebSocket con los headers <code>Upgrade</code> y <code>Connection</code> necesarios. Un proxy HTTP simple no sirve.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Escalabilidad</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Posibilidad de aumentar recursos (CPU, RAM, almacenamiento) según crezcan las necesidades del proyecto.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sirve estáticos</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nginx sirve el build de React directamente, sin necesidad de un servidor Node.js adicional en producción.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Alta disponibilidad</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Integración con servicios de red, copias de seguridad y monitorización dentro del ecosistema Azure.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CORS</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Al servir todo desde el mismo origen, se eliminan los problemas de CORS entre frontend y APIs.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Integración con el entorno cloud</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Compatible con Docker, CI/CD y otros servicios gestionados del ecosistema Azure.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Seguridad</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Configuración de redes virtuales, grupos de seguridad y control de acceso basado en roles.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Flexibilidad</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Permite alojar tanto la aplicación como la base de datos en un mismo entorno o separarlos en distintas máquinas virtuales según necesidades.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sin coste adicional</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Nginx está incluido en la imagen <code>nginx:stable-alpine</code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2459,16 +2220,163 @@ La solución debe integrarse fácilmente con el ecosistema tecnológico del proy
 <div class="ulist">
 <ul>
 <li>
-<p>Se asume la responsabilidad de la administración del sistema operativo, actualizaciones y configuración del servidor.</p>
+<p>Se añade un archivo <code>nginx.conf</code> que debe mantenerse actualizado si se añaden nuevas rutas.</p>
 </li>
 <li>
-<p>Puede implicar costes variables en función del uso de recursos y tiempo de ejecución.</p>
+<p>El <code>Dockerfile</code> de la webapp usa una imagen multi-stage (Node para el build + Nginx para servir).</p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_servidor_websocket_independiente_ws_server">9.4. Servidor WebSocket independiente (<code>ws-server</code>)</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Estado</dt>
+<dd>
+<p>Aceptada.</p>
+</dd>
+<dt class="hdlist1">Contexto</dt>
+<dd>
+<p>El modo multijugador requiere comunicación bidireccional en tiempo real entre dos clientes.
+El gateway (Spring Boot con MVC bloqueante) no soporta WebSocket de forma nativa sin cambios importantes.</p>
+</dd>
+<dt class="hdlist1">Alternativas consideradas</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>Añadir WebSocket al gateway (requeriría migrar a WebFlux/reactive).</p>
 </li>
 <li>
-<p>Ofrece mayor control y personalización frente a soluciones PaaS, a cambio de una mayor gestión técnica.</p>
+<p>Añadir WebSocket al servicio de usuarios (mezcla responsabilidades).</p>
 </li>
 <li>
-<p>Facilita el escalado futuro y la integración con otros servicios del ecosistema Azure.</p>
+<p>Servidor WebSocket dedicado.</p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1">Justificación</dt>
+</dl>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Separación de responsabilidades</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El servidor WS solo gestiona salas y retransmite mensajes; no contiene lógica de juego.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Simplicidad</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">La librería <code>ws</code> de Node.js es mínima y directa para este caso de uso.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No modifica el gateway</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El gateway no necesita cambios; Nginx gestiona el routing al puerto 8081.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sin lógica de juego</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Los movimientos siempre pasan por la API Rust, garantizando validación centralizada.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Consecuencias</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>Nuevo contenedor Docker <code>ws-server</code> a mantener y desplegar.</p>
+</li>
+<li>
+<p>Nginx debe configurarse con el bloque <code>location /ws</code> y los headers de WebSocket.</p>
+</li>
+<li>
+<p>El servidor WS no persiste estado: si se reinicia, las partidas en curso se pierden (riesgo asumido).</p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_endpoint_apiplay_en_users_service">9.5. Endpoint <code>/api/play</code> en Users Service</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Estado</dt>
+<dd>
+<p>Aceptada.</p>
+</dd>
+<dt class="hdlist1">Contexto</dt>
+<dd>
+<p>Se necesita un endpoint de alto nivel para competición bot-vs-bot que aplique una jugada
+del cliente y devuelva la respuesta del bot en una sola llamada.</p>
+</dd>
+<dt class="hdlist1">Alternativas consideradas</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>Implementarlo en el gateway (Java).</p>
+</li>
+<li>
+<p>Crearlo como endpoint separado en un nuevo microservicio.</p>
+</li>
+<li>
+<p>Documentarlo solo como secuencia de llamadas que el cliente debe hacer.</p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1">Justificación</dt>
+</dl>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Centralización</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Users Service ya tiene acceso a la BD (para futura persistencia del resultado) y a Gamey Engine.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Simplicidad</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js con <code>fetch</code> encadena las 3 llamadas internas de forma legible.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">No rompe el gateway</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El gateway solo añade el proxy de <code>/api/play</code> → users service, sin lógica nueva.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Un solo roundtrip</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El cliente externo hace una llamada y recibe el estado completo; ideal para bots automáticos.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Consecuencias</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>Users Service realiza llamadas HTTP salientes a Gamey Engine (requiere <code>GAMEY_SERVICE_URL</code>).</p>
+</li>
+<li>
+<p>Si Gamey Engine no está disponible, el endpoint devuelve 502.</p>
 </li>
 </ul>
 </div>
@@ -2508,7 +2416,7 @@ concrete and measurable.</p>
 <h3 id="_quality_tree">10.1. Quality Tree</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/quality-tree.svg" alt="quality tree" width="1137" height="252">
+<img src="./images/quality-tree.svg" alt="quality tree" width="1121" height="252">
 </div>
 </div>
 <div class="sidebarblock arc42help">
@@ -2698,44 +2606,84 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Nombre del proyecto, plataforma web para jugar al juego Y y permitir la interacción de usuarios y bots.</em></p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Juego Y</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Juego de tablero abstracto en el que dos jugadores intentan conectar lados opuestos del tablero siguiendo reglas específicas.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Juego Y (Hex)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Juego de tablero abstracto en el que dos jugadores intentan conectar lados opuestos del tablero siguiendo reglas específicas. El tablero tiene forma de pirámide triangular.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Notación YEN</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Formato JSON utilizado para representar el estado de una partida, incluyendo tamaño de tablero, turno, disposición de jugadores y layout.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Formato JSON utilizado para representar el estado de una partida: tamaño, turno, jugadores y disposición del tablero como string de filas separadas por <code>/</code>.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Bot</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Programa que juega automáticamente contra la aplicación o contra otros usuarios, usando la API.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Programa que juega automáticamente. Disponibles: <code>random_bot</code> (aleatorio), <code>greedy_bot</code> (codicioso), <code>minimax_bot</code> (minimax con profundidad 2).</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>API (Application Programming Interface)</em></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Conjunto de servicios web que permite la interacción de bots o módulos externos con la aplicación.</em></p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Frontend</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Interfaz web implementada en TypeScript con React que permite a los usuarios jugar y consultar su historial.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Gateway</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Servicio Spring Boot que actúa como punto de entrada HTTP único. Enruta peticiones REST al servicio correcto (users o gamey).</em></p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Módulo de Lógica (Rust)</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Componente encargado de calcular movimientos válidos, verificar victorias y sugerir estrategias usando la notación YEN.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Nginx</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Servidor web y proxy inverso. En producción sirve la SPA React y redirige HTTP al gateway y WebSocket al ws-server, todo por el puerto 80.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>WebSocket</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Protocolo de comunicación bidireccional y persistente sobre HTTP. Usado para actualizar el tablero en tiempo real en el modo multijugador y para el chat de sala.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>WS-Server</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Microservicio Node.js que gestiona salas WebSocket: empareja jugadores por código, asigna colores aleatoriamente y retransmite movimientos y chat.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Código de sala</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Identificador de 6 caracteres alfanuméricos generado al crear una sala multijugador. El segundo jugador lo introduce para unirse a la partida.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>playerIndex</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Índice asignado a cada jugador en una sala (0 = Azul, empieza primero; 1 = Rojo). Se asigna aleatoriamente en multijugador; el jugador elige en modo vs bot.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Frontend (WebApp)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Interfaz web implementada en TypeScript con React y Material UI. Incluye selector de modo de juego, tablero SVG, lobby multijugador con chat e historial de partidas.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>HexBoard</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Componente SVG del tablero hexagonal. Usa hexágonos flat-top en forma de pirámide centrada. Su función de geometría (<code>buildHexGeometry</code>) es compartida con <code>GameHistory</code>.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Flat-top hexagon</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Orientación hexagonal con lados planos arriba y abajo, vértices a izquierda y derecha. Es la orientación usada en el tablero de Yovi.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Gamey Engine</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Motor de juego implementado en Rust + Axum. Valida movimientos (<code>/v1/game/play</code>), calcula jugadas de bot (<code>/v1/ybot/choose/{botId}</code>) y detecta victorias.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><code>/api/play</code></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Endpoint de alto nivel en Users Service para competición bot-vs-bot. Aplica la jugada del cliente y devuelve la respuesta del bot interno en una sola llamada HTTP.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Users Service</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Microservicio Node.js + Express que gestiona usuarios (registro, login), partidas (guardar, listar) y el endpoint <code>/api/play</code>.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Persistencia (MySQL)</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Componente encargado de almacenar información de usuarios, partidas y estadísticas en la base de datos.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Almacenamiento de usuarios, partidas y jugadores. Tres tablas: <code>users</code>, <code>games</code>, <code>game_players</code>.</em></p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Estrategia</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Algoritmo que define cómo el bot decide su siguiente movimiento en una partida.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Docker Compose</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Herramienta de orquestación de contenedores. Levanta todos los microservicios (webapp, gateway, users, gamey, ws-server, mysql) con un solo comando.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Partida</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Instancia de un juego Y entre dos jugadores, humanos o bots, con un tablero y un historial de movimientos.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Instancia de un juego Y entre dos jugadores (humanos o bots), con tablero y estado guardado en MySQL al finalizar.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Historial</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Datos calculados sobre los jugadores y sus partidas, incluyendo victorias, derrotas y ranking.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Vista de la webapp que muestra todas las partidas guardadas con miniatura del tablero, jugadores, ganador y fecha.</em></p></td>
 </tr>
 </tbody>
 </table>
@@ -2745,7 +2693,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-02-06 16:33:47 +0100
+Last updated 2026-02-03 14:16:40 +0100
 </div>
 </div>
 </body>
