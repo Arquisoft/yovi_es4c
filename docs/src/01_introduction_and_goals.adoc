@@ -13,7 +13,7 @@ El equipo está formado por:
 * _Pablo García Menéndez, UO299834_
 * _Elías Fernández Medina, UO299673_
 * _Sergio Espina Marcos, UO301107_
-* _Adrián Pérez Menéndez, UO201188_
+* _Adrián Pérez Menéndez, UO301188_
 
 === Requirements Overview
 
