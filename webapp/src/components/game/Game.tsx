@@ -9,6 +9,7 @@
  * onGameEnd() solo sirve para refrescar el historial; no navega.
  */
 import React, { useCallback, useEffect, useState } from 'react';
+import { apiFetch, API_URL } from '../../api/api';
 import {
   Alert, Box, Button, CircularProgress, Paper, Stack, Typography,
 } from '@mui/material';
@@ -59,11 +60,9 @@ const Game: React.FC<GameProps> = ({
 
   // ── Guardar partida en BD (en background, no bloquea la UI) ──────────────
   const saveGame = useCallback(async (finalLayout: string, humanWon: boolean) => {
-    const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
     try {
-      await fetch(`${API_URL}/api/games`, {
+      await apiFetch(`${API_URL}/api/games`, {
         method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           yen: finalLayout,
           players: [

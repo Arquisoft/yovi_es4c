@@ -29,16 +29,6 @@ public class UsersController {
         this.usersUrl = usersUrl;
     }
 
-    @PostMapping("/createuser")
-    public ResponseEntity<String> createUser(@RequestBody String body) {
-        return forward(usersUrl + "/createuser", "POST", body);
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody String body) {
-        return forward(usersUrl + "/login", "POST", body);
-    }
-
     @GetMapping("/api/games")
     public ResponseEntity<String> getGames() {
         return forward(usersUrl + "/api/games", "GET", null);

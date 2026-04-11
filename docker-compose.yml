@@ -29,9 +29,27 @@ services:
       - USERS_SERVICE_URL=http://users:3000
       - GAMEY_SERVICE_URL=http://gamey:4000
       - CORS_ALLOWED_ORIGINS=https://${DOMAIN:-localhost}
+      - JWT_SECRET=${JWT_SECRET}
     depends_on:
       - users
       - gamey
+    networks:
+      - monitor-net
+
+  # ── Auth service (Node.js) ───────────────────────────────────────────────
+  auth-service:
+    build: ./authservice
+    container_name: auth-service
+    restart: unless-stopped
+    expose:
+      - "3001"
+    environment:
+      - PORT=3001
+      - USERS_SERVICE_URL=http://users:3000
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+    depends_on:
+      - users
     networks:
       - monitor-net
 

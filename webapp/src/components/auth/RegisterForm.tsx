@@ -35,7 +35,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onGoToLo
     setLoading(true);
     try {
       const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
-      const res = await fetch(`${API_URL}/createuser`, {
+      const res = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
@@ -44,13 +44,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onRegisterSuccess, onGoToLo
       if (!res.ok) { setError(data.error || 'Error del servidor'); return; }
 
       setSuccessMessage(data.message);
-      const loginRes = await fetch(`${API_URL}/login`, {
+      const loginRes = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
       const loginData = await loginRes.json();
       if (loginRes.ok) {
+        localStorage.setItem('token', loginData.token);
         setTimeout(() => onRegisterSuccess?.(username, loginData.userId), 500);
       } else {
         setTimeout(() => onGoToLogin?.(), 1000);

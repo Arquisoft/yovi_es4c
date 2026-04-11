@@ -9,6 +9,7 @@
  *               Cuando roomState.status = 'playing' → MultiplayerGame
  */
 import { useCallback, useState } from 'react';
+import { apiFetch, API_URL } from '../../api/api';
 import { Box, Container, Typography } from '@mui/material';
 import HexagonIcon from '@mui/icons-material/Hexagon';
 import GameModeSelector, { type GameConfig } from './GameModeSelector';
@@ -58,13 +59,11 @@ export default function GameView({ userId, username, onGameReset }: GameViewProp
   }, [disconnect]);
 
   const handleSaveMpGame = useCallback(async (layout: string, winnerIdx: number) => {
-    const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
     try {
       const myIdx   = room.playerIndex ?? 0;
       const oppName = room.opponentName ?? 'Oponente';
-      await fetch(`${API_URL}/api/games`, {
+      await apiFetch(`${API_URL}/api/games`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           yen: layout,
           players: [
