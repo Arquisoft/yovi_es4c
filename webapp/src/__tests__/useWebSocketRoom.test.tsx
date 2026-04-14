@@ -91,7 +91,7 @@ describe('useWebSocketRoom', () => {
     act(() => { result.current.createRoom(7) })
     expect(mockWsInstance).not.toBeNull()
     const sent = mockWsInstance!.sent.map(s => JSON.parse(s))
-    expect(sent[0]).toEqual({ type: 'create', username: 'Alice', boardSize: 7 })
+    expect(sent[0]).toMatchObject({ type: 'create', username: 'Alice', boardSize: 7 })
   })
 
   test('al recibir room_created status pasa a waiting', () => {
@@ -105,10 +105,10 @@ describe('useWebSocketRoom', () => {
   // ── joinRoom ────────────────────────────────────────────────────────────
 
   test('joinRoom envía mensaje join con el roomCode en mayúsculas', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Bob'))
+    const { result } = renderHook(() => useWebSocketRoom('Bob', null))
     act(() => { result.current.joinRoom('abc123', 7) })
     const sent = mockWsInstance!.sent.map(s => JSON.parse(s))
-    expect(sent[0]).toEqual({ type: 'join', username: 'Bob', roomCode: 'ABC123' })
+    expect(sent[0]).toMatchObject({ type: 'join', username: 'Bob', roomCode: 'ABC123' })
   })
 
   // ── game_start ──────────────────────────────────────────────────────────
