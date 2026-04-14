@@ -29,16 +29,19 @@ jobs:
 
     # ── Dependencias ────────────────────────────────────────────────────────
     - run: npm --prefix users ci
+    - run: npm --prefix auth-service ci
     - run: npm --prefix webapp ci
-    # ws-server solo tiene una dependencia de producción (ws); no necesita ci aquí
 
     # ── Tests con coverage ───────────────────────────────────────────────────
     - run: npm --prefix users run test:coverage
+    - run: npm --prefix auth-service run test:coverage
+      env:
+        JWT_SECRET: test-secret-de-al-menos-32-caracteres-ok
+        JWT_EXPIRES_IN: 1h
+
     - name: Run webapp tests with coverage
       run: npm --prefix webapp run test:coverage
       env:
-        # Variables de entorno de Vite necesarias para que el build no falle
-        # en tiempo de test (importadas en env.d.ts)
         VITE_API_URL: http://localhost:8080
         VITE_GAMEY_URL: http://localhost:8080
         VITE_WS_URL: ws://localhost:8081
