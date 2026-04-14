@@ -7,7 +7,7 @@ import type { RoomState } from '../hooks/useWebSocketRoom'
 
 const idleState: RoomState = {
   roomCode: null, status: 'idle', playerIndex: null, opponentName: null,
-  layout: '', boardSize: 7, currentTurn: 0, winner: null, chat: [], error: null,
+  layout: '', boardSize: 7, currentTurn: 0, winner: null, chat: [], error: null, opponentUserId: null,
 }
 
 const waitingState: RoomState = {

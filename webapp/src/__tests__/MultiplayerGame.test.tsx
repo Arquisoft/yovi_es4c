@@ -16,6 +16,7 @@ const baseRoomState = {
   status: 'playing' as const,
   playerIndex: 0,
   opponentName: 'Bob',
+  opponentUserId: null,
   layout: './...',
   boardSize: 2,
   currentTurn: 0,
