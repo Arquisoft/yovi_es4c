@@ -82,23 +82,22 @@ wss.on('connection', (ws) => {
 
 // ---- Handlers ----
 
-function handleCreate(ws, { username, boardSize }) {
+function handleCreate(ws, { username, boardSize, userId }) {
   if (!username || !boardSize) {
     return safeSend(ws, { type: 'error', message: 'Faltan campos: username, boardSize' });
   }
 
-  // Si ya tenía una sala pendiente, límpiala
   cleanupPending(ws);
 
   const roomCode = genCode();
-  pendingRooms.set(roomCode, { creator: ws, creatorName: username, boardSize: Number(boardSize) });
-  wsToRoom.set(ws, { roomCode, playerIndex: null }); // índice aún no asignado
+  pendingRooms.set(roomCode, { creator: ws, creatorName: username, creatorUserId: userId ?? null, boardSize: Number(boardSize) });
+  wsToRoom.set(ws, { roomCode, playerIndex: null });
 
   safeSend(ws, { type: 'room_created', roomCode, boardSize: Number(boardSize) });
   console.log(`[WS] Sala creada: ${roomCode} por ${username} (tablero ${boardSize})`);
 }
 
-function handleJoin(ws, { username, roomCode }) {
+function handleJoin(ws, { username, roomCode, userId }) {
   if (!username || !roomCode) {
     return safeSend(ws, { type: 'error', message: 'Faltan campos: username, roomCode' });
   }
@@ -116,29 +115,30 @@ function handleJoin(ws, { username, roomCode }) {
 
   pendingRooms.delete(code);
 
-  // Asignar índices ALEATORIAMENTE
   const creatorIsZero = Math.random() < 0.5;
   const [idxCreator, idxJoiner] = creatorIsZero ? [0, 1] : [1, 0];
 
-  const players = [null, null];
-  const names   = [null, null];
-  players[idxCreator] = pending.creator;  names[idxCreator] = pending.creatorName;
-  players[idxJoiner]  = ws;               names[idxJoiner]  = username;
+  const players  = [null, null];
+  const names    = [null, null];
+  const userIds  = [null, null];
+  players[idxCreator] = pending.creator;       names[idxCreator] = pending.creatorName;  userIds[idxCreator] = pending.creatorUserId;
+  players[idxJoiner]  = ws;                    names[idxJoiner]  = username;             userIds[idxJoiner]  = userId ?? null;
 
-  activeRooms.set(code, { players, names, boardSize: pending.boardSize });
+  activeRooms.set(code, { players, names, userIds, boardSize: pending.boardSize });
   wsToRoom.set(pending.creator, { roomCode: code, playerIndex: idxCreator });
   wsToRoom.set(ws,              { roomCode: code, playerIndex: idxJoiner  });
 
-  // Notificar a ambos jugadores
   safeSend(pending.creator, {
     type: 'game_start',
     opponentName: username,
+    opponentUserId: userId ?? null,
     playerIndex: idxCreator,
     boardSize: pending.boardSize,
   });
   safeSend(ws, {
     type: 'game_start',
     opponentName: pending.creatorName,
+    opponentUserId: pending.creatorUserId ?? null,
     playerIndex: idxJoiner,
     boardSize: pending.boardSize,
   });

@@ -30,7 +30,7 @@ export default function GameView({ userId, username, onGameReset }: GameViewProp
   const [config, setConfig] = useState<GameConfig | null>(null);
 
   const { state: room, createRoom, joinRoom, broadcastMove, sendChat, disconnect } =
-    useWebSocketRoom(username);
+    useWebSocketRoom(username, userId);
 
   const handleStart = (cfg: GameConfig) => {
     setConfig(cfg);
@@ -38,12 +38,9 @@ export default function GameView({ userId, username, onGameReset }: GameViewProp
       setPhase('bot');
     } else {
       setPhase('mp-lobby');
-      // No conectamos aún: el jugador elige si crear o unirse en el lobby
     }
   };
 
-  // Solo refresca el historial tras guardar partida; la navegación la maneja
-  // el propio Game.tsx con su botón "Volver al menú" → onBack
   const handleBotGameEnd = useCallback(() => {
     onGameReset?.();
   }, [onGameReset]);
@@ -59,36 +56,29 @@ export default function GameView({ userId, username, onGameReset }: GameViewProp
 
   const gameSavedRef = useRef(false);
   const roomRef      = useRef(room);
-  roomRef.current    = room; // siempre el valor más reciente
+  roomRef.current    = room;
 
   const handleSaveMpGame = useCallback(async (layout: string, winnerIdx: number) => {
     if (gameSavedRef.current) return;
     gameSavedRef.current = true;
     const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
     try {
-      const myIdx   = roomRef.current.playerIndex ?? 0;
-      const oppName = roomRef.current.opponentName ?? 'Oponente';
+      const myIdx         = roomRef.current.playerIndex ?? 0;
+      const oppName       = roomRef.current.opponentName ?? 'Oponente';
+      const oppUserId     = roomRef.current.opponentUserId ?? null;
+      // player en índice 0 y 1 con sus userId correctos
+      const playersByIdx = [
+        { userId: myIdx === 0 ? userId        : oppUserId, name: myIdx === 0 ? username : oppName,  isWinner: winnerIdx === 0 },
+        { userId: myIdx === 1 ? userId        : oppUserId, name: myIdx === 1 ? username : oppName,  isWinner: winnerIdx === 1 },
+      ];
       await fetch(`${API_URL}/api/games`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          yen: layout,
-          players: [
-            { userId: myIdx === 0 ? userId : null, name: username,  isWinner: winnerIdx === myIdx },
-            { userId: null,                         name: oppName,   isWinner: winnerIdx !== myIdx },
-          ],
-        }),
+        body: JSON.stringify({ yen: layout, players: playersByIdx }),
       });
       onGameReset?.();
     } catch (e) { console.error('saveMpGame error', e); }
-  }, [userId, username, onGameReset]); // sin room.* en deps — se lee desde roomRef
-
-  // Guardar cuando el oponente hace el último movimiento
-  useEffect(() => {
-    if (room.status === 'finished' && room.winner !== null && !gameSavedRef.current) {
-      handleSaveMpGame(room.layout, room.winner);
-    }
-  }, [room.status, room.winner, room.layout, handleSaveMpGame]);
+  }, [userId, username, onGameReset]);
 
   // Resetear el flag al iniciar nueva partida
   useEffect(() => {
