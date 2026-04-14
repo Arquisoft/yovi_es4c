@@ -58,14 +58,16 @@ export default function GameView({ userId, username, onGameReset }: GameViewProp
   }, [disconnect]);
 
   const gameSavedRef = useRef(false);
+  const roomRef      = useRef(room);
+  roomRef.current    = room; // siempre el valor más reciente
 
   const handleSaveMpGame = useCallback(async (layout: string, winnerIdx: number) => {
-    if (gameSavedRef.current) return; // evitar guardar dos veces
+    if (gameSavedRef.current) return;
     gameSavedRef.current = true;
     const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
     try {
-      const myIdx   = room.playerIndex ?? 0;
-      const oppName = room.opponentName ?? 'Oponente';
+      const myIdx   = roomRef.current.playerIndex ?? 0;
+      const oppName = roomRef.current.opponentName ?? 'Oponente';
       await fetch(`${API_URL}/api/games`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -79,17 +81,16 @@ export default function GameView({ userId, username, onGameReset }: GameViewProp
       });
       onGameReset?.();
     } catch (e) { console.error('saveMpGame error', e); }
-  }, [room.playerIndex, room.opponentName, userId, username, onGameReset]);
+  }, [userId, username, onGameReset]); // sin room.* en deps — se lee desde roomRef
 
-  // Guardar la partida cuando el oponente hace el último movimiento
-  // (room.status pasa a 'finished' por un game_over recibido vía WebSocket)
+  // Guardar cuando el oponente hace el último movimiento
   useEffect(() => {
     if (room.status === 'finished' && room.winner !== null && !gameSavedRef.current) {
       handleSaveMpGame(room.layout, room.winner);
     }
   }, [room.status, room.winner, room.layout, handleSaveMpGame]);
 
-  // Resetear el flag cuando se inicia una nueva partida
+  // Resetear el flag al iniciar nueva partida
   useEffect(() => {
     if (room.status === 'playing') {
       gameSavedRef.current = false;
