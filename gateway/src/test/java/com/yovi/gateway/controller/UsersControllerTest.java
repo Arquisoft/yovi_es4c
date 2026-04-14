@@ -23,13 +23,18 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import org.springframework.security.test.context.support.WithMockUser;
 
-@WebMvcTest(UsersController.class)
+@WebMvcTest(
+    value = UsersController.class,
+    excludeAutoConfiguration = {
+        SecurityAutoConfiguration.class,
+        SecurityFilterAutoConfiguration.class
+    }
+)
 @Import({RestTemplateConfig.class, CorsConfig.class})
 @TestPropertySource(properties = {
         "gateway.users.url=http://users-mock:3000",
         "gateway.gamey.url=http://gamey-mock:4000"
 })
-@WithMockUser
 class UsersControllerTest {
 
     @Autowired
