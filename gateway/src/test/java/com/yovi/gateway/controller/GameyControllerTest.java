@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         "gateway.users.url=http://users-mock:3000",
         "gateway.gamey.url=http://gamey-mock:4000"
 })
+@WithMockUser
 class GameyControllerTest {
 
     @Autowired
