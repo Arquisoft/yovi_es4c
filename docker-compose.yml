@@ -47,7 +47,7 @@ services:
       - PORT=3001
       - USERS_SERVICE_URL=http://users:3000
       - JWT_SECRET=${JWT_SECRET}
-      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-24h}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN}
     depends_on:
       - users
     networks:
