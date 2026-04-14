@@ -74,14 +74,15 @@ public class UsersController {
     public ResponseEntity<String> play(
             @RequestParam String position,
             @RequestParam(required = false) String bot_id) {
-        StringBuilder url = new StringBuilder(usersUrl).append("/play?position=").append(
-                org.springframework.web.util.UriUtils.encode(position, java.nio.charset.StandardCharsets.UTF_8));
+        org.springframework.web.util.UriComponentsBuilder builder =
+            org.springframework.web.util.UriComponentsBuilder
+                .fromHttpUrl(usersUrl + "/play")
+                .queryParam("position", position);
         if (bot_id != null && !bot_id.isEmpty()) {
-            url.append("&bot_id=").append(
-                    org.springframework.web.util.UriUtils.encode(bot_id, java.nio.charset.StandardCharsets.UTF_8));
+            builder.queryParam("bot_id", bot_id);
         }
         try {
-            return restTemplate.getForEntity(url.toString(), String.class);
+            return restTemplate.getForEntity(builder.build().toUri(), String.class);
         } catch (HttpStatusCodeException ex) {
             return ResponseEntity.status(ex.getStatusCode()).body(ex.getResponseBodyAsString());
         }
