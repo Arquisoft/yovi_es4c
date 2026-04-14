@@ -8,8 +8,7 @@
  *  'mp-lobby' → MultiplayerLobby (crear / unirse por código)
  *               Cuando roomState.status = 'playing' → MultiplayerGame
  */
-import { useCallback, useState } from 'react';
-import { apiFetch, API_URL } from '../../api/api';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { Box, Container, Typography } from '@mui/material';
 import HexagonIcon from '@mui/icons-material/Hexagon';
 import GameModeSelector, { type GameConfig } from './GameModeSelector';
@@ -31,7 +30,7 @@ export default function GameView({ userId, username, onGameReset }: GameViewProp
   const [config, setConfig] = useState<GameConfig | null>(null);
 
   const { state: room, createRoom, joinRoom, broadcastMove, sendChat, disconnect } =
-    useWebSocketRoom(username);
+    useWebSocketRoom(username, userId);
 
   const handleStart = (cfg: GameConfig) => {
     setConfig(cfg);
@@ -39,12 +38,9 @@ export default function GameView({ userId, username, onGameReset }: GameViewProp
       setPhase('bot');
     } else {
       setPhase('mp-lobby');
-      // No conectamos aún: el jugador elige si crear o unirse en el lobby
     }
   };
 
-  // Solo refresca el historial tras guardar partida; la navegación la maneja
-  // el propio Game.tsx con su botón "Volver al menú" → onBack
   const handleBotGameEnd = useCallback(() => {
     onGameReset?.();
   }, [onGameReset]);
@@ -58,23 +54,38 @@ export default function GameView({ userId, username, onGameReset }: GameViewProp
     setPhase('selector');
   }, [disconnect]);
 
+  const gameSavedRef = useRef(false);
+  const roomRef      = useRef(room);
+  roomRef.current    = room;
+
   const handleSaveMpGame = useCallback(async (layout: string, winnerIdx: number) => {
+    if (gameSavedRef.current) return;
+    gameSavedRef.current = true;
+    const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
     try {
-      const myIdx   = room.playerIndex ?? 0;
-      const oppName = room.opponentName ?? 'Oponente';
-      await apiFetch(`${API_URL}/api/games`, {
+      const myIdx         = roomRef.current.playerIndex ?? 0;
+      const oppName       = roomRef.current.opponentName ?? 'Oponente';
+      const oppUserId     = roomRef.current.opponentUserId ?? null;
+      // player en índice 0 y 1 con sus userId correctos
+      const playersByIdx = [
+        { userId: myIdx === 0 ? userId        : oppUserId, name: myIdx === 0 ? username : oppName,  isWinner: winnerIdx === 0 },
+        { userId: myIdx === 1 ? userId        : oppUserId, name: myIdx === 1 ? username : oppName,  isWinner: winnerIdx === 1 },
+      ];
+      await fetch(`${API_URL}/api/games`, {
         method: 'POST',
-        body: JSON.stringify({
-          yen: layout,
-          players: [
-            { userId: myIdx === 0 ? userId : null, name: username,  isWinner: winnerIdx === myIdx },
-            { userId: null,                         name: oppName,   isWinner: winnerIdx !== myIdx },
-          ],
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ yen: layout, players: playersByIdx }),
       });
       onGameReset?.();
     } catch (e) { console.error('saveMpGame error', e); }
-  }, [room.playerIndex, room.opponentName, userId, username, onGameReset]);
+  }, [userId, username, onGameReset]);
+
+  // Resetear el flag al iniciar nueva partida
+  useEffect(() => {
+    if (room.status === 'playing') {
+      gameSavedRef.current = false;
+    }
+  }, [room.status]);
 
   // ---- Render ----
 

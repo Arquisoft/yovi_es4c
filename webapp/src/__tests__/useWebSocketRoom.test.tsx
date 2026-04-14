@@ -71,7 +71,7 @@ describe('useWebSocketRoom', () => {
   // ── Estado inicial ──────────────────────────────────────────────────────
 
   test('estado inicial es idle', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     expect(result.current.state.status).toBe('idle')
     expect(result.current.state.roomCode).toBeNull()
     expect(result.current.state.playerIndex).toBeNull()
@@ -81,21 +81,21 @@ describe('useWebSocketRoom', () => {
   // ── createRoom ──────────────────────────────────────────────────────────
 
   test('createRoom cambia status a connecting', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(7) })
     expect(result.current.state.status).toBe('connecting')
   })
 
   test('createRoom abre WebSocket y envía mensaje create', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(7) })
     expect(mockWsInstance).not.toBeNull()
     const sent = mockWsInstance!.sent.map(s => JSON.parse(s))
-    expect(sent[0]).toEqual({ type: 'create', username: 'Alice', boardSize: 7 })
+    expect(sent[0]).toMatchObject({ type: 'create', username: 'Alice', boardSize: 7 })
   })
 
   test('al recibir room_created status pasa a waiting', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(7) })
     act(() => { mockWsInstance!.receive({ type: 'room_created', roomCode: 'TST001', boardSize: 7 }) })
     expect(result.current.state.status).toBe('waiting')
@@ -105,16 +105,16 @@ describe('useWebSocketRoom', () => {
   // ── joinRoom ────────────────────────────────────────────────────────────
 
   test('joinRoom envía mensaje join con el roomCode en mayúsculas', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Bob'))
+    const { result } = renderHook(() => useWebSocketRoom('Bob', null))
     act(() => { result.current.joinRoom('abc123', 7) })
     const sent = mockWsInstance!.sent.map(s => JSON.parse(s))
-    expect(sent[0]).toEqual({ type: 'join', username: 'Bob', roomCode: 'ABC123' })
+    expect(sent[0]).toMatchObject({ type: 'join', username: 'Bob', roomCode: 'ABC123' })
   })
 
   // ── game_start ──────────────────────────────────────────────────────────
 
   test('al recibir game_start status pasa a playing con playerIndex', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => {
       mockWsInstance!.receive({
@@ -133,7 +133,7 @@ describe('useWebSocketRoom', () => {
   // ── board_update ────────────────────────────────────────────────────────
 
   test('board_update actualiza layout y currentTurn', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => {
       mockWsInstance!.receive({ type: 'game_start', opponentName: 'Bob', playerIndex: 0, boardSize: 5 })
@@ -146,7 +146,7 @@ describe('useWebSocketRoom', () => {
   // ── game_over ───────────────────────────────────────────────────────────
 
   test('game_over pasa status a finished con el ganador', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => {
       mockWsInstance!.receive({ type: 'game_start', opponentName: 'Bob', playerIndex: 0, boardSize: 5 })
@@ -159,7 +159,7 @@ describe('useWebSocketRoom', () => {
   // ── chat ────────────────────────────────────────────────────────────────
 
   test('sendChat añade el mensaje localmente de inmediato', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => { result.current.sendChat('Hola!') })
     expect(result.current.state.chat).toHaveLength(1)
@@ -167,7 +167,7 @@ describe('useWebSocketRoom', () => {
   })
 
   test('sendChat envía mensaje al servidor', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => { result.current.sendChat('test') })
     const chatMsg = mockWsInstance!.sent.map(s => JSON.parse(s)).find(m => m.type === 'chat')
@@ -175,7 +175,7 @@ describe('useWebSocketRoom', () => {
   })
 
   test('los mensajes del rival se añaden al recibir chat del servidor', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => {
       mockWsInstance!.receive({ type: 'chat', from: 'Bob', text: 'GG!' })
@@ -185,7 +185,7 @@ describe('useWebSocketRoom', () => {
   })
 
   test('los mensajes propios y del rival se acumulan en orden', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => {
       result.current.sendChat('Hola')
@@ -201,7 +201,7 @@ describe('useWebSocketRoom', () => {
   // ── broadcastMove ───────────────────────────────────────────────────────
 
   test('broadcastMove envía board_update si la partida sigue', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => { result.current.broadcastMove('B/./', 1, false) })
     const msg = mockWsInstance!.sent.map(s => JSON.parse(s)).find(m => m.type === 'board_update')
@@ -209,7 +209,7 @@ describe('useWebSocketRoom', () => {
   })
 
   test('broadcastMove envía game_over si la partida termina', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => { result.current.broadcastMove('B/BB', 0, true, 0) })
     const msg = mockWsInstance!.sent.map(s => JSON.parse(s)).find(m => m.type === 'game_over')
@@ -217,7 +217,7 @@ describe('useWebSocketRoom', () => {
   })
 
   test('broadcastMove actualiza el estado local además de enviar', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => { result.current.broadcastMove('B/./', 1, false) })
     expect(result.current.state.layout).toBe('B/./')
@@ -226,7 +226,7 @@ describe('useWebSocketRoom', () => {
   })
 
   test('broadcastMove con finished=true pone status en finished', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => { result.current.broadcastMove('B/BB', 0, true, 0) })
     expect(result.current.state.status).toBe('finished')
@@ -236,7 +236,7 @@ describe('useWebSocketRoom', () => {
   // ── disconnect ──────────────────────────────────────────────────────────
 
   test('disconnect vuelve status a idle y limpia roomCode', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => {
       mockWsInstance!.receive({ type: 'room_created', roomCode: 'TST001', boardSize: 5 })
@@ -250,7 +250,7 @@ describe('useWebSocketRoom', () => {
   // ── error ───────────────────────────────────────────────────────────────
 
   test('mensaje de error del servidor pone status en error', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => {
       mockWsInstance!.receive({ type: 'error', message: 'Sala no encontrada' })
@@ -263,7 +263,7 @@ describe('useWebSocketRoom', () => {
   // ── onerror / onclose ───────────────────────────────────────────────────
 
   test('onerror pone status en error con mensaje de conexión', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => { mockWsInstance!.onerror?.({} as Event) })
     expect(result.current.state.status).toBe('error')
@@ -271,7 +271,7 @@ describe('useWebSocketRoom', () => {
   })
 
   test('onclose con code≠1000 durante waiting pone status en error', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => { mockWsInstance!.receive({ type: 'room_created', roomCode: 'TST001', boardSize: 5 }) })
     expect(result.current.state.status).toBe('waiting')
@@ -281,7 +281,7 @@ describe('useWebSocketRoom', () => {
   })
 
   test('onclose con code≠1000 durante playing pone status en error', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => { mockWsInstance!.receive({ type: 'game_start', opponentName: 'Bob', playerIndex: 0, boardSize: 5 }) })
     expect(result.current.state.status).toBe('playing')
@@ -290,7 +290,7 @@ describe('useWebSocketRoom', () => {
   })
 
   test('onclose con code=1000 no cambia el status', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     act(() => { mockWsInstance!.receive({ type: 'room_created', roomCode: 'TST001', boardSize: 5 }) })
     act(() => { mockWsInstance!.close(1000) })
@@ -298,7 +298,7 @@ describe('useWebSocketRoom', () => {
   })
 
   test('mensaje con tipo desconocido no lanza error', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     expect(() => {
       act(() => { mockWsInstance!.receive({ type: 'unknown_type', data: 'something' }) })
@@ -307,7 +307,7 @@ describe('useWebSocketRoom', () => {
   })
 
   test('onmessage con JSON inválido no lanza — maneja el catch silenciosamente', () => {
-    const { result } = renderHook(() => useWebSocketRoom('Alice'))
+    const { result } = renderHook(() => useWebSocketRoom('Alice', null))
     act(() => { result.current.createRoom(5) })
     // Enviar datos no-JSON directamente
     expect(() => {

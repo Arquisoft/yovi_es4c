@@ -42,13 +42,14 @@ export type RoomStatus =
   | 'error';
 
 export interface RoomState {
-  roomCode: string | null;       // código de 6 chars para compartir
+  roomCode: string | null;
   status: RoomStatus;
-  playerIndex: number | null;    // 0 = Azul, 1 = Rojo (asignado aleatoriamente)
+  playerIndex: number | null;
   opponentName: string | null;
+  opponentUserId: number | null;
   layout: string;
   boardSize: number;
-  currentTurn: number;           // índice del jugador cuyo turno es
+  currentTurn: number;
   winner: number | null;
   chat: ChatMessage[];
   error: string | null;
@@ -61,13 +62,14 @@ function initLayout(size: number): string {
 }
 
 // ---- Hook ----
-export function useWebSocketRoom(username: string) {
+export function useWebSocketRoom(username: string, userId: number | null) {
   const wsRef = useRef<WebSocket | null>(null);
   const [state, setState] = useState<RoomState>({
     roomCode: null,
     status: 'idle',
     playerIndex: null,
     opponentName: null,
+    opponentUserId: null,
     layout: '',
     boardSize: 7,
     currentTurn: 0,
@@ -115,17 +117,17 @@ export function useWebSocketRoom(username: string) {
   const createRoom = useCallback((boardSize: number) => {
     setState(s => ({ ...s, status: 'connecting', error: null, chat: [], boardSize }));
     openSocket(() => {
-      send({ type: 'create', username, boardSize });
+      send({ type: 'create', username, boardSize, userId });
     });
-  }, [username, openSocket, send]);
+  }, [username, userId, openSocket, send]);
 
   // ---- Unirse a sala (jugador B) ----
   const joinRoom = useCallback((roomCode: string, boardSize?: number) => {
     setState(s => ({ ...s, status: 'connecting', error: null, chat: [], ...(boardSize ? { boardSize } : {}) }));
     openSocket(() => {
-      send({ type: 'join', username, roomCode: roomCode.toUpperCase().trim() });
+      send({ type: 'join', username, roomCode: roomCode.toUpperCase().trim(), userId });
     });
-  }, [username, openSocket, send]);
+  }, [username, userId, openSocket, send]);
 
   // ---- Procesar mensajes del servidor ----
   function handleMsg(msg: Record<string, unknown>) {
@@ -146,6 +148,7 @@ export function useWebSocketRoom(username: string) {
           status: 'playing',
           playerIndex: msg.playerIndex as number,
           opponentName: msg.opponentName as string,
+          opponentUserId: (msg.opponentUserId as number | null) ?? null,
           boardSize: msg.boardSize as number,
           layout: initLayout(msg.boardSize as number),
           currentTurn: 0,

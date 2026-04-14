@@ -60,6 +60,24 @@ public class UsersController {
         }
     }
 
+    @GetMapping("/play")
+    public ResponseEntity<String> play(
+            @RequestParam String position,
+            @RequestParam(required = false) String bot_id) {
+        org.springframework.web.util.UriComponentsBuilder builder =
+            org.springframework.web.util.UriComponentsBuilder
+                .fromHttpUrl(usersUrl + "/play")
+                .queryParam("position", position);
+        if (bot_id != null && !bot_id.isEmpty()) {
+            builder.queryParam("bot_id", bot_id);
+        }
+        try {
+            return restTemplate.getForEntity(builder.build().toUri(), String.class);
+        } catch (HttpStatusCodeException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).body(ex.getResponseBodyAsString());
+        }
+    }
+
     private ResponseEntity<String> forward(String url, String method, String body) {
         try {
             if ("GET".equals(method)) {

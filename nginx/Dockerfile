@@ -1,4 +1,3 @@
-# nginx/Dockerfile
 FROM nginx:stable-alpine
 
 RUN apk add --no-cache openssl
