@@ -23,7 +23,8 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration;
 
 @WebMvcTest(
     value = GameyController.class,
@@ -37,7 +38,6 @@ import org.springframework.security.test.context.support.WithMockUser;
         "gateway.users.url=http://users-mock:3000",
         "gateway.gamey.url=http://gamey-mock:4000"
 })
-@WithMockUser
 class GameyControllerTest {
 
     @Autowired
