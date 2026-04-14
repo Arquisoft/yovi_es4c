@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { apiFetch, API_URL } from '../../api/api';
 import {
   Box, CircularProgress, Container, Divider, Paper, Typography, Chip,
 } from '@mui/material';
@@ -71,8 +72,7 @@ export default function ProfileView({ userId, username }: ProfileViewProps) {
     if (userId === null) { setLoading(false); return; }
     try {
       setLoading(true);
-      const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
-      const res = await fetch(`${API_URL}/api/users/${userId}/stats`);
+      const res = await apiFetch(`${API_URL}/api/users/${userId}/stats`);
       if (!res.ok) throw new Error('Error fetching stats');
       setStats(await res.json());
     } catch { setStats(null); }

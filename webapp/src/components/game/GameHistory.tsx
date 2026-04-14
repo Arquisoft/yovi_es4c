@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { apiFetch, API_URL } from '../../api/api';
 import {
   Alert, Box, Button, ButtonGroup, Chip, CircularProgress,
   Container, Divider, Pagination, Typography,
@@ -81,8 +82,7 @@ export default function GameHistory({ refreshTrigger, userId, username }: GameHi
   const fetchGameHistory = useCallback(async () => {
     try {
       setLoading(true); setError(null);
-      const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
-      const response = await fetch(`${API_URL}/api/games`, { headers: { 'Content-Type': 'application/json' } });
+      const response = await apiFetch(`${API_URL}/api/games`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       setGames(await response.json() || []);
     } catch (err) {

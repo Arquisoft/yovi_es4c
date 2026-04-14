@@ -33,13 +33,14 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onGoToRegister })
     setLoading(true);
     try {
       const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
-      const res = await fetch(`${API_URL}/login`, {
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
       const data = await res.json();
       if (res.ok) {
+        localStorage.setItem('token', data.token);
         setTimeout(() => onLoginSuccess?.(username, data.userId), 300);
       } else {
         setError(data.error || 'Credenciales inválidas');

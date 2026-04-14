@@ -1,3 +1,5 @@
+import { apiFetch, GAMEY_URL } from './api';
+
 export interface Coordinates {
     x: number;
     y: number;
@@ -23,18 +25,13 @@ export interface GameStateResponse {
     winner?: number; // 0 o 1
 }
 
-const API_BASE_URL = import.meta.env.VITE_GAMEY_URL ?? 'http://localhost:8080';
-
 export async function chooseMove(
     yen: YEN,
     botId: string = 'random_bot', // ID corregido según state.rs
     apiVersion: string = 'v1'
 ): Promise<MoveResponse> {
-    const response = await fetch(`${API_BASE_URL}/${apiVersion}/ybot/choose/${botId}`, {
+    const response = await apiFetch(`${GAMEY_URL}/${apiVersion}/ybot/choose/${botId}`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
         body: JSON.stringify(yen),
     });
 
@@ -54,11 +51,8 @@ export async function makeHumanMove(
     playerIdx: number,
     apiVersion: string = 'v1'
 ): Promise<GameStateResponse> {
-    const response = await fetch(`${API_BASE_URL}/${apiVersion}/game/play`, {
+    const response = await apiFetch(`${GAMEY_URL}/${apiVersion}/game/play`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
         body: JSON.stringify({
             yen: yen,
             coords: coords,

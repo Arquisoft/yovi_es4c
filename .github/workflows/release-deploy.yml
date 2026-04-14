@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [webapp, users]
+        service: [webapp, users, auth-service] 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,6 +40,8 @@ jobs:
           VITE_API_URL: http://localhost:8080
           VITE_GAMEY_URL: http://localhost:8080
           VITE_WS_URL: ws://localhost:8081
+          JWT_SECRET: test-secret-de-al-menos-32-caracteres-ok  
+          JWT_EXPIRES_IN: 1h
 
   test-rust:
     name: Run rust (gamey) tests
@@ -112,6 +114,26 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: ghcr.io
           workdir: users
+
+  docker-push-auth-service:
+    name: Publish auth-service image
+    runs-on: ubuntu-latest
+    needs: e2e
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Publish to Registry (auth-service)
+        uses: elgohr/Publish-Docker-Github-Action@v5
+        with:
+          name: ${{ github.repository_owner }}/${{ github.event.repository.name }}-auth-service
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: ghcr.io
+          workdir: auth-service
 
   docker-push-gateway:
     name: Publish gateway image
@@ -242,6 +264,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - docker-push-users
+      - docker-push-auth-service  
       - docker-push-webapp
       - docker-push-gamey
       - docker-push-gateway
@@ -258,4 +281,7 @@ jobs:
           command: |
             wget https://raw.githubusercontent.com/${{ github.repository_owner }}/${{ github.event.repository.name }}/master/docker-compose.yml -O docker-compose.yml
             docker compose down -v
-            DOMAIN=${{ secrets.DEPLOY_HOST }} docker compose up -d --pull always
+            DOMAIN=${{ secrets.DEPLOY_HOST }} \
+            JWT_SECRET=${{ secrets.JWT_SECRET }} \
+            JWT_EXPIRES_IN=${{ vars.JWT_EXPIRES_IN }} \
+            docker compose up -d --pull always
