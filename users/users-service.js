@@ -453,6 +453,58 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// GET /play  — API unificada para la competición entre implementaciones.
+//
+// Query params:
+//   position  (obligatorio): estado del tablero en formato YEN (JSON string)
+//   bot_id    (opcional):    identificador del bot. Por defecto 'random_bot'
+//
+// Respuesta:
+//   { "coords": { "x": 1, "y": 1, "z": 0 } }   → movimiento normal
+//   { "action": "swap" }                          → acción swap
+//   { "action": "resign" }                        → rendirse
+//
+// Ejemplo:
+//   curl -G "http://localhost:3000/play" \
+//     --data-urlencode 'position={"size":3,"turn":0,"players":["B","R"],"layout":"./B./..."}'
+// ---------------------------------------------------------------------------
+app.get('/play', async (req, res) => {
+  const { position, bot_id = 'random_bot' } = req.query;
+
+  if (!position) {
+    return res.status(400).json({ error: 'Missing required query parameter: position' });
+  }
+
+  let yen;
+  try {
+    yen = JSON.parse(position);
+  } catch {
+    return res.status(400).json({ error: 'position must be a valid JSON string in YEN format' });
+  }
+
+  const API = `${GAMEY_URL}/v1`;
+
+  try {
+    const chooseResp = await fetch(`${API}/ybot/choose/${encodeURIComponent(bot_id)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(yen),
+    });
+
+    if (!chooseResp.ok) {
+      const errBody = await chooseResp.json().catch(() => ({ error: chooseResp.statusText }));
+      return res.status(chooseResp.status).json(errBody);
+    }
+
+    const result = await chooseResp.json();
+    return res.json({ coords: result.coords });
+
+  } catch (err) {
+    return res.status(502).json({ error: `Error comunicando con el servicio de juego: ${err.message}` });
+  }
+});
+
 if (require.main === module) {
   app.listen(port, () => {
     console.log(`User Service listening at http://localhost:${port}`)
