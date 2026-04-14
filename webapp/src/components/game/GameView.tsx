@@ -8,7 +8,7 @@
  *  'mp-lobby' → MultiplayerLobby (crear / unirse por código)
  *               Cuando roomState.status = 'playing' → MultiplayerGame
  */
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { Box, Container, Typography } from '@mui/material';
 import HexagonIcon from '@mui/icons-material/Hexagon';
 import GameModeSelector, { type GameConfig } from './GameModeSelector';
@@ -57,7 +57,11 @@ export default function GameView({ userId, username, onGameReset }: GameViewProp
     setPhase('selector');
   }, [disconnect]);
 
+  const gameSavedRef = useRef(false);
+
   const handleSaveMpGame = useCallback(async (layout: string, winnerIdx: number) => {
+    if (gameSavedRef.current) return; // evitar guardar dos veces
+    gameSavedRef.current = true;
     const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080';
     try {
       const myIdx   = room.playerIndex ?? 0;
@@ -76,6 +80,21 @@ export default function GameView({ userId, username, onGameReset }: GameViewProp
       onGameReset?.();
     } catch (e) { console.error('saveMpGame error', e); }
   }, [room.playerIndex, room.opponentName, userId, username, onGameReset]);
+
+  // Guardar la partida cuando el oponente hace el último movimiento
+  // (room.status pasa a 'finished' por un game_over recibido vía WebSocket)
+  useEffect(() => {
+    if (room.status === 'finished' && room.winner !== null && !gameSavedRef.current) {
+      handleSaveMpGame(room.layout, room.winner);
+    }
+  }, [room.status, room.winner, room.layout, handleSaveMpGame]);
+
+  // Resetear el flag cuando se inicia una nueva partida
+  useEffect(() => {
+    if (room.status === 'playing') {
+      gameSavedRef.current = false;
+    }
+  }, [room.status]);
 
   // ---- Render ----
 
