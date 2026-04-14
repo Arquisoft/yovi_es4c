@@ -70,6 +70,23 @@ public class UsersController {
         }
     }
 
+    @GetMapping("/play")
+    public ResponseEntity<String> play(
+            @RequestParam String position,
+            @RequestParam(required = false) String bot_id) {
+        StringBuilder url = new StringBuilder(usersUrl).append("/play?position=").append(
+                org.springframework.web.util.UriUtils.encode(position, java.nio.charset.StandardCharsets.UTF_8));
+        if (bot_id != null && !bot_id.isEmpty()) {
+            url.append("&bot_id=").append(
+                    org.springframework.web.util.UriUtils.encode(bot_id, java.nio.charset.StandardCharsets.UTF_8));
+        }
+        try {
+            return restTemplate.getForEntity(url.toString(), String.class);
+        } catch (HttpStatusCodeException ex) {
+            return ResponseEntity.status(ex.getStatusCode()).body(ex.getResponseBodyAsString());
+        }
+    }
+
     private ResponseEntity<String> forward(String url, String method, String body) {
         try {
             if ("GET".equals(method)) {
