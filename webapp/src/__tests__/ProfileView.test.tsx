@@ -161,8 +161,9 @@ describe('ProfileView', () => {
 
     await waitFor(() => {
       expect(fetchSpy).toHaveBeenCalledWith(
-        expect.stringContaining('/api/users/42/stats')
-      )
+      expect.stringContaining('/api/users/42/stats'),
+      expect.objectContaining({ headers: expect.anything() })
+    )
     })
   })
 
