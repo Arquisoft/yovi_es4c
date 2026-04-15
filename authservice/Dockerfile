@@ -3,5 +3,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev
 COPY auth-service.js .
+USER node
 EXPOSE 3001
 CMD ["node", "auth-service.js"]
