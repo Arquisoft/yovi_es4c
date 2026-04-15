@@ -8,10 +8,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -34,7 +32,6 @@ import java.util.List;
  * Si el token es válido, el filtro añade el header X-User-Id al request
  * para que los servicios downstream puedan identificar al usuario.
  */
-@Component
 public class JwtFilter extends OncePerRequestFilter {
 
     private static final List<String> PUBLIC_PREFIXES = List.of(
@@ -43,8 +40,11 @@ public class JwtFilter extends OncePerRequestFilter {
         "/status"
     );
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
+    private final String jwtSecret;
+
+    public JwtFilter(String jwtSecret) {
+        this.jwtSecret = jwtSecret;
+    }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -73,8 +73,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 .parseSignedClaims(token)
                 .getPayload();
 
-            // Propagamos el userId a los servicios downstream via atributo de request.
-            // Los controllers pueden leerlo con request.getAttribute("userId").
             request.setAttribute("jwtUserId", claims.get("userId"));
             request.setAttribute("jwtUsername", claims.get("username"));
 

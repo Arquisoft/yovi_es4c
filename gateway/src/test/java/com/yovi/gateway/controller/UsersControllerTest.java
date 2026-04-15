@@ -56,36 +56,6 @@ class UsersControllerTest {
         mockServer = MockRestServiceServer.createServer(restTemplate);
     }
 
-    // --- /createuser ---
-
-    @Test
-    void createUser_returnsOkFromUpstream() throws Exception {
-        mockServer.expect(requestTo("http://users-mock:3000/createuser"))
-                .andExpect(method(HttpMethod.POST))
-                .andRespond(withSuccess("{\"message\":\"Hello test!\"}", MediaType.APPLICATION_JSON));
-
-        mockMvc.perform(post("/createuser")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"test\"}"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("{\"message\":\"Hello test!\"}"));
-
-        mockServer.verify();
-    }
-
-    @Test
-    void createUser_propagatesUpstreamError() throws Exception {
-        mockServer.expect(requestTo("http://users-mock:3000/createuser"))
-                .andExpect(method(HttpMethod.POST))
-                .andRespond(withStatus(HttpStatus.BAD_REQUEST).body("{\"error\":\"missing username\"}"));
-
-        mockMvc.perform(post("/createuser")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{}"))
-                .andExpect(status().isBadRequest());
-
-        mockServer.verify();
-    }
 
     // --- GET /api/games ---
 

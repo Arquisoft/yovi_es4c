@@ -10,8 +10,6 @@ import org.springframework.web.client.RestTemplate;
  * Enruta las peticiones del servicio de usuarios.
  *
  * Rutas proxadas:
- *  - POST /createuser       → users:3000/createuser
- *  - POST /login            → users:3000/login
  *  - GET  /api/games        → users:3000/api/games
  *  - POST /api/games        → users:3000/api/games
  *  - POST /api/games/seed   → users:3000/api/games/seed
