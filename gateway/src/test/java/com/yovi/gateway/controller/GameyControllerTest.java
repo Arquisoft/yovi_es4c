@@ -17,8 +17,6 @@ import org.springframework.web.client.RestTemplate;
 
 import com.yovi.gateway.config.CorsConfig;
 import com.yovi.gateway.config.RestTemplateConfig;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import com.yovi.gateway.security.JwtFilter;
 
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
@@ -49,9 +47,6 @@ class GameyControllerTest {
     private RestTemplate restTemplate;
 
     private MockRestServiceServer mockServer;
-
-    @MockBean
-    private JwtFilter jwtFilter;
 
     @BeforeEach
     void setUp() {
