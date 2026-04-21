@@ -39,6 +39,7 @@ services:
   # ── Auth service (Node.js) ───────────────────────────────────────────────
   auth-service:
     build: ./auth-service
+    image: ghcr.io/arquisoft/yovi_es4c-auth-service:latest 
     container_name: auth-service
     restart: unless-stopped
     expose:
