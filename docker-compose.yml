@@ -38,7 +38,7 @@ services:
 
   # ── Auth service (Node.js) ───────────────────────────────────────────────
   auth-service:
-    build: ./authservice
+    build: ./auth-service
     container_name: auth-service
     restart: unless-stopped
     expose:

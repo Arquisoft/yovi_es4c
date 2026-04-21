@@ -29,12 +29,12 @@ jobs:
 
     # ── Dependencias ────────────────────────────────────────────────────────
     - run: npm --prefix users ci
-    - run: npm --prefix authservice ci
+    - run: npm --prefix auth-service ci
     - run: npm --prefix webapp ci
 
     # ── Tests con coverage ───────────────────────────────────────────────────
     - run: npm --prefix users run test:coverage
-    - run: npm --prefix authservice run test:coverage
+    - run: npm --prefix auth-service run test:coverage
       env:
         JWT_SECRET: test-secret-de-al-menos-32-caracteres-ok
         JWT_EXPIRES_IN: 1h
