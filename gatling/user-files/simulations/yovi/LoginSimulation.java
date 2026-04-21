@@ -9,7 +9,7 @@ import java.time.Duration;
 public class LoginSimulation extends Simulation {
 
     HttpProtocolBuilder httpProtocol = http
-        .baseUrl("https://localhost:443")
+        .baseUrl("https://localhost")
         .disableCaching()
         .acceptHeader("application/json")
         .contentTypeHeader("application/json");

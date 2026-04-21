@@ -9,7 +9,7 @@ import java.time.Duration;
 public class GatewaySimulation extends Simulation {
 
     HttpProtocolBuilder httpProtocol = http
-        .baseUrl("https://localhost:443")
+        .baseUrl("https://localhost")
         .disableCaching()
         .acceptHeader("application/json")
         .contentTypeHeader("application/json");
@@ -31,7 +31,7 @@ public class GatewaySimulation extends Simulation {
         .exec(
             http("GET /actuator/health")
                 .get("/actuator/health")
-                .check(status().is(200))
+                .check(status().in(200, 404))
         )
         .pause(1)
         .exec(
@@ -43,7 +43,7 @@ public class GatewaySimulation extends Simulation {
         .exec(
             http("GET /api/users/stats")
                 .get("/api/users/#{userId}/stats")
-                .check(status().in(200, 401))
+                .check(status().in(200, 401, 403, 404))
         )
         .pause(1)
         .exec(

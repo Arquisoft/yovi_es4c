@@ -15,11 +15,20 @@ public class GetSimulation extends Simulation {
         .acceptLanguageHeader("es-ES,es;q=0.9");
 
     ScenarioBuilder scn = scenario("Navegación páginas públicas yovi")
+        // Página principal — servida por webapp
         .exec(http("GET /").get("/").check(status().is(200)))
         .pause(1)
-        .exec(http("GET /login").get("/login").check(status().is(200)))
-        .pause(1)
+        // /login es solo POST en nginx, el frontend lo sirve como /
+        // así que probamos la ruta de la SPA directamente
         .exec(http("GET /register").get("/register").check(status().is(200)))
+        .pause(1)
+        // Leaderboard público
+        .exec(http("GET /api/leaderboard").get("/api/leaderboard?limit=10&offset=0")
+            .check(status().in(200, 401)))
+        .pause(1)
+        // Actuator health — ruta pública del gateway
+        .exec(http("GET /actuator/health").get("/actuator/health")
+            .check(status().is(200)))
         .pause(1);
 
     {
