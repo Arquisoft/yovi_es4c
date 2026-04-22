@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const app = express();
+app.disable('x-powered-by');
 const port = process.env.PORT || 3000;
 const swaggerUi = require('swagger-ui-express');
 const fs = require('node:fs');
@@ -25,7 +26,7 @@ app.use(express.json());
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306,
+  port: process.env.DB_PORT ? Number.parseInt(process.env.DB_PORT, 10) : 3306,
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASS || '',
   database: process.env.DB_NAME || 'yovi',
@@ -234,8 +235,8 @@ app.post('/api/games/seed', async (req, res) => {
 
 // GET /api/users/:userId/stats
 app.get('/api/users/:userId/stats', async (req, res) => {
-  const userId = parseInt(req.params.userId, 10);
-  if (isNaN(userId)) return res.status(400).json({ error: 'Invalid userId' });
+  const userId = Number.parseInt(req.params.userId, 10);
+  if (Number.isNaN(userId)) return res.status(400).json({ error: 'Invalid userId' });
 
   const conn = await pool.getConnection();
   try {
@@ -404,10 +405,10 @@ app.post('/api/play', async (req, res) => {
 
 // GET /api/leaderboard — ranking paginado de usuarios registrados
 app.get('/api/leaderboard', async (req, res) => {
-  const limit  = Math.min(parseInt(req.query.limit  ?? 20, 10), 100);
-  const offset = Math.max(parseInt(req.query.offset ?? 0,  10), 0);
+  const limit  = Math.min(Number.parseInt(req.query.limit  ?? 20, 10), 100);
+  const offset = Math.max(Number.parseInt(req.query.offset ?? 0,  10), 0);
 
-  if (isNaN(limit) || isNaN(offset)) {
+  if (Number.isNaN(limit) || Number.isNaN(offset)) {
     return res.status(400).json({ error: 'limit and offset must be integers' });
   }
 

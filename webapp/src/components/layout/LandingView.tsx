@@ -34,7 +34,7 @@ export default function LandingView({ onPlayNow }: LandingViewProps) {
       />
 
       {/* Floating hex decorations */}
-      {[...Array(6)].map((_, i) => (
+      {[...new Array(6)].map((_, i) => (
         <HexagonIcon
           key={i}
           sx={{
@@ -187,7 +187,7 @@ export default function LandingView({ onPlayNow }: LandingViewProps) {
         >
           {[3, 4, 5, 4, 3].map((count, rowIdx) => (
             <Box key={rowIdx} sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: rowIdx % 2 === 0 ? 1.5 : 0 }}>
-              {[...Array(count)].map((_, i) => (
+              {[...new Array(count)].map((_, i) => (
                 <Box
                   key={i}
                   sx={{
