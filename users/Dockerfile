@@ -1,10 +1,10 @@
 FROM node:22-alpine
 WORKDIR /app
 
-COPY --chown=node:node package.json package-lock.json ./
+COPY --chown=node:node --chmod=550 package.json package-lock.json ./
 RUN npm ci --silent --ignore-scripts
 
-COPY --chown=node:node . .
+COPY --chown=node:node --chmod=550 users-service.js .
 
 USER node
 
