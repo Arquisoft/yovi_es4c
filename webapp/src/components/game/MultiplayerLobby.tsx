@@ -164,11 +164,9 @@ export default function MultiplayerLobby({
                   data-testid="room-code-display">
                   {roomState.roomCode}
                 </Typography>
-                <IconButton onClick={copyCode} size="small" title="Copiar código">
-                  <ContentCopyIcon fontSize="small" />
+                <IconButton onClick={copyCode} size="small" title="Copiar código" data-testid="copy-code-btn"><ContentCopyIcon fontSize="small" />
                 </IconButton>
-                {copied && <Typography variant="caption" color="success.main">¡Copiado!</Typography>}
-              </Box>
+                {copied && <Typography variant="caption" color="success.main" data-testid="copy-confirm">¡Copiado!</Typography>}</Box>
               <Typography variant="body2" color="text.secondary">
                 Tablero <strong>{roomState.boardSize}×{roomState.boardSize}</strong>.
                 Comparte este código con tu rival para que se una.
