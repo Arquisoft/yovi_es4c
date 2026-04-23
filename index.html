@@ -479,16 +479,20 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_whitebox_overall_system">5.1. Whitebox Overall System</a></li>
 <li><a href="#_level_2_bloques_internos_relevantes">5.2. Level 2 — Bloques internos relevantes</a></li>
-<li><a href="#_level_3_geometría_del_tablero_hexagonal">5.3. Level 3 — Geometría del tablero hexagonal</a></li>
+<li><a href="#_level_3_detalles_de_implementación_relevantes">5.3. Level 3 — Detalles de implementación relevantes</a></li>
 </ul>
 </li>
 <li><a href="#section-runtime-view">6. Runtime View</a>
 <ul class="sectlevel2">
-<li><a href="#_registro_del_usuario">6.1. Registro del usuario</a></li>
-<li><a href="#_partida_vs_bot">6.2. Partida vs Bot</a></li>
-<li><a href="#_partida_multijugador_websocket">6.3. Partida Multijugador (WebSocket)</a></li>
-<li><a href="#_competición_bot_vs_bot_post_apiplay">6.4. Competición Bot vs Bot (<code>POST /api/play</code>)</a></li>
-<li><a href="#_fin_de_partida_vs_bot_experiencia_del_usuario">6.5. Fin de partida vs Bot — Experiencia del usuario</a></li>
+<li><a href="#_login_con_jwt">6.1. Login con JWT</a></li>
+<li><a href="#_registro_del_usuario">6.2. Registro del usuario</a></li>
+<li><a href="#_partida_vs_bot">6.3. Partida vs Bot</a></li>
+<li><a href="#_partida_multijugador_websocket">6.4. Partida Multijugador (WebSocket)</a></li>
+<li><a href="#_desconexión_de_un_jugador_en_partida_multijugador">6.5. Desconexión de un jugador en partida multijugador</a></li>
+<li><a href="#_consulta_del_leaderboard">6.6. Consulta del Leaderboard</a></li>
+<li><a href="#_consulta_del_perfil_de_usuario">6.7. Consulta del Perfil de Usuario</a></li>
+<li><a href="#_competición_bot_vs_bot_post_apiplay">6.8. Competición Bot vs Bot (<code>POST /api/play</code>)</a></li>
+<li><a href="#_fin_de_partida_vs_bot_experiencia_del_usuario">6.9. Fin de partida vs Bot — Experiencia del usuario</a></li>
 </ul>
 </li>
 <li><a href="#section-deployment-view">7. Deployment View</a>
@@ -501,25 +505,28 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#section-concepts">8. Cross-cutting Concepts</a>
 <ul class="sectlevel2">
 <li><a href="#_modelo_de_dominio">8.1. Modelo de Dominio</a></li>
-<li><a href="#_notación_yen">8.2. Notación YEN</a></li>
-<li><a href="#_comunicación_en_tiempo_real_websocket_de_salas">8.3. Comunicación en Tiempo Real — WebSocket de Salas</a></li>
-<li><a href="#_geometría_del_tablero_hexagonal">8.4. Geometría del Tablero Hexagonal</a></li>
-<li><a href="#_api_de_competición_post_apiplay">8.5. API de Competición — <code>POST /api/play</code></a></li>
-<li><a href="#_experiencia_de_usuario_al_finalizar_partida">8.6. Experiencia de Usuario al Finalizar Partida</a></li>
-<li><a href="#_experiencia_de_usuario_ux">8.7. Experiencia de Usuario (UX)</a></li>
-<li><a href="#_seguridad_y_autenticación">8.8. Seguridad y Autenticación</a></li>
-<li><a href="#_patrones_de_arquitectura_y_diseño">8.9. Patrones de Arquitectura y Diseño</a></li>
-<li><a href="#_conceptos_de_desarrollo">8.10. Conceptos de Desarrollo</a></li>
-<li><a href="#_conceptos_operativos">8.11. Conceptos Operativos</a></li>
+<li><a href="#_autenticación_y_autorización_jwt">8.2. Autenticación y Autorización — JWT</a></li>
+<li><a href="#_notación_yen">8.3. Notación YEN</a></li>
+<li><a href="#_comunicación_en_tiempo_real_websocket_de_salas">8.4. Comunicación en Tiempo Real — WebSocket de Salas</a></li>
+<li><a href="#_geometría_del_tablero_hexagonal">8.5. Geometría del Tablero Hexagonal</a></li>
+<li><a href="#_api_de_competición_post_apiplay">8.6. API de Competición — <code>POST /api/play</code></a></li>
+<li><a href="#_monitorización_prometheus_y_grafana">8.7. Monitorización — Prometheus y Grafana</a></li>
+<li><a href="#_experiencia_de_usuario_al_finalizar_partida">8.8. Experiencia de Usuario al Finalizar Partida</a></li>
+<li><a href="#_experiencia_de_usuario_ux">8.9. Experiencia de Usuario (UX)</a></li>
+<li><a href="#_seguridad_y_autenticación">8.10. Seguridad y Autenticación</a></li>
+<li><a href="#_patrones_de_arquitectura_y_diseño">8.11. Patrones de Arquitectura y Diseño</a></li>
+<li><a href="#_conceptos_de_desarrollo">8.12. Conceptos de Desarrollo</a></li>
+<li><a href="#_conceptos_operativos">8.13. Conceptos Operativos</a></li>
 </ul>
 </li>
 <li><a href="#section-design-decisions">9. Architecture Decisions</a>
 <ul class="sectlevel2">
 <li><a href="#_mysql_como_bbdd_del_proyecto">9.1. MySQL como BBDD del proyecto</a></li>
 <li><a href="#_azure_como_infraestructura_de_despliegue">9.2. Azure como infraestructura de despliegue</a></li>
-<li><a href="#_nginx_como_proxy_inverso_único_puerto_80">9.3. Nginx como proxy inverso único (puerto 80)</a></li>
-<li><a href="#_servidor_websocket_independiente_ws_server">9.4. Servidor WebSocket independiente (<code>ws-server</code>)</a></li>
-<li><a href="#_endpoint_apiplay_en_users_service">9.5. Endpoint <code>/api/play</code> en Users Service</a></li>
+<li><a href="#_nginx_como_proxy_inverso_único_puerto_80443">9.3. Nginx como proxy inverso único (puerto 80/443)</a></li>
+<li><a href="#_microservicio_de_autenticación_dedicado_auth_service">9.4. Microservicio de autenticación dedicado (auth-service)</a></li>
+<li><a href="#_servidor_websocket_independiente_ws_server">9.5. Servidor WebSocket independiente (<code>ws-server</code>)</a></li>
+<li><a href="#_endpoint_apiplay_en_users_service">9.6. Endpoint <code>/api/play</code> en Users Service</a></li>
 </ul>
 </li>
 <li><a href="#section-quality-scenarios">10. Quality Requirements</a>
@@ -1012,23 +1019,31 @@ La estrategia general se basa en los siguientes aspectos:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Frontend web (TypeScript/React)</strong>: Se encarga de la interacción con los usuarios y la presentación del tablero de juego.</p>
+<p><strong>Frontend web (TypeScript/React)</strong>: Se encarga de la interacción con los usuarios y la presentación del tablero de juego. Incluye selector de modo, partida vs bot, lobby multijugador con chat, historial, leaderboard y perfil de usuario.</p>
 </li>
 <li>
-<p><strong>API de la aplicación</strong>: Expone los servicios para bots y comunicación interna entre frontend y módulo de lógica.</p>
+<p><strong>Microservicio de autenticación (auth-service, Node.js)</strong>: Centraliza el login y el registro. Verifica credenciales contra el Users Service y emite tokens JWT firmados. Desacopla la lógica de autenticación del resto del sistema.</p>
 </li>
 <li>
-<p><strong>Módulo de lógica del juego (Rust)</strong>: Calcula el estado de la partida, determina movimientos y comprueba victorias.</p>
-<div class="ulist">
-<ul>
-<li>
-<p>Se comunica mediante JSON utilizando la notación YEN.</p>
-</li>
-</ul>
-</div>
+<p><strong>Gateway (Spring Boot)</strong>: Punto de entrada HTTP único para el frontend y los bots externos. Valida el token JWT de cada petición y enruta al servicio interno correcto. Las rutas públicas (<code>/auth/*</code>, <code>/status</code>, <code>/actuator/health</code>) no requieren token.</p>
 </li>
 <li>
-<p><strong>Persistencia de datos (MySQL)</strong>: Registro de usuarios, partidas e historial en la base de datos gestionada por la aplicación web.</p>
+<p><strong>Users Service (Node.js/Express)</strong>: API REST que gestiona usuarios, partidas, estadísticas y el endpoint de competición <code>/api/play</code>. Accede a MySQL para persistencia.</p>
+</li>
+<li>
+<p><strong>Módulo de lógica del juego (Rust/Gamey)</strong>: Calcula el estado de la partida, determina movimientos y comprueba victorias. Se comunica mediante JSON utilizando la notación YEN.</p>
+</li>
+<li>
+<p><strong>Servidor WebSocket (ws-server, Node.js)</strong>: Gestiona salas multijugador en tiempo real. No contiene lógica de juego; solo empareja jugadores y retransmite mensajes.</p>
+</li>
+<li>
+<p><strong>Nginx</strong>: Proxy inverso y punto de entrada único (puerto 80/443). Sirve los estáticos de React y hace proxy HTTP al gateway y WebSocket al ws-server.</p>
+</li>
+<li>
+<p><strong>Persistencia de datos (MySQL)</strong>: Registro de usuarios, partidas e historial.</p>
+</li>
+<li>
+<p><strong>Monitorización (Prometheus + Grafana)</strong>: Recogida y visualización de métricas del Users Service.</p>
 </li>
 </ul>
 </div>
@@ -1048,10 +1063,22 @@ La estrategia general se basa en los siguientes aspectos:</p>
 <p>Se usa <strong>JSON + notación YEN</strong> para comunicar los módulos y con los bots.</p>
 </li>
 <li>
+<p>Se usa <strong>JWT (JSON Web Tokens)</strong> para la autenticación stateless: el token se firma en el auth-service y se valida en el gateway sin necesidad de consultar la base de datos en cada petición.</p>
+</li>
+<li>
 <p>La API está basada en servicios web simples (HTTP) para facilitar la integración con bots y otros sistemas externos.</p>
 </li>
 <li>
+<p>Se usa <strong>WebSocket puro</strong> (<code>ws</code> library) para la comunicación en tiempo real del modo multijugador y el chat, por su simplicidad y bajo overhead.</p>
+</li>
+<li>
+<p>Se emplean <strong>Prometheus y Grafana</strong> para monitorización, integrados con el Users Service.</p>
+</li>
+<li>
 <p>Se emplea <strong>Git con GitHub</strong> para control de versiones y seguimiento del proyecto.</p>
+</li>
+<li>
+<p><strong>Docker Compose</strong> orquesta todos los servicios tanto en desarrollo como en producción.</p>
 </li>
 </ul>
 </div>
@@ -1065,10 +1092,13 @@ La estrategia general se basa en los siguientes aspectos:</p>
 <p><strong>Usabilidad</strong>: Se prioriza una interfaz clara e intuitiva para el usuario.</p>
 </li>
 <li>
-<p><strong>Rendimiento</strong>: Respuesta rápida durante la partida y consultas al API.</p>
+<p><strong>Rendimiento</strong>: Respuesta rápida durante la partida y consultas al API. La validación JWT en el gateway es local (sin roundtrip adicional a la BD).</p>
 </li>
 <li>
-<p><strong>Mantenibilidad</strong>: Código poco acoplado, cohesivo, modular y limpio que permite añadir estrategias o variantes del juego sin romper el sistema.</p>
+<p><strong>Seguridad</strong>: JWT para autenticación stateless, bcrypt para contraseñas, Nginx como único punto de entrada exterior.</p>
+</li>
+<li>
+<p><strong>Mantenibilidad</strong>: Código poco acoplado, cohesivo, modular y limpio que permite añadir estrategias o variantes del juego sin romper el sistema. Cobertura de tests medida con SonarCloud.</p>
 </li>
 </ul>
 </div>
@@ -1079,7 +1109,7 @@ La estrategia general se basa en los siguientes aspectos:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>El proyecto se desarrolla de forma colaborativa por el equipo indicado, con coordinación mediante reuniones telemáticas y/o presenciales, contacto por WhatsApp y el uso del GitHub.</p>
+<p>El proyecto se desarrolla de forma colaborativa por el equipo indicado, con coordinación mediante reuniones telemáticas y/o presenciales, contacto por WhatsApp y el uso de GitHub.</p>
 </li>
 <li>
 <p>Se sigue una metodología ágil ligera de tipo SCRUM como la aprendida en asignaturas pasadas como IPS.</p>
@@ -1103,15 +1133,16 @@ La estrategia general se basa en los siguientes aspectos:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/building-block-overview.png" alt="building block overview" width="406" height="547">
+<img src="./images/building-block-overview.png" alt="building block overview" width="817" height="574">
 </div>
 </div>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Motivation</dt>
 <dd>
-<p>El sistema se descompone en microservicios independientes para separar la presentación, la gestión de usuarios/partidas, la lógica del juego y la comunicación en tiempo real.
-Nginx actúa como punto de entrada único en producción, eliminando la exposición de puertos internos al exterior y habilitando el proxy WebSocket.</p>
+<p>El sistema se descompone en microservicios independientes para separar la autenticación, la presentación, la gestión de usuarios/partidas, la lógica del juego y la comunicación en tiempo real.
+Nginx actúa como punto de entrada único en producción, eliminando la exposición de puertos internos al exterior y habilitando el proxy WebSocket.
+El auth-service desacopla la lógica de JWT del gateway y del users service.</p>
 </dd>
 <dt class="hdlist1">Contained Building Blocks</dt>
 </dl>
@@ -1130,19 +1161,23 @@ Nginx actúa como punto de entrada único en producción, eliminando la exposici
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">WebApp</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">SPA que proporciona la interfaz de usuario: selección de modo, tablero de juego, historial, multijugador.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SPA que proporciona la interfaz de usuario: selección de modo, tablero de juego, historial, multijugador con chat, leaderboard y perfil.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Nginx</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Servidor web y proxy inverso: sirve los estáticos de React, redirige HTTP al gateway y WebSocket al ws-server. Establece la comunicación del frontend en HTTPS.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Servidor web y proxy inverso: sirve los estáticos de React, redirige <code>/auth/*</code> al auth-service, HTTP al gateway y WebSocket al ws-server. TLS en producción.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Auth Service</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Microservicio de autenticación JWT. Expone <code>POST /auth/login</code> y <code>POST /auth/register</code>. Verifica credenciales contra users-service y emite tokens JWT firmados.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Gateway</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Punto de entrada HTTP único. Enruta peticiones REST al servicio correcto (users o gamey).</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Punto de entrada HTTP único con JWT validation. Valida el token <code>Authorization: Bearer &lt;token&gt;</code> en cada petición y enruta al servicio correcto (users o gamey). Las rutas <code>/auth/*</code>, <code>/status</code> y <code>/actuator/health</code> son públicas.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">API REST de usuarios y partidas. Gestiona registro, login, guardado de partidas y el endpoint <code>/api/play</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API REST de usuarios y partidas. Gestiona registro, login, guardado de partidas, historial, estadísticas de usuario (<code>/api/users/:id/stats</code>), leaderboard (<code>/api/leaderboard</code>) y el endpoint <code>/api/play</code>.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Gamey Engine</p></td>
@@ -1156,6 +1191,14 @@ Nginx actúa como punto de entrada único en producción, eliminando la exposici
 <td class="tableblock halign-left valign-top"><p class="tableblock">MySQL</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Persistencia de usuarios, partidas y jugadores.</p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Prometheus</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Recogida de métricas del Users Service.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Grafana</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Visualización de dashboards de métricas.</p></td>
+</tr>
 </tbody>
 </table>
 <div class="dlist">
@@ -1165,10 +1208,13 @@ Nginx actúa como punto de entrada único en producción, eliminando la exposici
 <div class="ulist">
 <ul>
 <li>
-<p>HTTPS/JSON entre WebApp y Gateway (puerto 80, Nginx proxy).</p>
+<p>HTTPS/JSON entre WebApp y Auth Service (puerto 443/80, rutas <code>/auth/*</code>, sin JWT).</p>
 </li>
 <li>
-<p>WebSocket <code>ws://&lt;host&gt;/ws</code> entre WebApp y WS-Server (Nginx proxy).</p>
+<p>HTTPS/JSON entre WebApp y Gateway (puerto 443/80, rutas <code>/api/<strong></code>, <code>/v1/</strong></code>; requiere <code>Authorization: Bearer &lt;token&gt;</code>).</p>
+</li>
+<li>
+<p>WebSocket <code>wss://&lt;host&gt;/ws</code> entre WebApp y WS-Server (Nginx proxy).</p>
 </li>
 <li>
 <p>HTTP/JSON interno entre Gateway y Users Service (puerto 3000).</p>
@@ -1192,7 +1238,144 @@ Nginx actúa como punto de entrada único en producción, eliminando la exposici
 <div class="sect2">
 <h3 id="_level_2_bloques_internos_relevantes">5.2. Level 2 — Bloques internos relevantes</h3>
 <div class="sect3">
-<h4 id="_white_box_webapp">5.2.1. White Box WebApp</h4>
+<h4 id="_white_box_auth_service">5.2.1. White Box Auth Service</h4>
+<div class="paragraph">
+<p>Microservicio Node.js responsable exclusivamente de la autenticación. No accede a MySQL directamente; delega la verificación de credenciales en Users Service.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Endpoint</th>
+<th class="tableblock halign-left valign-top">Responsabilidad</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /auth/login</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Valida credenciales contra users-service. Si son correctas, firma y devuelve un JWT con <code>userId</code> y <code>username</code>. Expira según <code>JWT_EXPIRES_IN</code> (por defecto 1h).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /auth/register</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Proxy directo a <code>/createuser</code> de users-service. Crea el usuario sin emitir token (el usuario debe hacer login a continuación).</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /auth/validate</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Verifica un JWT y devuelve su payload. Útil para tests e integraciones internas.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /auth/health</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Health check del servicio.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_white_box_gateway_jwt_filter">5.2.2. White Box Gateway (JWT Filter)</h4>
+<div class="paragraph">
+<p>El Gateway aplica un filtro Servlet (<code>JwtFilter</code>) en todas las rutas salvo las públicas.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 66.6667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Comportamiento</th>
+<th class="tableblock halign-left valign-top">Descripción</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rutas públicas</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/auth/*</code>, <code>/actuator/health</code>, <code>/status</code> — pasan sin token.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Rutas protegidas</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Todas las demás. El filtro extrae el token del header <code>Authorization: Bearer &lt;token&gt;</code>, lo verifica con <code>JWT_SECRET</code> y añade <code>X-User-Id</code> al request forwarded.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Token inválido</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Devuelve <code>401 Unauthorized</code> con mensaje de error JSON.</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Rutas que expone el gateway:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Método</th>
+<th class="tableblock halign-left valign-top">Ruta</th>
+<th class="tableblock halign-left valign-top">Destino</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/games</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/games</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/games/seed</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/users/{userId}/stats</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/leaderboard</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/play</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/play</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/status</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gamey Engine (público)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/ybot/choose/{botId}</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gamey Engine</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/v1/game/play</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gamey Engine</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_white_box_webapp">5.2.3. White Box WebApp</h4>
 <div class="paragraph">
 <p>La WebApp sigue la arquitectura SPA con componentes React organizados por funcionalidad.</p>
 </div>
@@ -1222,7 +1405,7 @@ Nginx actúa como punto de entrada único en producción, eliminando la exposici
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>Game</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Partida vs bot: alterna turno humano y turno bot llamando a la API Rust. Al terminar muestra botones "Jugar de nuevo" y "Volver al menú".</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Partida vs bot: alterna turno humano y turno bot llamando a la API Rust.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>HexBoard</code></p></td>
@@ -1230,7 +1413,7 @@ Nginx actúa como punto de entrada único en producción, eliminando la exposici
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>MultiplayerLobby</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Sala de espera: crear sala (obtiene código) o unirse con código. Chat en tiempo real.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Sala de espera: crear sala (obtiene código de 6 chars) o unirse con código.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>MultiplayerGame</code></p></td>
@@ -1238,7 +1421,15 @@ Nginx actúa como punto de entrada único en producción, eliminando la exposici
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>GameHistory</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Historial de partidas con miniatura del tablero. Usa la misma geometría que <code>HexBoard</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Historial de partidas con miniatura del tablero.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LeaderboardView</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ranking global paginado, ordenado por tasa de victorias.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ProfileView</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estadísticas del usuario: partidas, victorias, derrotas, tasa, racha, bots derrotados.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>useWebSocketRoom</code></p></td>
@@ -1248,42 +1439,11 @@ Nginx actúa como punto de entrada único en producción, eliminando la exposici
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>gameyClient.ts</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Cliente HTTP para la API Rust: <code>makeHumanMove</code>, <code>chooseMove</code>.</p></td>
 </tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>ProfileView</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Perfil del usuario en donde puede ver sus estadísticas.</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>LeaderboardView</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Tabla con el ranking de los jugadores, actualmente los ordena por número de victorias.</p></td>
-</tr>
 </tbody>
 </table>
-<div class="dlist">
-<dl>
-<dt class="hdlist1">Interaction</dt>
-<dd>
-<div class="ulist">
-<ul>
-<li>
-<p><code>GameModeSelector</code> → <code>GameView</code> via prop <code>onStart(config)</code>.</p>
-</li>
-<li>
-<p><code>Game</code> llama a <code>gameyClient.ts</code> para cada movimiento (humano y bot).</p>
-</li>
-<li>
-<p><code>MultiplayerGame</code> llama a <code>gameyClient.ts</code> para validar el movimiento y luego usa <code>useWebSocketRoom.broadcastMove</code> para notificar al oponente.</p>
-</li>
-<li>
-<p><code>useWebSocketRoom</code> mantiene la conexión WebSocket abierta durante toda la partida.</p>
-</li>
-</ul>
-</div>
-</dd>
-</dl>
-</div>
 </div>
 <div class="sect3">
-<h4 id="_white_box_users_service">5.2.2. White Box Users Service</h4>
+<h4 id="_white_box_users_service">5.2.4. White Box Users Service</h4>
 <div class="paragraph">
 <p>API REST basada en Express con acceso directo a MySQL y llamadas HTTP internas a Gamey.</p>
 </div>
@@ -1301,11 +1461,11 @@ Nginx actúa como punto de entrada único en producción, eliminando la exposici
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /createuser</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Registro de usuario con contraseña hasheada (bcrypt).</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Registro de usuario con contraseña hasheada (bcrypt, 10 rounds).</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /login</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Autenticación, devuelve <code>userId</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Autenticación interna (usado por auth-service). Devuelve <code>userId</code>.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /api/games</code></p></td>
@@ -1320,14 +1480,22 @@ Nginx actúa como punto de entrada único en producción, eliminando la exposici
 <td class="tableblock halign-left valign-top"><p class="tableblock">Inserta partidas de ejemplo.</p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /api/users/:userId/stats</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estadísticas completas del usuario: partidas, victorias, derrotas, tasa de victorias, racha, top día y bots derrotados.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /api/leaderboard</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ranking paginado de usuarios ordenado por tasa de victorias (parámetros: <code>limit</code>, <code>offset</code>).</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /api/play</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Endpoint de competición</strong>: aplica jugada del jugador + respuesta del bot en una sola llamada. Llama internamente a Gamey Engine 3 veces.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Endpoint de competición</strong>: aplica jugada del jugador + respuesta del bot en una sola llamada. Llama internamente a Gamey Engine hasta 3 veces.</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <div class="sect3">
-<h4 id="_white_box_gamey_engine">5.2.3. White Box Gamey Engine</h4>
+<h4 id="_white_box_gamey_engine">5.2.5. White Box Gamey Engine</h4>
 <div class="paragraph">
 <p>Proyecto en Rust con estructura modular expuesto como servidor HTTP con Axum.</p>
 </div>
@@ -1363,7 +1531,7 @@ Nginx actúa como punto de entrada único en producción, eliminando la exposici
 </table>
 </div>
 <div class="sect3">
-<h4 id="_white_box_ws_server">5.2.4. White Box WS-Server</h4>
+<h4 id="_white_box_ws_server">5.2.6. White Box WS-Server</h4>
 <div class="paragraph">
 <p>Servidor Node.js con la librería <code>ws</code>. No contiene lógica de juego.</p>
 </div>
@@ -1401,9 +1569,17 @@ Nginx actúa como punto de entrada único en producción, eliminando la exposici
 </div>
 </div>
 <div class="sect2">
-<h3 id="_level_3_geometría_del_tablero_hexagonal">5.3. Level 3 — Geometría del tablero hexagonal</h3>
+<h3 id="_level_3_detalles_de_implementación_relevantes">5.3. Level 3 — Detalles de implementación relevantes</h3>
 <div class="sect3">
-<h4 id="_buildhexgeometry_hexboard_tsx">5.3.1. <code>buildHexGeometry</code> (HexBoard.tsx)</h4>
+<h4 id="_flujo_de_autenticación_jwt">5.3.1. Flujo de autenticación JWT</h4>
+<div class="imageblock">
+<div class="content">
+<img src="./images/jwt-flow.png" alt="jwt flow" width="1216" height="583">
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_geometría_del_tablero_hexagonal_buildhexgeometry_hexboard_tsx">5.3.2. Geometría del tablero hexagonal — <code>buildHexGeometry</code> (HexBoard.tsx)</h4>
 <div class="paragraph">
 <p>Función exportada que calcula las posiciones de todas las celdas del tablero triangular.
 Usa hexágonos <strong>flat-top</strong> (lados planos arriba/abajo) en forma de pirámide centrada:</p>
@@ -1422,7 +1598,7 @@ cy(row)      = row · rowStep</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_post_apiplay_flujo_interno">5.3.2. <code>POST /api/play</code> — Flujo interno</h4>
+<h4 id="_post_apiplay_flujo_interno">5.3.3. <code>POST /api/play</code> — Flujo interno</h4>
 <div class="imageblock">
 <div class="content">
 <img src="./images/api-play-flow.png" alt="api play flow" width="619" height="479">
@@ -1437,24 +1613,41 @@ cy(row)      = row · rowStep</code></pre>
 <h2 id="section-runtime-view">6. Runtime View</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_registro_del_usuario">6.1. Registro del usuario</h3>
+<h3 id="_login_con_jwt">6.1. Login con JWT</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Caso</dt>
 <dd>
-<p>El usuario accede a la página web e inicia el proceso de registro para poder jugar partidas.</p>
+<p>El usuario introduce sus credenciales. El auth-service las verifica y emite un token JWT que el frontend usa en todas las peticiones posteriores.</p>
 </dd>
 </dl>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Registro%20de%20Usuario.png" alt="Registro de Usuario" width="1061" height="426">
+<img src="./images/Login%20JWT.png" alt="Login JWT" width="904" height="548">
 </div>
 </div>
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_partida_vs_bot">6.2. Partida vs Bot</h3>
+<h3 id="_registro_del_usuario">6.2. Registro del usuario</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Caso</dt>
+<dd>
+<p>El usuario accede a la página web e inicia el proceso de registro.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Registro%20de%20Usuario.png" alt="Registro de Usuario" width="1166" height="456">
+</div>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_partida_vs_bot">6.3. Partida vs Bot</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Caso</dt>
@@ -1465,13 +1658,13 @@ cy(row)      = row · rowStep</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Partida%20vs%20Bot.png" alt="Partida vs Bot" width="1168" height="923">
+<img src="./images/Partida%20vs%20Bot.png" alt="Partida vs Bot" width="1168" height="939">
 </div>
 </div>
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_partida_multijugador_websocket">6.3. Partida Multijugador (WebSocket)</h3>
+<h3 id="_partida_multijugador_websocket">6.4. Partida Multijugador (WebSocket)</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Caso</dt>
@@ -1482,13 +1675,64 @@ cy(row)      = row · rowStep</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Partida%20Multijugador.png" alt="Partida Multijugador" width="1125" height="1001">
+<img src="./images/Partida%20Multijugador.png" alt="Partida Multijugador" width="1126" height="1018">
 </div>
 </div>
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_competición_bot_vs_bot_post_apiplay">6.4. Competición Bot vs Bot (<code>POST /api/play</code>)</h3>
+<h3 id="_desconexión_de_un_jugador_en_partida_multijugador">6.5. Desconexión de un jugador en partida multijugador</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Caso</dt>
+<dd>
+<p>Un jugador cierra el navegador o pierde la conexión durante una partida. El sistema notifica al oponente.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Desconexion%20Multijugador.png" alt="Desconexion Multijugador" width="890" height="433">
+</div>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_consulta_del_leaderboard">6.6. Consulta del Leaderboard</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Caso</dt>
+<dd>
+<p>El usuario navega al ranking global para ver la clasificación de jugadores.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Leaderboard.png" alt="Leaderboard" width="1110" height="486">
+</div>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_consulta_del_perfil_de_usuario">6.7. Consulta del Perfil de Usuario</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Caso</dt>
+<dd>
+<p>El usuario navega a su perfil para ver sus estadísticas detalladas.</p>
+</dd>
+</dl>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/Perfil%20Usuario.png" alt="Perfil Usuario" width="1030" height="518">
+</div>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_competición_bot_vs_bot_post_apiplay">6.8. Competición Bot vs Bot (<code>POST /api/play</code>)</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Caso</dt>
@@ -1505,7 +1749,7 @@ cy(row)      = row · rowStep</code></pre>
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_fin_de_partida_vs_bot_experiencia_del_usuario">6.5. Fin de partida vs Bot — Experiencia del usuario</h3>
+<h3 id="_fin_de_partida_vs_bot_experiencia_del_usuario">6.9. Fin de partida vs Bot — Experiencia del usuario</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Caso</dt>
@@ -1548,7 +1792,7 @@ cy(row)      = row · rowStep</code></pre>
 <h3 id="_infrastructure_level_1">7.1. Infrastructure Level 1</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/deployment-overview.png" alt="deployment overview" width="347" height="700">
+<img src="./images/deployment-overview.png" alt="deployment overview" width="410" height="680">
 </div>
 </div>
 <div class="dlist">
@@ -1647,7 +1891,7 @@ Esto simplifica la configuración de firewall, evita problemas de CORS y habilit
 <h3 id="_infrastructure_level_2_nginx_como_proxy">7.2. Infrastructure Level 2 — Nginx como proxy</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Nginx%20Routing.png" alt="Nginx Routing" width="663" height="266">
+<img src="./images/Nginx%20Routing.png" alt="Nginx Routing" width="703" height="257">
 </div>
 </div>
 <div class="paragraph">
@@ -1747,7 +1991,7 @@ Esto simplifica la configuración de firewall, evita problemas de CORS y habilit
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Usuarios:</strong> gestión de cuentas, autenticación y autorización (Users Service).</p>
+<p><strong>Usuarios:</strong> gestión de cuentas, autenticación y autorización (Auth Service + Users Service).</p>
 </li>
 <li>
 <p><strong>Partidas:</strong> lógica de reglas, estado YEN, bots y validación de movimientos (Gamey Engine).</p>
@@ -1758,11 +2002,62 @@ Esto simplifica la configuración de firewall, evita problemas de CORS y habilit
 <li>
 <p><strong>Interacción Web:</strong> comunicación entre frontend y backend mediante HTTP REST y WebSocket.</p>
 </li>
+<li>
+<p><strong>Monitorización:</strong> recogida y visualización de métricas del sistema (Prometheus + Grafana).</p>
+</li>
 </ul>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_notación_yen">8.2. Notación YEN</h3>
+<h3 id="_autenticación_y_autorización_jwt">8.2. Autenticación y Autorización — JWT</h3>
+<div class="paragraph">
+<p>El sistema usa <strong>JSON Web Tokens (JWT)</strong> para autenticación stateless.</p>
+</div>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Flujo</dt>
+<dd>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>El cliente envía credenciales a <code>POST /auth/login</code> (ruta pública, sin token).</p>
+</li>
+<li>
+<p>El Auth Service verifica contra Users Service y firma un JWT con <code>{ userId, username }</code> usando <code>JWT_SECRET</code>.</p>
+</li>
+<li>
+<p>El cliente incluye el token en todas las peticiones posteriores: <code>Authorization: Bearer &lt;token&gt;</code>.</p>
+</li>
+<li>
+<p>El Gateway valida el token en su <code>JwtFilter</code> (verificación local, sin roundtrip a BD) y añade <code>X-User-Id</code> al request.</p>
+</li>
+<li>
+<p>Las rutas <code>/auth/*</code>, <code>/status</code> y <code>/actuator/health</code> son públicas y no requieren token.</p>
+</li>
+</ol>
+</div>
+</dd>
+<dt class="hdlist1">Ventajas del enfoque</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Stateless</strong>: el gateway no necesita consultar la BD para validar cada petición.</p>
+</li>
+<li>
+<p><strong>Desacoplado</strong>: el Auth Service puede evolucionar (añadir OAuth, MFA) sin cambiar el gateway.</p>
+</li>
+<li>
+<p><strong>Seguridad</strong>: el token expira (por defecto 1h); si se compromete, la ventana de ataque es limitada.</p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_notación_yen">8.3. Notación YEN</h3>
 <div class="paragraph">
 <p>El estado de todas las partidas se representa mediante la notación YEN (formato JSON):</p>
 </div>
@@ -1791,7 +2086,7 @@ Esto simplifica la configuración de firewall, evita problemas de CORS y habilit
 </div>
 </div>
 <div class="sect2">
-<h3 id="_comunicación_en_tiempo_real_websocket_de_salas">8.3. Comunicación en Tiempo Real — WebSocket de Salas</h3>
+<h3 id="_comunicación_en_tiempo_real_websocket_de_salas">8.4. Comunicación en Tiempo Real — WebSocket de Salas</h3>
 <div class="paragraph">
 <p>El módulo <code>ws-server</code> implementa un protocolo de salas propio sobre WebSocket puro.</p>
 </div>
@@ -1858,7 +2153,7 @@ sea la misma para todos los modos (bot y multijugador).</p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>error</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Servidor → Cliente</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Error de sala, conexión perdida o bot no encontrado.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Error de sala, conexión perdida o desconexión del oponente.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1873,7 +2168,7 @@ aleatoriamente mediante <code>Math.random() &lt; 0.5</code>. Esto garantiza equi
 </div>
 </div>
 <div class="sect2">
-<h3 id="_geometría_del_tablero_hexagonal">8.4. Geometría del Tablero Hexagonal</h3>
+<h3 id="_geometría_del_tablero_hexagonal">8.5. Geometría del Tablero Hexagonal</h3>
 <div class="paragraph">
 <p>El tablero usa hexágonos <strong>flat-top</strong> (lados planos arriba/abajo, vértices a izquierda y derecha)
 en forma de pirámide centrada: la fila 0 tiene 1 celda arriba y la fila n-1 tiene n celdas abajo.</p>
@@ -1895,14 +2190,14 @@ representaciones son geométricamente idénticas.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_api_de_competición_post_apiplay">8.5. API de Competición — <code>POST /api/play</code></h3>
+<h3 id="_api_de_competición_post_apiplay">8.6. API de Competición — <code>POST /api/play</code></h3>
 <div class="paragraph">
 <p>El endpoint <code>/api/play</code> implementa el patrón <strong>orquestación en el servidor</strong>: el cliente
 envía una jugada y recibe el estado tras las dos jugadas (la suya y la del bot) en una
 sola petición HTTP. Esto es ideal para partidas bot-vs-bot automatizadas.</p>
 </div>
 <div class="paragraph">
-<p>Internamente se encadenan 3 llamadas a Gamey Engine:</p>
+<p>Internamente se encadenan hasta 3 llamadas a Gamey Engine:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
@@ -1925,7 +2220,43 @@ sola petición HTTP. Esto es ideal para partidas bot-vs-bot automatizadas.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_experiencia_de_usuario_al_finalizar_partida">8.6. Experiencia de Usuario al Finalizar Partida</h3>
+<h3 id="_monitorización_prometheus_y_grafana">8.7. Monitorización — Prometheus y Grafana</h3>
+<div class="paragraph">
+<p>El Users Service expone métricas compatibles con Prometheus. La pila de monitorización funciona así:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Prometheus</strong> hace scraping del endpoint de métricas del Users Service periódicamente y almacena las series temporales.</p>
+</li>
+<li>
+<p><strong>Grafana</strong> se conecta a Prometheus como datasource y visualiza los datos en dashboards preconfigurados.</p>
+</li>
+<li>
+<p>Ambos servicios están incluidos en el <code>docker-compose.yml</code> y se levantan automáticamente.</p>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Puertos de acceso</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>Prometheus: <code><a href="http://localhost:9090" class="bare">http://localhost:9090</a></code></p>
+</li>
+<li>
+<p>Grafana: <code><a href="http://localhost:9091" class="bare">http://localhost:9091</a></code></p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_experiencia_de_usuario_al_finalizar_partida">8.8. Experiencia de Usuario al Finalizar Partida</h3>
 <div class="paragraph">
 <p>Al terminar una partida vs bot, el tablero permanece visible con el resultado.
 El guardado en la base de datos se realiza <strong>en background</strong> (sin <code>await</code> bloqueante),
@@ -1943,17 +2274,23 @@ de forma que la UI responde inmediatamente. El jugador ve dos botones:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_experiencia_de_usuario_ux">8.7. Experiencia de Usuario (UX)</h3>
+<h3 id="_experiencia_de_usuario_ux">8.9. Experiencia de Usuario (UX)</h3>
 <div class="ulist">
 <ul>
 <li>
 <p>La interfaz sigue el patrón SPA para ofrecer fluidez y rapidez.</p>
 </li>
 <li>
-<p>Selección de modo de juego previa a la partida: modo (bot/multijugador), tamaño del tablero (mínimo 5, sin límite superior), dificultad del bot y elección de quién empieza.</p>
+<p>Selección de modo de juego previa a la partida: modo (bot/multijugador), tamaño del tablero (mínimo 5), dificultad del bot y elección de quién empieza.</p>
 </li>
 <li>
-<p>En modo multijugador: pantalla de lobby con pestañas "Crear sala" / "Unirse a sala", con código de 6 caracteres y chat disponible antes y durante la partida.</p>
+<p>En modo multijugador: pantalla de lobby con pestañas "Crear sala" / "Unirse a sala", con código de 6 caracteres y chat disponible durante la partida.</p>
+</li>
+<li>
+<p>Leaderboard global paginado accesible desde la NavBar.</p>
+</li>
+<li>
+<p>Perfil de usuario con estadísticas detalladas: tasa de victorias, racha, bots derrotados, top día y fecha de registro.</p>
 </li>
 <li>
 <p>Mensajes de error y estado consistentes en toda la aplicación.</p>
@@ -1962,26 +2299,29 @@ de forma que la UI responde inmediatamente. El jugador ve dos botones:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_seguridad_y_autenticación">8.8. Seguridad y Autenticación</h3>
+<h3 id="_seguridad_y_autenticación">8.10. Seguridad y Autenticación</h3>
 <div class="ulist">
 <ul>
 <li>
-<p>Contraseñas hasheadas con bcrypt (salt rounds = 10) en Users Service.</p>
+<p><strong>JWT</strong>: tokens firmados con <code>JWT_SECRET</code> compartido entre auth-service y gateway. Expiración configurable (por defecto 1h).</p>
 </li>
 <li>
-<p>Validación de datos de entrada en frontend y backend.</p>
+<p><strong>bcrypt</strong>: contraseñas hasheadas con 10 salt rounds en Users Service. Nunca se almacenan en texto plano.</p>
 </li>
 <li>
-<p>Nginx como punto de entrada único: los puertos internos no están expuestos al exterior.</p>
+<p><strong>Nginx como punto de entrada único</strong>: los puertos internos no están expuestos al exterior.</p>
 </li>
 <li>
-<p>El servidor WebSocket no requiere autenticación formal (partidas anónimas por código).</p>
+<p><strong>Rutas públicas mínimas</strong>: solo <code>/auth/*</code>, <code>/status</code> y <code>/actuator/health</code> son accesibles sin token.</p>
+</li>
+<li>
+<p>El servidor WebSocket no requiere autenticación formal (partidas por código de sala).</p>
 </li>
 </ul>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_patrones_de_arquitectura_y_diseño">8.9. Patrones de Arquitectura y Diseño</h3>
+<h3 id="_patrones_de_arquitectura_y_diseño">8.11. Patrones de Arquitectura y Diseño</h3>
 <div class="ulist">
 <ul>
 <li>
@@ -1991,7 +2331,10 @@ de forma que la UI responde inmediatamente. El jugador ve dos botones:</p>
 <p><strong>Proxy inverso (Nginx)</strong>: punto de entrada único para HTTP y WebSocket.</p>
 </li>
 <li>
-<p><strong>Gateway pattern</strong>: el gateway de Spring Boot enruta peticiones REST al servicio correcto.</p>
+<p><strong>Gateway pattern con JWT filter</strong>: el gateway de Spring Boot valida tokens y enruta peticiones REST al servicio correcto.</p>
+</li>
+<li>
+<p><strong>Auth Service desacoplado</strong>: la emisión y verificación de tokens está aislada del resto de la lógica de negocio.</p>
 </li>
 <li>
 <p><strong>Orquestación en servidor</strong> (<code>/api/play</code>): el servidor compone múltiples llamadas internas y devuelve un resultado unificado al cliente.</p>
@@ -2006,7 +2349,7 @@ de forma que la UI responde inmediatamente. El jugador ve dos botones:</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_conceptos_de_desarrollo">8.10. Conceptos de Desarrollo</h3>
+<h3 id="_conceptos_de_desarrollo">8.12. Conceptos de Desarrollo</h3>
 <div class="ulist">
 <ul>
 <li>
@@ -2016,23 +2359,26 @@ de forma que la UI responde inmediatamente. El jugador ve dos botones:</p>
 <p>Tests unitarios con Vitest + Testing Library (frontend) y Vitest + Supertest (users service).</p>
 </li>
 <li>
-<p>Tests E2E con Playwright + Cucumber. Las APIs externas se mockean con <code>page.route()</code> y <code>page.addInitScript()</code> (WebSocket falso inyectado en el navegador).</p>
+<p>Tests de integración y benchmarks en Rust (<code>cargo test</code>, <code>cargo bench</code>).</p>
 </li>
 <li>
-<p>Cobertura de código reportada a SonarCloud.</p>
+<p>Tests E2E con Playwright + Cucumber (BDD). Las APIs externas se mockean con <code>page.route()</code> y <code>page.addInitScript()</code> (WebSocket falso inyectado en el navegador). Los escenarios cubren: registro, login, partida vs bot, lobby multijugador, flujo WebSocket completo (crear sala, unirse, movimientos, chat, errores), leaderboard y perfil.</p>
+</li>
+<li>
+<p>Cobertura de código reportada a SonarCloud y visible mediante badge en el README.</p>
 </li>
 </ul>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_conceptos_operativos">8.11. Conceptos Operativos</h3>
+<h3 id="_conceptos_operativos">8.13. Conceptos Operativos</h3>
 <div class="ulist">
 <ul>
 <li>
 <p>Docker Compose como orquestador en desarrollo y producción.</p>
 </li>
 <li>
-<p>Variables de entorno para configurar URLs entre servicios sin hardcodear IPs.</p>
+<p>Variables de entorno para configurar URLs entre servicios y secretos (JWT_SECRET, DB_PASS) sin hardcodear valores.</p>
 </li>
 <li>
 <p>Prometheus + Grafana para monitorización de métricas del Users Service.</p>
@@ -2041,7 +2387,10 @@ de forma que la UI responde inmediatamente. El jugador ve dos botones:</p>
 <p>Logs locales por servicio; integrables con sistemas centralizados en el futuro.</p>
 </li>
 <li>
-<p>El timeout del proxy WebSocket en Nginx se configura a 3600s para mantener partidas largas.</p>
+<p>El timeout del proxy WebSocket en Nginx se configura a 3600s para mantener partidas largas activas.</p>
+</li>
+<li>
+<p>CI/CD con GitHub Actions: en cada push se ejecutan tests y se publica la imagen Docker en GHCR.</p>
 </li>
 </ul>
 </div>
@@ -2156,7 +2505,7 @@ de forma que la UI responde inmediatamente. El jugador ve dos botones:</p>
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_nginx_como_proxy_inverso_único_puerto_80">9.3. Nginx como proxy inverso único (puerto 80)</h3>
+<h3 id="_nginx_como_proxy_inverso_único_puerto_80443">9.3. Nginx como proxy inverso único (puerto 80/443)</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Estado</dt>
@@ -2166,7 +2515,7 @@ de forma que la UI responde inmediatamente. El jugador ve dos botones:</p>
 <dt class="hdlist1">Contexto</dt>
 <dd>
 <p>La webapp está empaquetada como archivos estáticos (Vite build) que necesitan ser servidos.
-El frontend necesita comunicarse con el gateway (HTTP) y el servidor WebSocket (WS)
+El frontend necesita comunicarse con el auth-service, el gateway (HTTP) y el servidor WebSocket (WS)
 sin exponer puertos internos al exterior.</p>
 </dd>
 <dt class="hdlist1">Alternativas consideradas</dt>
@@ -2193,7 +2542,7 @@ sin exponer puertos internos al exterior.</p>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Punto de entrada único</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">El cliente solo necesita conocer un host y puerto (80). Simplifica configuración y firewall.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El cliente solo necesita conocer un host y puerto (80/443). Simplifica configuración y firewall.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Proxy WebSocket</p></td>
@@ -2233,7 +2582,88 @@ sin exponer puertos internos al exterior.</p>
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_servidor_websocket_independiente_ws_server">9.4. Servidor WebSocket independiente (<code>ws-server</code>)</h3>
+<h3 id="_microservicio_de_autenticación_dedicado_auth_service">9.4. Microservicio de autenticación dedicado (auth-service)</h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Estado</dt>
+<dd>
+<p>Aceptada.</p>
+</dd>
+<dt class="hdlist1">Contexto</dt>
+<dd>
+<p>El sistema necesita autenticación JWT. Las opciones eran integrar la lógica JWT en el gateway (Java), en el users-service (Node.js) o crear un microservicio dedicado.</p>
+</dd>
+<dt class="hdlist1">Alternativas consideradas</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>Implementar login/JWT directamente en el gateway de Spring Boot.</p>
+</li>
+<li>
+<p>Implementar login/JWT en el users-service junto con el resto de lógica de usuarios.</p>
+</li>
+<li>
+<p>Microservicio dedicado en Node.js.</p>
+</li>
+</ul>
+</div>
+</dd>
+<dt class="hdlist1">Justificación</dt>
+</dl>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 20%;">
+<col style="width: 80%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Separación de responsabilidades</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El auth-service solo se encarga de emitir y verificar tokens. El users-service solo gestiona datos. El gateway solo enruta.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Independencia tecnológica</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js es más ágil para un servicio simple de login que añadir lógica JWT compleja al gateway Spring Boot.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Escalabilidad</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El auth-service puede escalarse independientemente si el volumen de logins crece.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Facilidad de evolución</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Añadir OAuth2, MFA o SSO en el futuro requiere modificar solo el auth-service, sin tocar el gateway ni users-service.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Verificación local en gateway</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El gateway valida JWT localmente con <code>JWT_SECRET</code> compartido; no necesita llamar al auth-service en cada petición (sin roundtrip adicional).</p></td>
+</tr>
+</tbody>
+</table>
+<div class="dlist">
+<dl>
+<dt class="hdlist1">Consecuencias</dt>
+<dd>
+<div class="ulist">
+<ul>
+<li>
+<p>Nuevo contenedor Docker <code>auth-service</code> a mantener.</p>
+</li>
+<li>
+<p><code>JWT_SECRET</code> debe estar sincronizado entre auth-service y gateway (variable de entorno).</p>
+</li>
+<li>
+<p>Las rutas <code>/auth/*</code> son públicas en el JwtFilter del gateway.</p>
+</li>
+</ul>
+</div>
+</dd>
+</dl>
+</div>
+<hr>
+</div>
+<div class="sect2">
+<h3 id="_servidor_websocket_independiente_ws_server">9.5. Servidor WebSocket independiente (<code>ws-server</code>)</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Estado</dt>
@@ -2311,7 +2741,7 @@ El gateway (Spring Boot con MVC bloqueante) no soporta WebSocket de forma nativa
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_endpoint_apiplay_en_users_service">9.5. Endpoint <code>/api/play</code> en Users Service</h3>
+<h3 id="_endpoint_apiplay_en_users_service">9.6. Endpoint <code>/api/play</code> en Users Service</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Estado</dt>
@@ -2549,37 +2979,57 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Complejidad de la integración Frontend ↔ Backend</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">La comunicación JSON/YEN entre TypeScript/React y Rust puede generar errores de formato o inconsistencias.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Definir y validar estrictamente el formato YEN, comprobar e integrar todos los endpoints.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Definir y validar estrictamente el formato YEN, comprobar e integrar todos los endpoints. Tests E2E mockean la API para aislar el frontend.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Evolución de las estrategias de juego</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Medio: Añadir nuevas estrategias puede romper el motor de juego si no se diseña modularmente.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Diseñar motor de juego con interfaces claras; documentar cómo añadir nuevas estrategias.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Añadir nuevas estrategias puede romper el motor de juego si no se diseña modularmente.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El registro de bots (<code>ybot_registry</code>) centraliza la selección por ID. Añadir un nuevo bot requiere solo implementar el trait correspondiente y registrarlo.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Gestión de concurrencia en partidas multiusuario</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Gestión de concurrencia en partidas multijugador</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Usuarios jugando simultáneamente pueden generar conflictos de estado e incoherencias.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Implementar control de acceso a partidas; usar bloqueos o transacciones en la persistencia.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El ws-server gestiona la concurrencia mediante los mapas <code>pendingRooms</code>, <code>activeRooms</code> y <code>wsToRoom</code>. El estado de cada sala es independiente.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Estado no persistido en ws-server</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Si el ws-server se reinicia, todas las partidas en curso se pierden.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Riesgo asumido en la versión actual. Mitigación futura: persistir estado de sala en Redis o MySQL.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Dependencia de bots externos</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Bots externos pueden enviar datos inválidos o malformateados.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Validación estricta de entradas y manejo de errores; definir contratos claros en la API.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">La API Rust valida estrictamente el formato YEN y las coordenadas antes de aplicar cualquier movimiento.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Seguridad del JWT_SECRET</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Si <code>JWT_SECRET</code> se compromete, cualquiera puede firmar tokens válidos.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El secreto se inyecta como variable de entorno y no aparece en el código fuente. En producción debe rotarse periódicamente.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Expiración de tokens JWT y UX</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Los tokens expiran en 1h (configurable). Si el usuario lleva mucho tiempo en una partida, la petición de guardado puede fallar con 401.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Deuda técnica: implementar refresh token o aumentar la expiración para sesiones largas. Actualmente el usuario debe volver a hacer login.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Deuda técnica en el frontend</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Código TypeScript con React puede no ser modular o adquierir acoplamiento que dificulte el mantenimiento o futuros cambios.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Revisiones de código, pruebas unitarias y refactorizaciones periódicas.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Código TypeScript con React puede no ser modular o adquierir acoplamiento que dificulte el mantenimiento.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Revisiones de código, pruebas unitarias (Vitest) y E2E (Playwright + Cucumber) periódicas. Cobertura reportada en SonarCloud.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Escalabilidad del backend</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">El API y la lógica deben soportar múltiples partidas simultáneas.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Planificar escalabilidad desde el inicio; monitorización y pruebas de carga.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Planificar escalabilidad desde el inicio; monitorización con Prometheus + Grafana para detectar cuellos de botella.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Ausencia de métricas en servicios distintos de users</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Actualmente solo el Users Service expone métricas a Prometheus. Gamey, auth-service y ws-server no tienen instrumentación.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Deuda técnica: añadir endpoints de métricas en los demás servicios para tener visibilidad completa del sistema.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Compatibilidad con variantes futuras del juego</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Añadir variantes como Master Y o Holey Y puede requerir cambios en la lógica.</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Diseñar motor de juego flexible y documentar cómo extender reglas.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El motor Rust es modular. La notación YEN es extensible. Riesgo bajo a corto plazo.</p></td>
 </tr>
 </tbody>
 </table>
@@ -2622,12 +3072,28 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Conjunto de servicios web que permite la interacción de bots o módulos externos con la aplicación.</em></p></td>
 </tr>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>JWT (JSON Web Token)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Estándar de autenticación stateless. El auth-service firma un token con <code>JWT_SECRET</code> que el cliente incluye en cada petición. El gateway lo verifica localmente sin consultar la BD.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Auth Service</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Microservicio Node.js responsable de la autenticación. Expone <code>POST /auth/login</code> (emite JWT) y <code>POST /auth/register</code> (proxy a users-service). No accede a MySQL directamente.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Bearer Token</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Esquema de autenticación HTTP. El cliente envía <code>Authorization: Bearer &lt;token&gt;</code> en la cabecera de cada petición protegida.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>JwtFilter</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Filtro Servlet del Gateway (Spring Boot) que intercepta todas las peticiones, extrae y valida el JWT, y añade <code>X-User-Id</code> al request. Las rutas públicas (<code>/auth/*</code>, <code>/status</code>) se saltan el filtro.</em></p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Gateway</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Servicio Spring Boot que actúa como punto de entrada HTTP único. Enruta peticiones REST al servicio correcto (users o gamey).</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Servicio Spring Boot que actúa como punto de entrada HTTP único. Valida JWT y enruta peticiones REST al servicio correcto (users o gamey).</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Nginx</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Servidor web y proxy inverso. En producción sirve la SPA React y redirige HTTP al gateway y WebSocket al ws-server, todo por el puerto 80.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Servidor web y proxy inverso. En producción sirve la SPA React y redirige <code>/auth/*</code> al auth-service, HTTP al gateway y WebSocket al ws-server, todo por el puerto 80/443.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>WebSocket</em></p></td>
@@ -2647,7 +3113,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Frontend (WebApp)</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Interfaz web implementada en TypeScript con React y Material UI. Incluye selector de modo de juego, tablero SVG, lobby multijugador con chat e historial de partidas.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Interfaz web implementada en TypeScript con React y Material UI. Incluye selector de modo de juego, tablero SVG, lobby multijugador con chat, historial de partidas, leaderboard y perfil de usuario.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>HexBoard</em></p></td>
@@ -2667,15 +3133,35 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Users Service</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Microservicio Node.js + Express que gestiona usuarios (registro, login), partidas (guardar, listar) y el endpoint <code>/api/play</code>.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Microservicio Node.js + Express que gestiona usuarios (registro, login), partidas (guardar, listar), estadísticas de usuario, leaderboard y el endpoint <code>/api/play</code>.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Leaderboard</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Ranking global de jugadores ordenado por tasa de victorias (<code>winRate</code>). Paginado mediante parámetros <code>limit</code> y <code>offset</code>. Accesible via <code>GET /api/leaderboard</code>.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Estadísticas de usuario (stats)</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Conjunto de métricas por jugador: total de partidas, victorias, derrotas, tasa de victorias, racha actual, top día, bots derrotados y fecha de registro. Accesibles via <code>GET /api/users/:userId/stats</code>.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Persistencia (MySQL)</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Almacenamiento de usuarios, partidas y jugadores. Tres tablas: <code>users</code>, <code>games</code>, <code>game_players</code>.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Almacenamiento de usuarios, partidas y jugadores. Tres tablas principales: <code>users</code>, <code>games</code>, <code>game_players</code>.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>bcrypt</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Algoritmo de hashing de contraseñas usado en Users Service (10 salt rounds). Las contraseñas nunca se almacenan en texto plano.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Docker Compose</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Herramienta de orquestación de contenedores. Levanta todos los microservicios (webapp, gateway, users, gamey, ws-server, mysql) con un solo comando.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Herramienta de orquestación de contenedores. Levanta todos los microservicios (nginx, auth-service, gateway, users, gamey, ws-server, mysql, prometheus, grafana) con un solo comando.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Prometheus</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Sistema de monitorización y alertas. Hace scraping de métricas del Users Service y las almacena como series temporales.</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Grafana</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Plataforma de visualización de métricas. Se conecta a Prometheus y muestra dashboards preconfigurados del estado del sistema.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Partida</em></p></td>
@@ -2685,6 +3171,14 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Historial</em></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Vista de la webapp que muestra todas las partidas guardadas con miniatura del tablero, jugadores, ganador y fecha.</em></p></td>
 </tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>CI/CD</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Integración y despliegue continuos implementados con GitHub Actions. En cada push se ejecutan tests, se construyen las imágenes Docker y se publican en GHCR (GitHub Container Registry).</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>SonarCloud</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Plataforma de análisis estático de código. Mide cobertura de tests, detecta code smells y vulnerabilidades. El estado del quality gate se muestra como badge en el README.</em></p></td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -2693,7 +3187,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-04-06 16:29:51 +0200
+Last updated 2026-02-15 13:27:20 +0100
 </div>
 </div>
 </body>
