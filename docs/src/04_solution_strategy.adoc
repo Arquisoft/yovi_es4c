@@ -3,16 +3,20 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-solution-strategy]]
 == Solution Strategy
 
-El sistema Yovi se ha diseñado siguiendo principios de modularidad y separación de responsabilidades. 
+El sistema Yovi se ha diseñado siguiendo principios de modularidad y separación de responsabilidades.
 La estrategia general se basa en los siguientes aspectos:
 
 === Top-Level Decomposition
 
-* **Frontend web (TypeScript/React)**: Se encarga de la interacción con los usuarios y la presentación del tablero de juego.
-* **API de la aplicación**: Expone los servicios para bots y comunicación interna entre frontend y módulo de lógica.
-* **Módulo de lógica del juego (Rust)**: Calcula el estado de la partida, determina movimientos y comprueba victorias.  
-  - Se comunica mediante JSON utilizando la notación YEN.
-* **Persistencia de datos (MySQL)**: Registro de usuarios, partidas e historial en la base de datos gestionada por la aplicación web.
+* **Frontend web (TypeScript/React)**: Se encarga de la interacción con los usuarios y la presentación del tablero de juego. Incluye selector de modo, partida vs bot, lobby multijugador con chat, historial, leaderboard y perfil de usuario.
+* **Microservicio de autenticación (auth-service, Node.js)**: Centraliza el login y el registro. Verifica credenciales contra el Users Service y emite tokens JWT firmados. Desacopla la lógica de autenticación del resto del sistema.
+* **Gateway (Spring Boot)**: Punto de entrada HTTP único para el frontend y los bots externos. Valida el token JWT de cada petición y enruta al servicio interno correcto. Las rutas públicas (`/auth/*`, `/status`, `/actuator/health`) no requieren token.
+* **Users Service (Node.js/Express)**: API REST que gestiona usuarios, partidas, estadísticas y el endpoint de competición `/api/play`. Accede a MySQL para persistencia.
+* **Módulo de lógica del juego (Rust/Gamey)**: Calcula el estado de la partida, determina movimientos y comprueba victorias. Se comunica mediante JSON utilizando la notación YEN.
+* **Servidor WebSocket (ws-server, Node.js)**: Gestiona salas multijugador en tiempo real. No contiene lógica de juego; solo empareja jugadores y retransmite mensajes.
+* **Nginx**: Proxy inverso y punto de entrada único (puerto 80/443). Sirve los estáticos de React y hace proxy HTTP al gateway y WebSocket al ws-server.
+* **Persistencia de datos (MySQL)**: Registro de usuarios, partidas e historial.
+* **Monitorización (Prometheus + Grafana)**: Recogida y visualización de métricas del Users Service.
 
 ---
 
@@ -21,22 +25,26 @@ La estrategia general se basa en los siguientes aspectos:
 * Se utiliza **TypeScript con React** para la web por su tipado estático y facilidad de mantenimiento.
 * Se utiliza **Rust** para la lógica del juego por su rendimiento y seguridad.
 * Se usa **JSON + notación YEN** para comunicar los módulos y con los bots.
+* Se usa **JWT (JSON Web Tokens)** para la autenticación stateless: el token se firma en el auth-service y se valida en el gateway sin necesidad de consultar la base de datos en cada petición.
 * La API está basada en servicios web simples (HTTP) para facilitar la integración con bots y otros sistemas externos.
+* Se usa **WebSocket puro** (`ws` library) para la comunicación en tiempo real del modo multijugador y el chat, por su simplicidad y bajo overhead.
+* Se emplean **Prometheus y Grafana** para monitorización, integrados con el Users Service.
 * Se emplea **Git con GitHub** para control de versiones y seguimiento del proyecto.
+* **Docker Compose** orquesta todos los servicios tanto en desarrollo como en producción.
 
 ---
 
 === Key Quality Goals
 
 * **Usabilidad**: Se prioriza una interfaz clara e intuitiva para el usuario.
-* **Rendimiento**: Respuesta rápida durante la partida y consultas al API.
-* **Mantenibilidad**: Código poco acoplado, cohesivo, modular y limpio que permite añadir estrategias o variantes del juego sin romper el sistema.
+* **Rendimiento**: Respuesta rápida durante la partida y consultas al API. La validación JWT en el gateway es local (sin roundtrip adicional a la BD).
+* **Seguridad**: JWT para autenticación stateless, bcrypt para contraseñas, Nginx como único punto de entrada exterior.
+* **Mantenibilidad**: Código poco acoplado, cohesivo, modular y limpio que permite añadir estrategias o variantes del juego sin romper el sistema. Cobertura de tests medida con SonarCloud.
 
 ---
 
 === Group Decisions
 
-* El proyecto se desarrolla de forma colaborativa por el equipo indicado, con coordinación mediante reuniones telemáticas y/o presenciales, contacto por WhatsApp y el uso del GitHub.
+* El proyecto se desarrolla de forma colaborativa por el equipo indicado, con coordinación mediante reuniones telemáticas y/o presenciales, contacto por WhatsApp y el uso de GitHub.
 * Se sigue una metodología ágil ligera de tipo SCRUM como la aprendida en asignaturas pasadas como IPS.
 * La documentación sigue la plantilla **arc42**, pues es la indicada por el profesor.
-

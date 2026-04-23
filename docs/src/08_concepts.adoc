@@ -7,10 +7,27 @@ ifndef::imagesdir[:imagesdir: ../images]
 
 El sistema sigue un modelo de dominio centrado en la separación de responsabilidades:
 
-* **Usuarios:** gestión de cuentas, autenticación y autorización (Users Service).
+* **Usuarios:** gestión de cuentas, autenticación y autorización (Auth Service + Users Service).
 * **Partidas:** lógica de reglas, estado YEN, bots y validación de movimientos (Gamey Engine).
 * **Salas multijugador:** emparejamiento, sincronización en tiempo real y chat (WS-Server).
 * **Interacción Web:** comunicación entre frontend y backend mediante HTTP REST y WebSocket.
+* **Monitorización:** recogida y visualización de métricas del sistema (Prometheus + Grafana).
+
+=== Autenticación y Autorización — JWT
+
+El sistema usa **JSON Web Tokens (JWT)** para autenticación stateless.
+
+Flujo::
+1. El cliente envía credenciales a `POST /auth/login` (ruta pública, sin token).
+2. El Auth Service verifica contra Users Service y firma un JWT con `{ userId, username }` usando `JWT_SECRET`.
+3. El cliente incluye el token en todas las peticiones posteriores: `Authorization: Bearer <token>`.
+4. El Gateway valida el token en su `JwtFilter` (verificación local, sin roundtrip a BD) y añade `X-User-Id` al request.
+5. Las rutas `/auth/*`, `/status` y `/actuator/health` son públicas y no requieren token.
+
+Ventajas del enfoque::
+- **Stateless**: el gateway no necesita consultar la BD para validar cada petición.
+- **Desacoplado**: el Auth Service puede evolucionar (añadir OAuth, MFA) sin cambiar el gateway.
+- **Seguridad**: el token expira (por defecto 1h); si se compromete, la ventana de ataque es limitada.
 
 === Notación YEN
 
@@ -51,7 +68,7 @@ Protocolo de mensajes::
 | `board_update` | Cliente → Servidor → Oponente | Nuevo estado del tablero tras un movimiento.
 | `game_over` | Cliente → Servidor → Oponente | Partida terminada con el ganador.
 | `chat` | Cliente → Servidor → Oponente | Mensaje de texto. El servidor añade el campo `from`.
-| `error` | Servidor → Cliente | Error de sala, conexión perdida o bot no encontrado.
+| `error` | Servidor → Cliente | Error de sala, conexión perdida o desconexión del oponente.
 |===
 
 Asignación aleatoria de color::
@@ -82,7 +99,7 @@ El endpoint `/api/play` implementa el patrón **orquestación en el servidor**: 
 envía una jugada y recibe el estado tras las dos jugadas (la suya y la del bot) en una
 sola petición HTTP. Esto es ideal para partidas bot-vs-bot automatizadas.
 
-Internamente se encadenan 3 llamadas a Gamey Engine:
+Internamente se encadenan hasta 3 llamadas a Gamey Engine:
 
 1. `POST /v1/game/play` → aplica la jugada del cliente.
 2. `POST /v1/ybot/choose/{botId}` → el bot elige su respuesta.
@@ -91,6 +108,18 @@ Internamente se encadenan 3 llamadas a Gamey Engine:
 Si el cliente gana en el paso 1, los pasos 2 y 3 se omiten y `bot_move` es `null`.
 
 Bots disponibles: `random_bot` (aleatorio), `greedy_bot` (codicioso), `minimax_bot` (minimax profundidad 2).
+
+=== Monitorización — Prometheus y Grafana
+
+El Users Service expone métricas compatibles con Prometheus. La pila de monitorización funciona así:
+
+* **Prometheus** hace scraping del endpoint de métricas del Users Service periódicamente y almacena las series temporales.
+* **Grafana** se conecta a Prometheus como datasource y visualiza los datos en dashboards preconfigurados.
+* Ambos servicios están incluidos en el `docker-compose.yml` y se levantan automáticamente.
+
+Puertos de acceso::
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:9091`
 
 === Experiencia de Usuario al Finalizar Partida
 
@@ -104,22 +133,26 @@ de forma que la UI responde inmediatamente. El jugador ve dos botones:
 === Experiencia de Usuario (UX)
 
 - La interfaz sigue el patrón SPA para ofrecer fluidez y rapidez.
-- Selección de modo de juego previa a la partida: modo (bot/multijugador), tamaño del tablero (mínimo 5, sin límite superior), dificultad del bot y elección de quién empieza.
-- En modo multijugador: pantalla de lobby con pestañas "Crear sala" / "Unirse a sala", con código de 6 caracteres y chat disponible antes y durante la partida.
+- Selección de modo de juego previa a la partida: modo (bot/multijugador), tamaño del tablero (mínimo 5), dificultad del bot y elección de quién empieza.
+- En modo multijugador: pantalla de lobby con pestañas "Crear sala" / "Unirse a sala", con código de 6 caracteres y chat disponible durante la partida.
+- Leaderboard global paginado accesible desde la NavBar.
+- Perfil de usuario con estadísticas detalladas: tasa de victorias, racha, bots derrotados, top día y fecha de registro.
 - Mensajes de error y estado consistentes en toda la aplicación.
 
 === Seguridad y Autenticación
 
-- Contraseñas hasheadas con bcrypt (salt rounds = 10) en Users Service.
-- Validación de datos de entrada en frontend y backend.
-- Nginx como punto de entrada único: los puertos internos no están expuestos al exterior.
-- El servidor WebSocket no requiere autenticación formal (partidas anónimas por código).
+- **JWT**: tokens firmados con `JWT_SECRET` compartido entre auth-service y gateway. Expiración configurable (por defecto 1h).
+- **bcrypt**: contraseñas hasheadas con 10 salt rounds en Users Service. Nunca se almacenan en texto plano.
+- **Nginx como punto de entrada único**: los puertos internos no están expuestos al exterior.
+- **Rutas públicas mínimas**: solo `/auth/*`, `/status` y `/actuator/health` son accesibles sin token.
+- El servidor WebSocket no requiere autenticación formal (partidas por código de sala).
 
 === Patrones de Arquitectura y Diseño
 
 - **Microservicios**: cada servicio tiene una responsabilidad clara y se despliega en un contenedor Docker independiente.
 - **Proxy inverso (Nginx)**: punto de entrada único para HTTP y WebSocket.
-- **Gateway pattern**: el gateway de Spring Boot enruta peticiones REST al servicio correcto.
+- **Gateway pattern con JWT filter**: el gateway de Spring Boot valida tokens y enruta peticiones REST al servicio correcto.
+- **Auth Service desacoplado**: la emisión y verificación de tokens está aislada del resto de la lógica de negocio.
 - **Orquestación en servidor** (`/api/play`): el servidor compone múltiples llamadas internas y devuelve un resultado unificado al cliente.
 - **Hook de estado** (`useWebSocketRoom`): encapsula todo el ciclo de vida del WebSocket en un hook React reutilizable.
 - **Geometría compartida**: `buildHexGeometry` exportada para reutilización sin duplicar código.
@@ -128,13 +161,15 @@ de forma que la UI responde inmediatamente. El jugador ve dos botones:
 
 - TypeScript estricto en el frontend con tipos compartidos entre componentes.
 - Tests unitarios con Vitest + Testing Library (frontend) y Vitest + Supertest (users service).
-- Tests E2E con Playwright + Cucumber. Las APIs externas se mockean con `page.route()` y `page.addInitScript()` (WebSocket falso inyectado en el navegador).
-- Cobertura de código reportada a SonarCloud.
+- Tests de integración y benchmarks en Rust (`cargo test`, `cargo bench`).
+- Tests E2E con Playwright + Cucumber (BDD). Las APIs externas se mockean con `page.route()` y `page.addInitScript()` (WebSocket falso inyectado en el navegador). Los escenarios cubren: registro, login, partida vs bot, lobby multijugador, flujo WebSocket completo (crear sala, unirse, movimientos, chat, errores), leaderboard y perfil.
+- Cobertura de código reportada a SonarCloud y visible mediante badge en el README.
 
 === Conceptos Operativos
 
 - Docker Compose como orquestador en desarrollo y producción.
-- Variables de entorno para configurar URLs entre servicios sin hardcodear IPs.
+- Variables de entorno para configurar URLs entre servicios y secretos (JWT_SECRET, DB_PASS) sin hardcodear valores.
 - Prometheus + Grafana para monitorización de métricas del Users Service.
 - Logs locales por servicio; integrables con sistemas centralizados en el futuro.
-- El timeout del proxy WebSocket en Nginx se configura a 3600s para mantener partidas largas.
+- El timeout del proxy WebSocket en Nginx se configura a 3600s para mantener partidas largas activas.
+- CI/CD con GitHub Actions: en cada push se ejecutan tests y se publica la imagen Docker en GHCR.

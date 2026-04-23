@@ -3,27 +3,59 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-runtime-view]]
 == Runtime View
 
+=== Login con JWT
+
+Caso::
+El usuario introduce sus credenciales. El auth-service las verifica y emite un token JWT que el frontend usa en todas las peticiones posteriores.
+
+[plantuml,"Login JWT",png]
+----
+actor Usuario
+participant "WebApp (React)" as WebApp
+participant "Nginx" as NG
+participant "Auth Service" as AS
+participant "Users Service" as US
+
+Usuario -> WebApp: Introduce usuario y contraseña
+WebApp -> NG: POST /auth/login
+NG -> AS: POST /login (sin token)
+AS -> US: POST /login (verifica credenciales)
+US --> AS: { userId } o 401
+alt credenciales correctas
+  AS -> AS: jwt.sign({ userId, username }, JWT_SECRET)
+  AS --> WebApp: { token, userId, username }
+  WebApp --> Usuario: Redirige al selector de modo de juego
+else credenciales incorrectas
+  AS --> WebApp: 401 Unauthorized
+  WebApp --> Usuario: Muestra error en el formulario
+end
+----
+
+---
+
 === Registro del usuario
 
 Caso::
-El usuario accede a la página web e inicia el proceso de registro para poder jugar partidas.
+El usuario accede a la página web e inicia el proceso de registro.
 
 [plantuml,"Registro de Usuario",png]
 ----
 actor Usuario
 participant "WebApp (React)" as WebApp
-participant "Gateway" as GW
+participant "Nginx" as NG
+participant "Auth Service" as AS
 participant "Users Service (Node.js)" as UsersService
 database "MySQL" as DB
 
 Usuario -> WebApp: Completa formulario de registro
-WebApp -> GW: POST /createuser
-GW -> UsersService: POST /createuser
+WebApp -> NG: POST /auth/register
+NG -> AS: POST /register (sin token)
+AS -> UsersService: POST /createuser
 UsersService -> DB: INSERT usuarios (contraseña hasheada con bcrypt)
 DB --> UsersService: Confirmación
-UsersService --> GW: { message: "Hello username!" }
-GW --> WebApp: Respuesta
-WebApp --> Usuario: Mensaje de bienvenida + redirige a selección de modo
+UsersService --> AS: { message: "Hello username!" }
+AS --> WebApp: Respuesta
+WebApp --> Usuario: Mensaje de bienvenida + redirige a login
 ----
 
 ---
@@ -47,7 +79,7 @@ WebApp -> WebApp: Muestra tablero inicial
 
 loop Cada turno del jugador
   Usuario -> WebApp: Click en celda
-  WebApp -> GW: POST /v1/game/play\n{yen, coords, player_idx}
+  WebApp -> GW: POST /v1/game/play\n{yen, coords, player_idx}\nAuthorization: Bearer <token>
   GW -> Gamey: POST /v1/game/play
   Gamey --> GW: {yen actualizado, status}
   GW --> WebApp: Respuesta
@@ -95,7 +127,7 @@ participant "Gateway" as GW
 participant "Gamey Engine" as Gamey
 
 JA -> WA: Selecciona multijugador → "Crear sala"
-WA -> Nginx: WebSocket ws://.../ws
+WA -> Nginx: WebSocket wss://.../ws
 Nginx -> WS: WebSocket proxy
 WA -> WS: { type: "create", username, boardSize }
 WS --> WA: { type: "room_created", roomCode: "ABC123" }
@@ -109,7 +141,7 @@ note right of WS: playerIndex asignado aleatoriamente
 
 loop Cada turno
   JA -> WA: Click en celda (si es su turno)
-  WA -> GW: POST /v1/game/play
+  WA -> GW: POST /v1/game/play\nAuthorization: Bearer <token>
   GW -> Gamey: POST /v1/game/play
   Gamey --> WA: {yen actualizado, status}
   WA -> WS: { type: "board_update", layout, turn }
@@ -126,6 +158,81 @@ end
 WA -> GW: POST /api/games (guarda partida en background)
 WA -> WS: { type: "game_over", layout, winner }
 WS --> WB: { type: "game_over", layout, winner }
+----
+
+---
+
+=== Desconexión de un jugador en partida multijugador
+
+Caso::
+Un jugador cierra el navegador o pierde la conexión durante una partida. El sistema notifica al oponente.
+
+[plantuml,"Desconexion Multijugador",png]
+----
+actor "Jugador A" as JA
+actor "Jugador B" as JB
+participant "WebApp A" as WA
+participant "WebApp B" as WB
+participant "WS-Server" as WS
+
+JA -> WA: Cierra el navegador / pierde conexión
+WA -> WS: WebSocket close event (code 1001)
+WS -> WS: handleClose(wsA)\n→ detecta sala activa\n→ notifica al oponente
+WS --> WB: { type: "error", message: "El oponente se ha desconectado." }
+WB --> JB: Muestra alerta de error
+note right of WB: La partida termina.\nJB puede volver al menú.
+----
+
+---
+
+=== Consulta del Leaderboard
+
+Caso::
+El usuario navega al ranking global para ver la clasificación de jugadores.
+
+[plantuml,"Leaderboard",png]
+----
+actor Usuario
+participant "WebApp (React)" as WebApp
+participant "Gateway" as GW
+participant "Users Service" as US
+database "MySQL" as DB
+
+Usuario -> WebApp: Navega a la vista Ranking
+WebApp -> GW: GET /api/leaderboard?limit=10&offset=0\nAuthorization: Bearer <token>
+GW -> GW: JwtFilter valida token
+GW -> US: GET /api/leaderboard?limit=10&offset=0
+US -> DB: SELECT con cálculo de win_rate, paginado
+DB --> US: [ { rank, username, gamesPlayed, wins, winRate }, ... ]
+US --> GW: { data: [...], pagination: { total, limit, offset } }
+GW --> WebApp: Respuesta
+WebApp --> Usuario: Tabla de ranking paginada
+----
+
+---
+
+=== Consulta del Perfil de Usuario
+
+Caso::
+El usuario navega a su perfil para ver sus estadísticas detalladas.
+
+[plantuml,"Perfil Usuario",png]
+----
+actor Usuario
+participant "WebApp (React)" as WebApp
+participant "Gateway" as GW
+participant "Users Service" as US
+database "MySQL" as DB
+
+Usuario -> WebApp: Navega a la vista Perfil
+WebApp -> GW: GET /api/users/{userId}/stats\nAuthorization: Bearer <token>
+GW -> GW: JwtFilter valida token
+GW -> US: GET /api/users/{userId}/stats
+US -> DB: SELECT partidas, victorias, derrotas,\n racha, top día, bots derrotados
+DB --> US: Estadísticas calculadas
+US --> GW: { totalGames, wins, losses, winRate,\n currentStreak, topDay, beatenBots, memberSince }
+GW --> WebApp: Respuesta
+WebApp --> Usuario: Muestra estadísticas en tarjetas
 ----
 
 ---

@@ -9,30 +9,46 @@ ifndef::imagesdir[:imagesdir: ../images]
 
 | Complejidad de la integración Frontend ↔ Backend
 | La comunicación JSON/YEN entre TypeScript/React y Rust puede generar errores de formato o inconsistencias.
-| Definir y validar estrictamente el formato YEN, comprobar e integrar todos los endpoints.
+| Definir y validar estrictamente el formato YEN, comprobar e integrar todos los endpoints. Tests E2E mockean la API para aislar el frontend.
 
 | Evolución de las estrategias de juego
-| Medio: Añadir nuevas estrategias puede romper el motor de juego si no se diseña modularmente.
-| Diseñar motor de juego con interfaces claras; documentar cómo añadir nuevas estrategias.
+| Añadir nuevas estrategias puede romper el motor de juego si no se diseña modularmente.
+| El registro de bots (`ybot_registry`) centraliza la selección por ID. Añadir un nuevo bot requiere solo implementar el trait correspondiente y registrarlo.
 
-| Gestión de concurrencia en partidas multiusuario
+| Gestión de concurrencia en partidas multijugador
 | Usuarios jugando simultáneamente pueden generar conflictos de estado e incoherencias.
-| Implementar control de acceso a partidas; usar bloqueos o transacciones en la persistencia.
+| El ws-server gestiona la concurrencia mediante los mapas `pendingRooms`, `activeRooms` y `wsToRoom`. El estado de cada sala es independiente.
+
+| Estado no persistido en ws-server
+| Si el ws-server se reinicia, todas las partidas en curso se pierden.
+| Riesgo asumido en la versión actual. Mitigación futura: persistir estado de sala en Redis o MySQL.
 
 | Dependencia de bots externos
 | Bots externos pueden enviar datos inválidos o malformateados.
-| Validación estricta de entradas y manejo de errores; definir contratos claros en la API.
+| La API Rust valida estrictamente el formato YEN y las coordenadas antes de aplicar cualquier movimiento.
+
+| Seguridad del JWT_SECRET
+| Si `JWT_SECRET` se compromete, cualquiera puede firmar tokens válidos.
+| El secreto se inyecta como variable de entorno y no aparece en el código fuente. En producción debe rotarse periódicamente.
+
+| Expiración de tokens JWT y UX
+| Los tokens expiran en 1h (configurable). Si el usuario lleva mucho tiempo en una partida, la petición de guardado puede fallar con 401.
+| Deuda técnica: implementar refresh token o aumentar la expiración para sesiones largas. Actualmente el usuario debe volver a hacer login.
 
 | Deuda técnica en el frontend
-| Código TypeScript con React puede no ser modular o adquierir acoplamiento que dificulte el mantenimiento o futuros cambios.
-| Revisiones de código, pruebas unitarias y refactorizaciones periódicas.
+| Código TypeScript con React puede no ser modular o adquierir acoplamiento que dificulte el mantenimiento.
+| Revisiones de código, pruebas unitarias (Vitest) y E2E (Playwright + Cucumber) periódicas. Cobertura reportada en SonarCloud.
 
 | Escalabilidad del backend
 | El API y la lógica deben soportar múltiples partidas simultáneas.
-| Planificar escalabilidad desde el inicio; monitorización y pruebas de carga.
+| Planificar escalabilidad desde el inicio; monitorización con Prometheus + Grafana para detectar cuellos de botella.
+
+| Ausencia de métricas en servicios distintos de users
+| Actualmente solo el Users Service expone métricas a Prometheus. Gamey, auth-service y ws-server no tienen instrumentación.
+| Deuda técnica: añadir endpoints de métricas en los demás servicios para tener visibilidad completa del sistema.
 
 | Compatibilidad con variantes futuras del juego
 | Añadir variantes como Master Y o Holey Y puede requerir cambios en la lógica.
-| Diseñar motor de juego flexible y documentar cómo extender reglas.
+| El motor Rust es modular. La notación YEN es extensible. Riesgo bajo a corto plazo.
 
-|===  
+|===

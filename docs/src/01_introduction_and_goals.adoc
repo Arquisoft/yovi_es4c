@@ -3,7 +3,7 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-introduction-and-goals]]
 == Introduction and Goals
 
-El proyecto Yovi es una propuesta planteada por la empresa de desarrollo de videojuegos Micrati, cuyo objetivo es desarrollar una aplicación web para 
+El proyecto Yovi es una propuesta planteada por la empresa de desarrollo de videojuegos Micrati, cuyo objetivo es desarrollar una aplicación web para
 jugar al juego Y, permitiendo tanto la interacción de usuarios humanos como la integración de bots mediante una API externa.
 
 === Participantes
@@ -21,11 +21,16 @@ Los requisitos del proyecto Yovi son los siguientes:
 
 * _Los usuarios podrán jugar partidas desde la web al juego Y, al menos a la versión clásica del juego y contra una máquina._
 * _Los usuarios podrán elegir el tamaño del tablero, así como la estrategia que el bot rival empleará._
-* _Los usuarios podrán registrarse en el sistema y consultar el histórico de su participación: número de juegos realizados, estadísticas de partidas ganadas/perdidas, etc._
+* _Los usuarios podrán jugar partidas multijugador en tiempo real contra otros humanos, mediante salas identificadas por un código de 6 caracteres._
+* _Durante las partidas multijugador existirá un chat en tiempo real entre los jugadores._
+* _Los usuarios podrán registrarse en el sistema y consultar el histórico de su participación: número de juegos realizados, estadísticas de partidas ganadas/perdidas, racha actual, bots derrotados, etc._
+* _La aplicación dispondrá de un ranking global (leaderboard) de jugadores ordenado por tasa de victorias._
+* _La autenticación se realizará mediante tokens JWT, gestionados por un microservicio de autenticación dedicado._
 * _La aplicación dispondrá de una API que permita a los bots interactuar con ella._
 * _La API de la aplicación permitirá acceder y gestionar información de los usuarios y de las partidas._
 * _La API tendrá documentación._
 * _La API permitirá que un bot juegue contra la aplicación._
+* _La aplicación dispondrá de monitorización de métricas mediante Prometheus y Grafana._
 
 === Quality Goals
 
@@ -35,7 +40,8 @@ Los requisitos del proyecto Yovi son los siguientes:
 | *Usabilidad* | La aplicación web deberá ser sencilla de usar e intuitiva, permitiendo que cualquier usuario tenga una buena experiencia jugando al juego Y.
 | *Rapidez* | Se buscará que los tiempos de respuesta sean lo más cortos posibles, tanto durante la partida como en la navegación de la aplicación.
 | *Mantenibilidad* | La aplicación deberá ser fácil de mantener, con código limpio y fácil de modificar o ampliar, siguiendo buenas prácticas de diseño de software.
-| *Fiablilidad* | La aplicación tendrá que ser fiable y funcionar correctamente ante cualquier situación llevada a cabo por los usuarios. También deberá de estar disponible el mayor tiempo posible.
+| *Fiabilidad* | La aplicación tendrá que ser fiable y funcionar correctamente ante cualquier situación llevada a cabo por los usuarios. También deberá de estar disponible el mayor tiempo posible.
+| *Seguridad* | El acceso a los recursos protegidos requiere autenticación JWT. Las contraseñas se almacenan hasheadas con bcrypt. Ningún puerto interno está expuesto directamente al exterior.
 |===
 
 === Stakeholders
@@ -45,6 +51,7 @@ Los requisitos del proyecto Yovi son los siguientes:
 |Rol/Nombre | Contacto | Expectativas
 | Micrati | Empresa de desarrollo de videojuegos | Espera una entrega de la aplicación que cumpla todos los requisitos especificados.
 | Equipo de desarrollo | Sergio Espina Marcos, Pablo García Menéndez, Elías Fernández Medina, Adrián Pérez Menéndez | Espera desarrollar una aplicación web aplicando y mejorando sus conocimientos y habilidades.
-| Usuarios | Personas que utilicen la aplicación | Esperan poder divertirse jugando al juego Y.
+| Usuarios | Personas que utilicen la aplicación | Esperan poder divertirse jugando al juego Y, tanto contra bots como contra otros humanos, y consultar sus estadísticas.
+| Bots externos | Scripts o programas que usen `POST /api/play` | Esperan una API estable y documentada para competir automáticamente.
 | Profesor | Jose Emilio Labra Gayo | Espera asistir al equipo de desarrollo en el proyecto y evaluarlo.
 |===

@@ -49,14 +49,14 @@ Justificación::
 
 ---
 
-=== Nginx como proxy inverso único (puerto 80)
+=== Nginx como proxy inverso único (puerto 80/443)
 
 Estado::
 Aceptada.
 
 Contexto::
 La webapp está empaquetada como archivos estáticos (Vite build) que necesitan ser servidos.
-El frontend necesita comunicarse con el gateway (HTTP) y el servidor WebSocket (WS)
+El frontend necesita comunicarse con el auth-service, el gateway (HTTP) y el servidor WebSocket (WS)
 sin exponer puertos internos al exterior.
 
 Alternativas consideradas::
@@ -67,7 +67,7 @@ Justificación::
 
 [cols="1,4"]
 |===
-| Punto de entrada único | El cliente solo necesita conocer un host y puerto (80). Simplifica configuración y firewall.
+| Punto de entrada único | El cliente solo necesita conocer un host y puerto (80/443). Simplifica configuración y firewall.
 | Proxy WebSocket | Nginx maneja el handshake HTTP→WebSocket con los headers `Upgrade` y `Connection` necesarios. Un proxy HTTP simple no sirve.
 | Sirve estáticos | Nginx sirve el build de React directamente, sin necesidad de un servidor Node.js adicional en producción.
 | CORS | Al servir todo desde el mismo origen, se eliminan los problemas de CORS entre frontend y APIs.
@@ -77,6 +77,37 @@ Justificación::
 Consecuencias::
 - Se añade un archivo `nginx.conf` que debe mantenerse actualizado si se añaden nuevas rutas.
 - El `Dockerfile` de la webapp usa una imagen multi-stage (Node para el build + Nginx para servir).
+
+---
+
+=== Microservicio de autenticación dedicado (auth-service)
+
+Estado::
+Aceptada.
+
+Contexto::
+El sistema necesita autenticación JWT. Las opciones eran integrar la lógica JWT en el gateway (Java), en el users-service (Node.js) o crear un microservicio dedicado.
+
+Alternativas consideradas::
+- Implementar login/JWT directamente en el gateway de Spring Boot.
+- Implementar login/JWT en el users-service junto con el resto de lógica de usuarios.
+- Microservicio dedicado en Node.js.
+
+Justificación::
+
+[cols="1,4"]
+|===
+| Separación de responsabilidades | El auth-service solo se encarga de emitir y verificar tokens. El users-service solo gestiona datos. El gateway solo enruta.
+| Independencia tecnológica | Node.js es más ágil para un servicio simple de login que añadir lógica JWT compleja al gateway Spring Boot.
+| Escalabilidad | El auth-service puede escalarse independientemente si el volumen de logins crece.
+| Facilidad de evolución | Añadir OAuth2, MFA o SSO en el futuro requiere modificar solo el auth-service, sin tocar el gateway ni users-service.
+| Verificación local en gateway | El gateway valida JWT localmente con `JWT_SECRET` compartido; no necesita llamar al auth-service en cada petición (sin roundtrip adicional).
+|===
+
+Consecuencias::
+- Nuevo contenedor Docker `auth-service` a mantener.
+- `JWT_SECRET` debe estar sincronizado entre auth-service y gateway (variable de entorno).
+- Las rutas `/auth/*` son públicas en el JwtFilter del gateway.
 
 ---
 

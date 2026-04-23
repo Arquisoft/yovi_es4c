@@ -22,11 +22,23 @@ ifndef::imagesdir[:imagesdir: ../images]
 | API (Application Programming Interface)
 | Conjunto de servicios web que permite la interacción de bots o módulos externos con la aplicación.
 
+| JWT (JSON Web Token)
+| Estándar de autenticación stateless. El auth-service firma un token con `JWT_SECRET` que el cliente incluye en cada petición. El gateway lo verifica localmente sin consultar la BD.
+
+| Auth Service
+| Microservicio Node.js responsable de la autenticación. Expone `POST /auth/login` (emite JWT) y `POST /auth/register` (proxy a users-service). No accede a MySQL directamente.
+
+| Bearer Token
+| Esquema de autenticación HTTP. El cliente envía `Authorization: Bearer <token>` en la cabecera de cada petición protegida.
+
+| JwtFilter
+| Filtro Servlet del Gateway (Spring Boot) que intercepta todas las peticiones, extrae y valida el JWT, y añade `X-User-Id` al request. Las rutas públicas (`/auth/*`, `/status`) se saltan el filtro.
+
 | Gateway
-| Servicio Spring Boot que actúa como punto de entrada HTTP único. Enruta peticiones REST al servicio correcto (users o gamey).
+| Servicio Spring Boot que actúa como punto de entrada HTTP único. Valida JWT y enruta peticiones REST al servicio correcto (users o gamey).
 
 | Nginx
-| Servidor web y proxy inverso. En producción sirve la SPA React y redirige HTTP al gateway y WebSocket al ws-server, todo por el puerto 80.
+| Servidor web y proxy inverso. En producción sirve la SPA React y redirige `/auth/*` al auth-service, HTTP al gateway y WebSocket al ws-server, todo por el puerto 80/443.
 
 | WebSocket
 | Protocolo de comunicación bidireccional y persistente sobre HTTP. Usado para actualizar el tablero en tiempo real en el modo multijugador y para el chat de sala.
@@ -41,7 +53,7 @@ ifndef::imagesdir[:imagesdir: ../images]
 | Índice asignado a cada jugador en una sala (0 = Azul, empieza primero; 1 = Rojo). Se asigna aleatoriamente en multijugador; el jugador elige en modo vs bot.
 
 | Frontend (WebApp)
-| Interfaz web implementada en TypeScript con React y Material UI. Incluye selector de modo de juego, tablero SVG, lobby multijugador con chat e historial de partidas.
+| Interfaz web implementada en TypeScript con React y Material UI. Incluye selector de modo de juego, tablero SVG, lobby multijugador con chat, historial de partidas, leaderboard y perfil de usuario.
 
 | HexBoard
 | Componente SVG del tablero hexagonal. Usa hexágonos flat-top en forma de pirámide centrada. Su función de geometría (`buildHexGeometry`) es compartida con `GameHistory`.
@@ -56,18 +68,39 @@ ifndef::imagesdir[:imagesdir: ../images]
 | Endpoint de alto nivel en Users Service para competición bot-vs-bot. Aplica la jugada del cliente y devuelve la respuesta del bot interno en una sola llamada HTTP.
 
 | Users Service
-| Microservicio Node.js + Express que gestiona usuarios (registro, login), partidas (guardar, listar) y el endpoint `/api/play`.
+| Microservicio Node.js + Express que gestiona usuarios (registro, login), partidas (guardar, listar), estadísticas de usuario, leaderboard y el endpoint `/api/play`.
+
+| Leaderboard
+| Ranking global de jugadores ordenado por tasa de victorias (`winRate`). Paginado mediante parámetros `limit` y `offset`. Accesible via `GET /api/leaderboard`.
+
+| Estadísticas de usuario (stats)
+| Conjunto de métricas por jugador: total de partidas, victorias, derrotas, tasa de victorias, racha actual, top día, bots derrotados y fecha de registro. Accesibles via `GET /api/users/:userId/stats`.
 
 | Persistencia (MySQL)
-| Almacenamiento de usuarios, partidas y jugadores. Tres tablas: `users`, `games`, `game_players`.
+| Almacenamiento de usuarios, partidas y jugadores. Tres tablas principales: `users`, `games`, `game_players`.
+
+| bcrypt
+| Algoritmo de hashing de contraseñas usado en Users Service (10 salt rounds). Las contraseñas nunca se almacenan en texto plano.
 
 | Docker Compose
-| Herramienta de orquestación de contenedores. Levanta todos los microservicios (webapp, gateway, users, gamey, ws-server, mysql) con un solo comando.
+| Herramienta de orquestación de contenedores. Levanta todos los microservicios (nginx, auth-service, gateway, users, gamey, ws-server, mysql, prometheus, grafana) con un solo comando.
+
+| Prometheus
+| Sistema de monitorización y alertas. Hace scraping de métricas del Users Service y las almacena como series temporales.
+
+| Grafana
+| Plataforma de visualización de métricas. Se conecta a Prometheus y muestra dashboards preconfigurados del estado del sistema.
 
 | Partida
 | Instancia de un juego Y entre dos jugadores (humanos o bots), con tablero y estado guardado en MySQL al finalizar.
 
 | Historial
 | Vista de la webapp que muestra todas las partidas guardadas con miniatura del tablero, jugadores, ganador y fecha.
+
+| CI/CD
+| Integración y despliegue continuos implementados con GitHub Actions. En cada push se ejecutan tests, se construyen las imágenes Docker y se publican en GHCR (GitHub Container Registry).
+
+| SonarCloud
+| Plataforma de análisis estático de código. Mide cobertura de tests, detecta code smells y vulnerabilidades. El estado del quality gate se muestra como badge en el README.
 
 |===

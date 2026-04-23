@@ -16,11 +16,12 @@ package "Cliente (Navegador)" {
   [WebApp (React + TS)]
 }
 
-package "Entrada única (puerto 80)" {
+package "Entrada única (puerto 80/443)" {
   [Nginx]
 }
 
 package "Backend" {
+  [Auth Service (Node.js)] as AS
   [Gateway (Spring Boot)] as GW
   [Users Service (Node.js)] as US
   [Gamey Engine (Rust)] as GE
@@ -28,39 +29,52 @@ package "Backend" {
   database "MySQL" as DB
 }
 
-[WebApp] --> [Nginx] : HTTP / WS
-[Nginx] --> [GW] : HTTP proxy
+package "Monitorización" {
+  [Prometheus]
+  [Grafana]
+}
+
+[WebApp] --> [Nginx] : HTTPS / WSS
+[Nginx] --> [AS] : HTTP /auth/*
+[Nginx] --> [GW] : HTTP proxy (JWT requerido)
 [Nginx] --> [WS] : WebSocket proxy (/ws)
 [GW] --> [US] : REST HTTP
 [GW] --> [GE] : REST HTTP
 [US] --> [GE] : REST HTTP (api/play)
 [US] --> [DB] : SQL
+[Prometheus] --> [US] : scrape métricas
+[Grafana] --> [Prometheus] : query
 @enduml
 ----
 
 Motivation::
 
-El sistema se descompone en microservicios independientes para separar la presentación, la gestión de usuarios/partidas, la lógica del juego y la comunicación en tiempo real.
+El sistema se descompone en microservicios independientes para separar la autenticación, la presentación, la gestión de usuarios/partidas, la lógica del juego y la comunicación en tiempo real.
 Nginx actúa como punto de entrada único en producción, eliminando la exposición de puertos internos al exterior y habilitando el proxy WebSocket.
+El auth-service desacopla la lógica de JWT del gateway y del users service.
 
 Contained Building Blocks::
 
 [cols="1,2", options="header"]
 |===
 | **Bloque** | **Responsabilidad**
-| WebApp | SPA que proporciona la interfaz de usuario: selección de modo, tablero de juego, historial, multijugador.
-| Nginx | Servidor web y proxy inverso: sirve los estáticos de React, redirige HTTP al gateway y WebSocket al ws-server. Establece la comunicación del frontend en HTTPS.
-| Gateway | Punto de entrada HTTP único. Enruta peticiones REST al servicio correcto (users o gamey).
-| Users Service | API REST de usuarios y partidas. Gestiona registro, login, guardado de partidas y el endpoint `/api/play`.
+| WebApp | SPA que proporciona la interfaz de usuario: selección de modo, tablero de juego, historial, multijugador con chat, leaderboard y perfil.
+| Nginx | Servidor web y proxy inverso: sirve los estáticos de React, redirige `/auth/*` al auth-service, HTTP al gateway y WebSocket al ws-server. TLS en producción.
+| Auth Service | Microservicio de autenticación JWT. Expone `POST /auth/login` y `POST /auth/register`. Verifica credenciales contra users-service y emite tokens JWT firmados.
+| Gateway | Punto de entrada HTTP único con JWT validation. Valida el token `Authorization: Bearer <token>` en cada petición y enruta al servicio correcto (users o gamey). Las rutas `/auth/*`, `/status` y `/actuator/health` son públicas.
+| Users Service | API REST de usuarios y partidas. Gestiona registro, login, guardado de partidas, historial, estadísticas de usuario (`/api/users/:id/stats`), leaderboard (`/api/leaderboard`) y el endpoint `/api/play`.
 | Gamey Engine | Motor de juego en Rust. Valida movimientos, comprueba victorias y ejecuta los algoritmos de bot.
 | WS-Server | Servidor WebSocket de salas multijugador. Empareja jugadores por código, retransmite movimientos y chat.
 | MySQL | Persistencia de usuarios, partidas y jugadores.
+| Prometheus | Recogida de métricas del Users Service.
+| Grafana | Visualización de dashboards de métricas.
 |===
 
 Important Interfaces::
 
-- HTTPS/JSON entre WebApp y Gateway (puerto 80, Nginx proxy).
-- WebSocket `ws://<host>/ws` entre WebApp y WS-Server (Nginx proxy).
+- HTTPS/JSON entre WebApp y Auth Service (puerto 443/80, rutas `/auth/*`, sin JWT).
+- HTTPS/JSON entre WebApp y Gateway (puerto 443/80, rutas `/api/*`, `/v1/*`; requiere `Authorization: Bearer <token>`).
+- WebSocket `wss://<host>/ws` entre WebApp y WS-Server (Nginx proxy).
 - HTTP/JSON interno entre Gateway y Users Service (puerto 3000).
 - HTTP/JSON interno entre Gateway y Gamey Engine (puerto 4000).
 - HTTP/JSON interno entre Users Service y Gamey Engine (para `/api/play`).
@@ -69,6 +83,48 @@ Important Interfaces::
 ---
 
 === Level 2 — Bloques internos relevantes
+
+==== White Box Auth Service
+
+Microservicio Node.js responsable exclusivamente de la autenticación. No accede a MySQL directamente; delega la verificación de credenciales en Users Service.
+
+[cols="1,2", options="header"]
+|===
+| Endpoint | Responsabilidad
+| `POST /auth/login` | Valida credenciales contra users-service. Si son correctas, firma y devuelve un JWT con `userId` y `username`. Expira según `JWT_EXPIRES_IN` (por defecto 1h).
+| `POST /auth/register` | Proxy directo a `/createuser` de users-service. Crea el usuario sin emitir token (el usuario debe hacer login a continuación).
+| `GET /auth/validate` | Verifica un JWT y devuelve su payload. Útil para tests e integraciones internas.
+| `GET /auth/health` | Health check del servicio.
+|===
+
+==== White Box Gateway (JWT Filter)
+
+El Gateway aplica un filtro Servlet (`JwtFilter`) en todas las rutas salvo las públicas.
+
+[cols="1,2", options="header"]
+|===
+| Comportamiento | Descripción
+| Rutas públicas | `/auth/*`, `/actuator/health`, `/status` — pasan sin token.
+| Rutas protegidas | Todas las demás. El filtro extrae el token del header `Authorization: Bearer <token>`, lo verifica con `JWT_SECRET` y añade `X-User-Id` al request forwarded.
+| Token inválido | Devuelve `401 Unauthorized` con mensaje de error JSON.
+|===
+
+Rutas que expone el gateway:
+
+[cols="1,1,2", options="header"]
+|===
+| Método | Ruta | Destino
+| `GET` | `/api/games` | Users Service
+| `POST` | `/api/games` | Users Service
+| `POST` | `/api/games/seed` | Users Service
+| `GET` | `/api/users/{userId}/stats` | Users Service
+| `GET` | `/api/leaderboard` | Users Service
+| `POST` | `/api/play` | Users Service
+| `GET` | `/play` | Users Service
+| `GET` | `/status` | Gamey Engine (público)
+| `POST` | `/v1/ybot/choose/{botId}` | Gamey Engine
+| `POST` | `/v1/game/play` | Gamey Engine
+|===
 
 ==== White Box WebApp
 
@@ -80,23 +136,16 @@ La WebApp sigue la arquitectura SPA con componentes React organizados por funcio
 | `App.tsx` | Punto de entrada: gestión de autenticación y navegación entre vistas.
 | `GameModeSelector` | Pantalla previa al juego: elige modo (bot/multijugador), tamaño de tablero, dificultad y quién empieza.
 | `GameView` | Orquestador de modos: transición entre selector → bot game / mp-lobby → mp-game.
-| `Game` | Partida vs bot: alterna turno humano y turno bot llamando a la API Rust. Al terminar muestra botones "Jugar de nuevo" y "Volver al menú".
+| `Game` | Partida vs bot: alterna turno humano y turno bot llamando a la API Rust.
 | `HexBoard` | Tablero SVG hexagonal (flat-top, pirámide centrada). Geometría exportada y compartida con `GameHistory`.
-| `MultiplayerLobby` | Sala de espera: crear sala (obtiene código) o unirse con código. Chat en tiempo real.
+| `MultiplayerLobby` | Sala de espera: crear sala (obtiene código de 6 chars) o unirse con código.
 | `MultiplayerGame` | Partida multijugador: tablero + chat lateral. Movimientos vía API Rust + broadcast WebSocket.
-| `GameHistory` | Historial de partidas con miniatura del tablero. Usa la misma geometría que `HexBoard`.
+| `GameHistory` | Historial de partidas con miniatura del tablero.
+| `LeaderboardView` | Ranking global paginado, ordenado por tasa de victorias.
+| `ProfileView` | Estadísticas del usuario: partidas, victorias, derrotas, tasa, racha, bots derrotados.
 | `useWebSocketRoom` | Hook que encapsula todo el protocolo WebSocket: conexión, sala, mensajes, estado.
 | `gameyClient.ts` | Cliente HTTP para la API Rust: `makeHumanMove`, `chooseMove`.
-| `ProfileView` | Perfil del usuario en donde puede ver sus estadísticas.
-| `LeaderboardView` | Tabla con el ranking de los jugadores, actualmente los ordena por número de victorias.
 |===
-
-Interaction::
-
-- `GameModeSelector` → `GameView` via prop `onStart(config)`.
-- `Game` llama a `gameyClient.ts` para cada movimiento (humano y bot).
-- `MultiplayerGame` llama a `gameyClient.ts` para validar el movimiento y luego usa `useWebSocketRoom.broadcastMove` para notificar al oponente.
-- `useWebSocketRoom` mantiene la conexión WebSocket abierta durante toda la partida.
 
 ==== White Box Users Service
 
@@ -105,12 +154,14 @@ API REST basada en Express con acceso directo a MySQL y llamadas HTTP internas a
 [cols="1,2", options="header"]
 |===
 | Endpoint | Responsabilidad
-| `POST /createuser` | Registro de usuario con contraseña hasheada (bcrypt).
-| `POST /login` | Autenticación, devuelve `userId`.
+| `POST /createuser` | Registro de usuario con contraseña hasheada (bcrypt, 10 rounds).
+| `POST /login` | Autenticación interna (usado por auth-service). Devuelve `userId`.
 | `GET /api/games` | Lista todas las partidas con sus jugadores.
 | `POST /api/games` | Guarda una partida finalizada en MySQL.
 | `POST /api/games/seed` | Inserta partidas de ejemplo.
-| `POST /api/play` | **Endpoint de competición**: aplica jugada del jugador + respuesta del bot en una sola llamada. Llama internamente a Gamey Engine 3 veces.
+| `GET /api/users/:userId/stats` | Estadísticas completas del usuario: partidas, victorias, derrotas, tasa de victorias, racha, top día y bots derrotados.
+| `GET /api/leaderboard` | Ranking paginado de usuarios ordenado por tasa de victorias (parámetros: `limit`, `offset`).
+| `POST /api/play` | **Endpoint de competición**: aplica jugada del jugador + respuesta del bot en una sola llamada. Llama internamente a Gamey Engine hasta 3 veces.
 |===
 
 ==== White Box Gamey Engine
@@ -141,9 +192,37 @@ Servidor Node.js con la librería `ws`. No contiene lógica de juego.
 
 ---
 
-=== Level 3 — Geometría del tablero hexagonal
+=== Level 3 — Detalles de implementación relevantes
 
-==== `buildHexGeometry` (HexBoard.tsx)
+==== Flujo de autenticación JWT
+
+[plantuml, jwt-flow, png]
+----
+@startuml
+actor Usuario
+participant "WebApp" as WA
+participant "Nginx" as NG
+participant "Auth Service" as AS
+participant "Users Service" as US
+participant "Gateway" as GW
+
+Usuario -> WA: Introduce usuario y contraseña
+WA -> NG: POST /auth/login
+NG -> AS: POST /auth/login (sin JWT)
+AS -> US: POST /login (verificar credenciales)
+US --> AS: { userId }
+AS --> WA: { token: "eyJ...", userId, username }
+note right of WA: El token se guarda en memoria React
+
+WA -> NG: GET /api/leaderboard\nAuthorization: Bearer eyJ...
+NG -> GW: HTTP proxy
+GW -> GW: JwtFilter valida token
+GW -> US: GET /api/leaderboard (añade X-User-Id)
+US --> WA: [ ranking... ]
+@enduml
+----
+
+==== Geometría del tablero hexagonal — `buildHexGeometry` (HexBoard.tsx)
 
 Función exportada que calcula las posiciones de todas las celdas del tablero triangular.
 Usa hexágonos **flat-top** (lados planos arriba/abajo) en forma de pirámide centrada:
