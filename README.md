@@ -169,8 +169,17 @@ cd webapp && npm test
 # Webapp with coverage
 cd webapp && npm run test:coverage
 
+# Auth service (Vitest)
+cd auth-service && npm test
+
+# Auth service with coverage
+cd auth-service && npm run test:coverage
+
 # Users service
 cd users && npm test
+
+# Users service
+cd users && npm run test:coverage
 
 # Gamey (Rust)
 cd gamey && cargo test

@@ -25,6 +25,7 @@ import java.util.List;
  *   GET  /auth/health
  *   GET  /actuator/health
  *   GET  /status
+ *   GET  /play
  *
  * El resto de rutas requieren el header:
  *   Authorization: Bearer <token>
@@ -37,7 +38,8 @@ public class JwtFilter extends OncePerRequestFilter {
     private static final List<String> PUBLIC_PREFIXES = List.of(
         "/auth/",
         "/actuator/",
-        "/status"
+        "/status",
+        "/play"
     );
 
     private final String jwtSecret;

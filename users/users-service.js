@@ -506,7 +506,7 @@ app.get('/play', async (req, res) => {
   }
 });
 
-if (require.main === module) {
+if (require.main === module) {  /*NOSONAR Punto de entrada de ejecución*/
   app.listen(port, () => {
     console.log(`User Service listening at http://localhost:${port}`)
   });
