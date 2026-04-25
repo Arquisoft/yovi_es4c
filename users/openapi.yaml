@@ -302,6 +302,55 @@ paths:
                 properties:
                   error:
                     type: string
+
+  /api/users/{userId}/stats:
+    get:
+      summary: Estadísticas de un usuario
+      description: Devuelve métricas de juego del usuario indicado (victorias, rachas, día favorito, etc.)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Estadísticas del usuario
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalGames:    { type: integer, example: 20 }
+                  wins:          { type: integer, example: 12 }
+                  losses:        { type: integer, example: 8 }
+                  winRate:       { type: integer, example: 60 }
+                  currentStreak: { type: integer, example: 3 }
+                  topDay:        { type: string, nullable: true, example: "lunes" }
+                  topDayCount:   { type: integer, example: 5 }
+                  lastGame:      { type: string, format: date-time, nullable: true }
+                  beatenBots:    { type: integer, example: 12 }
+                  memberSince:   { type: string, format: date-time, nullable: true }
+        '400':
+          description: userId inválido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+              example:
+                error: "Invalid userId"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+
   /api/play:
     post:
       summary: Jugada completa (jugador + respuesta del bot)
@@ -427,3 +476,137 @@ paths:
                 type: object
                 properties:
                   error: { type: string }
+
+  /api/leaderboard:
+    get:
+      summary: Ranking de usuarios
+      description: Devuelve el ranking paginado de usuarios ordenado por victorias y winRate.
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          description: Número máximo de resultados (máx. 100, por defecto 20)
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: offset
+          in: query
+          required: false
+          description: Desplazamiento para paginación
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Ranking paginado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        rank:        { type: integer, example: 1 }
+                        userId:      { type: integer, example: 7 }
+                        username:    { type: string, example: "Alice" }
+                        gamesPlayed: { type: integer, example: 20 }
+                        wins:        { type: integer, example: 15 }
+                        winRate:     { type: number, example: 75.00 }
+                  pagination:
+                    type: object
+                    properties:
+                      total:  { type: integer, example: 42 }
+                      limit:  { type: integer, example: 20 }
+                      offset: { type: integer, example: 0 }
+        '400':
+          description: Parámetros inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+              example:
+                error: "limit and offset must be integers"
+        '500':
+          description: Error interno del servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+
+  /play:
+    get:
+      summary: Pedir jugada a un bot
+      description: API unificada para la competición entre implementaciones. Recibe el estado del tablero y devuelve la jugada del bot.
+      parameters:
+        - name: position
+          in: query
+          required: true
+          description: Estado del tablero en formato YEN (JSON string).
+          schema:
+            type: string
+          example: '{"size":3,"turn":0,"players":["B","R"],"layout":"./B./..."}'
+        - name: bot_id
+          in: query
+          required: false
+          description: Identificador del bot oponente.
+          schema:
+            type: string
+            default: random_bot
+      responses:
+        '200':
+          description: Jugada elegida por el bot.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - description: Movimiento normal.
+                    type: object
+                    required: [coords]
+                    properties:
+                      coords:
+                        type: object
+                        required: [x, y, z]
+                        properties:
+                          x: { type: integer, example: 1 }
+                          y: { type: integer, example: 1 }
+                          z: { type: integer, example: 0 }
+                  - description: Acción especial.
+                    type: object
+                    required: [action]
+                    properties:
+                      action:
+                        type: string
+                        enum: [swap, resign]
+        '400':
+          description: Parámetro position ausente o malformado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+              examples:
+                faltaPosition:
+                  value: { error: "Missing required query parameter: position" }
+                jsonInvalido:
+                  value: { error: "position must be a valid JSON string in YEN format" }
+        '502':
+          description: Error de comunicación con el servicio de juego
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error: { type: string }
+
+
+
+
