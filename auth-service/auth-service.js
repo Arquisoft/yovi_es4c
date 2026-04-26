@@ -95,7 +95,7 @@ app.get('/health', (_req, res) => res.json({ status: 'UP' }));
 
 
 if (require.main === module) { 
-  app.listen(PORT));
+  app.listen(PORT);
 }
 
 module.exports = app;
