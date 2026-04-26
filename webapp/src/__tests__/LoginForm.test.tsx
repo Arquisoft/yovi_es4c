@@ -60,11 +60,11 @@ describe('LoginForm', () => {
 
   it('llama a onLoginSuccess tras login exitoso', async () => {
     const onLoginSuccess = vi.fn()
-    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ userId: 42 }) })
+    mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({ userId: 42, token: 'fake-token' }) })
     render(<LoginForm onLoginSuccess={onLoginSuccess} />)
     submit('Alice', 'pass123')
     // El componente hace setTimeout(300ms) antes de llamar onLoginSuccess
-    await waitFor(() => expect(onLoginSuccess).toHaveBeenCalledWith('Alice', 42), { timeout: 2000 })
+    await waitFor(() => expect(onLoginSuccess).toHaveBeenCalledWith('Alice', 42, 'fake-token'), { timeout: 2000 })
   })
 
   it('muestra el error de la API con credenciales incorrectas', async () => {
