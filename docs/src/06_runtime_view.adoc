@@ -237,10 +237,10 @@ WebApp --> Usuario: Muestra estadísticas en tarjetas
 
 ---
 
-=== Competición Bot vs Bot (`POST /api/play`)
+=== Competición Bot vs Bot (`GET /play`)
 
 Caso::
-Un bot externo (o script de testing) quiere hacer una jugada y recibir la respuesta del bot de la aplicación en una sola llamada HTTP.
+Un bot externo (o script de testing) quiere conocer la jugada que elegiría el bot de la aplicación dado un estado de tablero.
 
 [plantuml,"Bot vs Bot",png]
 ----
@@ -249,22 +249,24 @@ participant "Gateway" as GW
 participant "Users Service" as US
 participant "Gamey Engine" as Gamey
 
-Bot -> GW: POST /api/play\n{yen, coords, player_idx, bot_id}
-GW -> US: POST /api/play
+Bot -> GW: GET /play?position=<yen_json>&bot_id=<bot_id>
+GW -> US: GET /play (mismo query string)
 
-US -> Gamey: POST /v1/game/play (jugada del bot externo)
-Gamey --> US: {yen, status}
-
-alt status == "Finished"
-  US --> GW: {yen, status, winner, player_move, bot_move: null}
-  GW --> Bot: Respuesta (bot externo ganó)
-else status == "Ongoing"
-  US -> Gamey: POST /v1/ybot/choose/{bot_id}
-  Gamey --> US: {coords del bot interno}
-  US -> Gamey: POST /v1/game/play (jugada del bot interno)
-  Gamey --> US: {yen final, status, winner}
-  US --> GW: {yen, status, winner, player_move, bot_move}
-  GW --> Bot: Respuesta con estado tras ambas jugadas
+US -> US: Parsear position como YEN
+alt YEN inválido
+  US --> GW: 400 Bad Request
+  GW --> Bot: { error: "position must be a valid JSON string in YEN format" }
+else YEN válido
+  US -> Gamey: POST /v1/ybot/choose/{bot_id}\n(estado YEN)
+  alt bot_id no encontrado o error en Gamey
+    Gamey --> US: error
+    US --> GW: 502 Bad Gateway
+    GW --> Bot: { error: "Error comunicando con el servicio de juego" }
+  else OK
+    Gamey --> US: { coords: { x, y, z } }
+    US --> GW: { coords: { x, y, z } }
+    GW --> Bot: { coords: { x, y, z } }
+  end
 end
 ----
 

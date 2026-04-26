@@ -64,11 +64,11 @@ ifndef::imagesdir[:imagesdir: ../images]
 | Gamey Engine
 | Motor de juego implementado en Rust + Axum. Valida movimientos (`/v1/game/play`), calcula jugadas de bot (`/v1/ybot/choose/{botId}`) y detecta victorias.
 
-| `/api/play`
-| Endpoint de alto nivel en Users Service para competición bot-vs-bot. Aplica la jugada del cliente y devuelve la respuesta del bot interno en una sola llamada HTTP.
+| `GET /play`
+| Endpoint de competición en Users Service. Recibe el estado actual del tablero en formato YEN como query param (`position`) y el identificador del bot (`bot_id`, por defecto `random_bot`). Devuelve las coordenadas `{ x, y, z }` que elegiría el bot. Internamente llama a `POST /v1/ybot/choose/{bot_id}` en Gamey Engine.
 
 | Users Service
-| Microservicio Node.js + Express que gestiona usuarios (registro, login), partidas (guardar, listar), estadísticas de usuario, leaderboard y el endpoint `/api/play`.
+| Microservicio Node.js + Express que gestiona usuarios (registro, login), partidas (guardar, listar), estadísticas de usuario, leaderboard y el endpoint de competición `GET /play`.
 
 | Leaderboard
 | Ranking global de jugadores ordenado por tasa de victorias (`winRate`). Paginado mediante parámetros `limit` y `offset`. Accesible via `GET /api/leaderboard`.

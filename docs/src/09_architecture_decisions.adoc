@@ -109,6 +109,9 @@ Consecuencias::
 - `JWT_SECRET` debe estar sincronizado entre auth-service y gateway (variable de entorno).
 - Las rutas `/auth/*` son públicas en el JwtFilter del gateway.
 
+- Documentación detallada de esta decisión:
+https://github.com/Arquisoft/yovi_es4c/wiki/Decisiones-Arquitect%C3%B3nicas:-Gateway
+
 ---
 
 === Servidor WebSocket independiente (`ws-server`)
@@ -140,30 +143,32 @@ Consecuencias::
 - Nginx debe configurarse con el bloque `location /ws` y los headers de WebSocket.
 - El servidor WS no persiste estado: si se reinicia, las partidas en curso se pierden (riesgo asumido).
 
+- Documentación detallada de esta decisión: 
+https://github.com/Arquisoft/yovi_es4c/wiki/Decisiones-Arquitectonicas:-Web-Sockets
+
 ---
 
-=== Endpoint `/api/play` en Users Service
+=== Endpoint `GET /play` en Users Service
 
 Estado::
 Aceptada.
 
 Contexto::
-Se necesita un endpoint de alto nivel para competición bot-vs-bot que aplique una jugada
-del cliente y devuelva la respuesta del bot en una sola llamada.
+Se necesita un endpoint que permita a bots externos consultar qué jugada elegiría el bot de la aplicación dado un estado de tablero en formato YEN.
 
 Alternativas consideradas::
-- Implementarlo en el gateway (Java).
+- Implementarlo directamente en el gateway (Java).
 - Crearlo como endpoint separado en un nuevo microservicio.
-- Documentarlo solo como secuencia de llamadas que el cliente debe hacer.
+- Exponerlo directamente desde Gamey Engine sin pasar por Users Service.
 
 Justificación::
 
 [cols="1,4"]
 |===
-| Centralización | Users Service ya tiene acceso a la BD (para futura persistencia del resultado) y a Gamey Engine.
-| Simplicidad | Node.js con `fetch` encadena las 3 llamadas internas de forma legible.
-| No rompe el gateway | El gateway solo añade el proxy de `/api/play` → users service, sin lógica nueva.
-| Un solo roundtrip | El cliente externo hace una llamada y recibe el estado completo; ideal para bots automáticos.
+| Centralización | Users Service ya gestiona toda la lógica de negocio y tiene acceso a Gamey Engine mediante `GAMEY_SERVICE_URL`.
+| Simplicidad | El endpoint es un proxy ligero: parsea el YEN del query param y delega en Gamey Engine. Una sola llamada interna.
+| No rompe el gateway | El gateway solo añade el proxy de `GET /play` → users service, sin lógica nueva.
+| Interfaz simple para bots | El cliente externo hace una llamada GET con query params y recibe las coordenadas elegidas por el bot. Sin body, sin estado.
 |===
 
 Consecuencias::

@@ -17,7 +17,7 @@ ifndef::imagesdir[:imagesdir: ../images]
 | Actualizaciones del tablero en tiempo real, mensajes de chat del oponente
 
 | Bot externo (competición)
-| Envía estado YEN + jugada + bot_id al endpoint `POST /api/play`
+| Envía estado YEN en formato JSON al endpoint `GET /play?position=<yen>&bot_id=<bot_id>`
 | Estado del tablero tras la jugada del bot oponente, resultado de la partida
 
 | Sistema Yovi
@@ -42,7 +42,7 @@ ifndef::imagesdir[:imagesdir: ../images]
 |===
 
 El sistema Yovi actúa como intermediario entre los usuarios, los bots externos y el módulo de lógica del juego.
-Los usuarios interactúan a través de la interfaz web mediante HTTP y WebSocket, mientras que los bots lo hacen mediante el endpoint REST `/api/play`.
+Los usuarios interactúan a través de la interfaz web mediante HTTP y WebSocket, mientras que los bots lo hacen mediante el endpoint REST `GET /play`.
 
 ---
 
@@ -77,7 +77,7 @@ Los usuarios interactúan a través de la interfaz web mediante HTTP y WebSocket
 
 | Bot externo ↔ Gateway
 | Peticiones HTTP
-| JSON, `POST /api/play`, puerto 80
+| JSON, `GET /play`, puerto 80
 |===
 
 ---
@@ -91,7 +91,7 @@ Los usuarios interactúan a través de la interfaz web mediante HTTP y WebSocket
 | Movimiento del usuario (multijugador) | HTTPS → Nginx proxy → HTTP → Gateway → Gamey Engine + WebSocket broadcast al oponente
 | Visualización del tablero | Renderizado SVG en la SPA (estado recibido de Gamey)
 | Petición de jugada del bot interno | HTTP → Gateway → Gamey Engine (`/v1/ybot/choose/{botId}`)
-| Petición de partida bot-vs-bot | HTTP → Gateway → Users Service → Gamey Engine (`POST /api/play`)
+| Petición de partida bot-vs-bot | HTTP → Gateway → Users Service → Gamey Engine (`GET /play`)
 | Chat en sala multijugador | WebSocket bidireccional (cliente ↔ ws-server ↔ oponente)
 | Guardado de partida | HTTPS → Nginx proxy → → Gateway → Users Service → MySQL
 | Historial de partidas | HTTPS → Nginx proxy → → Gateway → Users Service → MySQL

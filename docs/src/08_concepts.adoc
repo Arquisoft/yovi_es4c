@@ -93,19 +93,18 @@ La función `buildHexGeometry` y `flatHexPoints` se exportan desde `HexBoard.tsx
 reutilizadas por `GameHistory.tsx` (miniaturas del historial), garantizando que ambas
 representaciones son geométricamente idénticas.
 
-=== API de Competición — `POST /api/play`
+=== API de Competición — `GET /play`
 
-El endpoint `/api/play` implementa el patrón **orquestación en el servidor**: el cliente
-envía una jugada y recibe el estado tras las dos jugadas (la suya y la del bot) en una
-sola petición HTTP. Esto es ideal para partidas bot-vs-bot automatizadas.
+El endpoint `GET /play` permite a bots externos consultar qué jugada elegiría el bot de la aplicación dado un estado de tablero en formato YEN. El cliente envía el estado actual como query parameter y recibe las coordenadas elegidas por el bot.
 
-Internamente se encadenan hasta 3 llamadas a Gamey Engine:
+Internamente realiza una sola llamada a Gamey Engine:
 
-1. `POST /v1/game/play` → aplica la jugada del cliente.
-2. `POST /v1/ybot/choose/{botId}` → el bot elige su respuesta.
-3. `POST /v1/game/play` → aplica la jugada del bot.
+1. `POST /v1/ybot/choose/{bot_id}` → el bot elige su jugada y devuelve `{ coords }`.
 
-Si el cliente gana en el paso 1, los pasos 2 y 3 se omiten y `bot_move` es `null`.
+Parámetros:
+
+* `position` (obligatorio): estado del tablero en formato YEN serializado como JSON string.
+* `bot_id` (opcional, por defecto `random_bot`): identificador del bot a usar.
 
 Bots disponibles: `random_bot` (aleatorio), `greedy_bot` (codicioso), `minimax_bot` (minimax profundidad 2).
 
@@ -153,7 +152,6 @@ de forma que la UI responde inmediatamente. El jugador ve dos botones:
 - **Proxy inverso (Nginx)**: punto de entrada único para HTTP y WebSocket.
 - **Gateway pattern con JWT filter**: el gateway de Spring Boot valida tokens y enruta peticiones REST al servicio correcto.
 - **Auth Service desacoplado**: la emisión y verificación de tokens está aislada del resto de la lógica de negocio.
-- **Orquestación en servidor** (`/api/play`): el servidor compone múltiples llamadas internas y devuelve un resultado unificado al cliente.
 - **Hook de estado** (`useWebSocketRoom`): encapsula todo el ciclo de vida del WebSocket en un hook React reutilizable.
 - **Geometría compartida**: `buildHexGeometry` exportada para reutilización sin duplicar código.
 

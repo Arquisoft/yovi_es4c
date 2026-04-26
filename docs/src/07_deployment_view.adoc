@@ -28,7 +28,7 @@ Nginx --> GW : HTTP proxy\n(/api, /v1, /login...)
 Nginx --> WS : WebSocket proxy\n(/ws)
 GW --> US : HTTP :3000
 GW --> GE : HTTP :4000
-US --> GE : HTTP :4000\n(api/play)
+US --> GE : HTTP :4000\n(GET /play)
 US --> DB : SQL :3306
 @enduml
 ----

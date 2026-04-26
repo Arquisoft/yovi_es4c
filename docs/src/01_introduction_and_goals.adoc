@@ -52,6 +52,6 @@ Los requisitos del proyecto Yovi son los siguientes:
 | Micrati | Empresa de desarrollo de videojuegos | Espera una entrega de la aplicación que cumpla todos los requisitos especificados.
 | Equipo de desarrollo | Sergio Espina Marcos, Pablo García Menéndez, Elías Fernández Medina, Adrián Pérez Menéndez | Espera desarrollar una aplicación web aplicando y mejorando sus conocimientos y habilidades.
 | Usuarios | Personas que utilicen la aplicación | Esperan poder divertirse jugando al juego Y, tanto contra bots como contra otros humanos, y consultar sus estadísticas.
-| Bots externos | Scripts o programas que usen `POST /api/play` | Esperan una API estable y documentada para competir automáticamente.
+| Bots externos | Scripts o programas que usen `GET /play` | Esperan una API estable y documentada para competir automáticamente.
 | Profesor | Jose Emilio Labra Gayo | Espera asistir al equipo de desarrollo en el proyecto y evaluarlo.
 |===
