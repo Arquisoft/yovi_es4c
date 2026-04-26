@@ -7,7 +7,9 @@ interface LandingViewProps {
 }
 
 const randomDecoColor = (): string => {
-  const r = Math.random();
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  const r = array[0] / 0xFFFFFFFF;
   if (r > 0.6) return '#00e5ff';
   if (r > 0.5) return '#ff3d71';
   return '#1a2a3a';

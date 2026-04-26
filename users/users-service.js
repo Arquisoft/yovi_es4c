@@ -94,8 +94,8 @@ const initDbWithRetry = async (retries = 15, delay = 3000) => {
 
 setTimeout(() => { 
   initDbWithRetry().catch(err => {
-    console.error('Failed to initialize database:', err.message);
-  });
+  console.error('Failed to initialize database:', String(err));
+})
 }, 5000);
 
 // POST /createuser — registers a new user with hashed password
@@ -505,7 +505,7 @@ app.get('/play', async (req, res) => {
   }
 });
 
-if (require.main === module) { 
+if (require.main == module) { 
   app.listen(port);
 }
 app.pool = pool;

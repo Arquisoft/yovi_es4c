@@ -94,7 +94,7 @@ app.get('/validate', (req, res) => {
 app.get('/health', (_req, res) => res.json({ status: 'UP' }));
 
 
-if (require.main === module) { 
+if (require.main == module) { 
   app.listen(PORT);
 }
 
