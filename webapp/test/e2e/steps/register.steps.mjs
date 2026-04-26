@@ -18,7 +18,7 @@ Given('the register page is open', async function () {
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify({ userId: 1 })
+      body: JSON.stringify({ userId: 1, token: 'fake-token' })
     })
   })
 

@@ -23,7 +23,7 @@ Given('the app is open at the home page', async function () {
 
   await page.route('**/login', route =>
     route.fulfill({ status: 200, contentType: 'application/json',
-      body: JSON.stringify({ userId: 1 }) }))
+      body: JSON.stringify({ userId: 1, token: 'fake-token' })
 
   await page.route('**/createuser', route =>
     route.fulfill({ status: 200, contentType: 'application/json',
