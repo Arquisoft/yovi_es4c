@@ -1049,7 +1049,7 @@ La estrategia general se basa en los siguientes aspectos:</p>
 <p><strong>Microservicio de autenticación (auth-service, Node.js)</strong>: Centraliza el login y el registro. Verifica credenciales contra el Users Service y emite tokens JWT firmados. Desacopla la lógica de autenticación del resto del sistema.</p>
 </li>
 <li>
-<p><strong>Gateway (Spring Boot)</strong>: Punto de entrada HTTP único para el frontend y los bots externos. Valida el token JWT de cada petición y enruta al servicio interno correcto. Las rutas públicas (<code>/auth/*</code>, <code>/status</code>, <code>/actuator/health</code>) no requieren token.</p>
+<p><strong>Gateway (Spring Boot)</strong>: Punto de entrada HTTP único para el frontend y los bots externos. Valida el token JWT de cada petición y enruta al servicio interno correcto. Las rutas públicas (<code>/auth/<strong></code>, <code>/status</code>, <code>/actuator/</strong></code>) no requieren token.</p>
 </li>
 <li>
 <p><strong>Users Service (Node.js/Express)</strong>: API REST que gestiona usuarios, partidas, estadísticas y el endpoint de competición <code>GET /play</code>. Accede a MySQL para persistencia.</p>
@@ -1197,7 +1197,7 @@ El auth-service desacopla la lógica de JWT del gateway y del users service.</p>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Gateway</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Punto de entrada HTTP único con JWT validation. Valida el token <code>Authorization: Bearer &lt;token&gt;</code> en cada petición y enruta al servicio correcto (users o gamey). Las rutas <code>/auth/*</code>, <code>/status</code> y <code>/actuator/health</code> son públicas.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Punto de entrada HTTP único con JWT validation. Valida el token <code>Authorization: Bearer &lt;token&gt;</code> en cada petición y enruta al servicio correcto (users o gamey). Las rutas <code>/auth/<strong></code>, <code>/status</code> y <code>/actuator/</strong></code> son públicas.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
@@ -1284,7 +1284,7 @@ El auth-service desacopla la lógica de JWT del gateway y del users service.</p>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /auth/register</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Proxy directo a <code>/createuser</code> de users-service. Crea el usuario sin emitir token (el usuario debe hacer login a continuación).</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Proxy directo a <code>/createuser</code> de users-service. Crea el usuario. El cliente realiza login automáticamente tras el registro para obtener el token.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /auth/validate</code></p></td>
@@ -1316,7 +1316,7 @@ El auth-service desacopla la lógica de JWT del gateway y del users service.</p>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Rutas públicas</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/auth/*</code>, <code>/actuator/health</code>, <code>/status</code> — pasan sin token.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/auth/<strong></code>, <code>/actuator/</strong></code>, <code>/status</code> — pasan sin token.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Rutas protegidas</p></td>
@@ -1368,11 +1368,6 @@ El auth-service desacopla la lógica de JWT del gateway y del users service.</p>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/leaderboard</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/play</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
 </tr>
 <tr>
@@ -1598,7 +1593,7 @@ El auth-service desacopla la lógica de JWT del gateway y del users service.</p>
 <h4 id="_flujo_de_autenticación_jwt">5.3.1. Flujo de autenticación JWT</h4>
 <div class="imageblock">
 <div class="content">
-<img src="./images/jwt-flow.png" alt="jwt flow" width="1216" height="583">
+<img src="./images/jwt-flow.png" alt="jwt flow" width="1216" height="599">
 </div>
 </div>
 </div>
@@ -2056,7 +2051,7 @@ Esto simplifica la configuración de firewall, evita problemas de CORS y habilit
 <p>El Gateway valida el token en su <code>JwtFilter</code> (verificación local, sin roundtrip a BD) y añade <code>X-User-Id</code> al request.</p>
 </li>
 <li>
-<p>Las rutas <code>/auth/*</code>, <code>/status</code> y <code>/actuator/health</code> son públicas y no requieren token.</p>
+<p>Las rutas <code>/auth/<strong></code>, <code>/status</code> y <code>/actuator/</strong></code> son públicas y no requieren token.</p>
 </li>
 </ol>
 </div>
@@ -2338,7 +2333,7 @@ de forma que la UI responde inmediatamente. El jugador ve dos botones:</p>
 <p><strong>Nginx como punto de entrada único</strong>: los puertos internos no están expuestos al exterior.</p>
 </li>
 <li>
-<p><strong>Rutas públicas mínimas</strong>: solo <code>/auth/*</code>, <code>/status</code> y <code>/actuator/health</code> son accesibles sin token.</p>
+<p><strong>Rutas públicas mínimas</strong>: solo <code>/auth/<strong></code>, <code>/status</code> y <code>/actuator/</strong></code> son accesibles sin token.</p>
 </li>
 <li>
 <p>El servidor WebSocket no requiere autenticación formal (partidas por código de sala).</p>
