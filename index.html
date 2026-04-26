@@ -491,7 +491,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_desconexión_de_un_jugador_en_partida_multijugador">6.5. Desconexión de un jugador en partida multijugador</a></li>
 <li><a href="#_consulta_del_leaderboard">6.6. Consulta del Leaderboard</a></li>
 <li><a href="#_consulta_del_perfil_de_usuario">6.7. Consulta del Perfil de Usuario</a></li>
-<li><a href="#_competición_bot_vs_bot_post_apiplay">6.8. Competición Bot vs Bot (<code>POST /api/play</code>)</a></li>
+<li><a href="#_competición_bot_vs_bot_get_play">6.8. Competición Bot vs Bot (<code>GET /play</code>)</a></li>
 <li><a href="#_fin_de_partida_vs_bot_experiencia_del_usuario">6.9. Fin de partida vs Bot — Experiencia del usuario</a></li>
 </ul>
 </li>
@@ -509,7 +509,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_notación_yen">8.3. Notación YEN</a></li>
 <li><a href="#_comunicación_en_tiempo_real_websocket_de_salas">8.4. Comunicación en Tiempo Real — WebSocket de Salas</a></li>
 <li><a href="#_geometría_del_tablero_hexagonal">8.5. Geometría del Tablero Hexagonal</a></li>
-<li><a href="#_api_de_competición_post_apiplay">8.6. API de Competición — <code>POST /api/play</code></a></li>
+<li><a href="#_api_de_competición_get_play">8.6. API de Competición — <code>GET /play</code></a></li>
 <li><a href="#_monitorización_prometheus_y_grafana">8.7. Monitorización — Prometheus y Grafana</a></li>
 <li><a href="#_experiencia_de_usuario_al_finalizar_partida">8.8. Experiencia de Usuario al Finalizar Partida</a></li>
 <li><a href="#_experiencia_de_usuario_ux">8.9. Experiencia de Usuario (UX)</a></li>
@@ -526,7 +526,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_nginx_como_proxy_inverso_único_puerto_80443">9.3. Nginx como proxy inverso único (puerto 80/443)</a></li>
 <li><a href="#_microservicio_de_autenticación_dedicado_auth_service">9.4. Microservicio de autenticación dedicado (auth-service)</a></li>
 <li><a href="#_servidor_websocket_independiente_ws_server">9.5. Servidor WebSocket independiente (<code>ws-server</code>)</a></li>
-<li><a href="#_endpoint_apiplay_en_users_service">9.6. Endpoint <code>/api/play</code> en Users Service</a></li>
+<li><a href="#_endpoint_get_play_en_users_service">9.6. Endpoint <code>GET /play</code> en Users Service</a></li>
 </ul>
 </li>
 <li><a href="#section-quality-scenarios">10. Quality Requirements</a>
@@ -632,7 +632,19 @@ jugar al juego Y, permitiendo tanto la interacción de usuarios humanos como la 
 <p><em>Los usuarios podrán elegir el tamaño del tablero, así como la estrategia que el bot rival empleará.</em></p>
 </li>
 <li>
-<p><em>Los usuarios podrán registrarse en el sistema y consultar el histórico de su participación: número de juegos realizados, estadísticas de partidas ganadas/perdidas, etc.</em></p>
+<p><em>Los usuarios podrán jugar partidas multijugador en tiempo real contra otros humanos, mediante salas identificadas por un código de 6 caracteres.</em></p>
+</li>
+<li>
+<p><em>Durante las partidas multijugador existirá un chat en tiempo real entre los jugadores.</em></p>
+</li>
+<li>
+<p><em>Los usuarios podrán registrarse en el sistema y consultar el histórico de su participación: número de juegos realizados, estadísticas de partidas ganadas/perdidas, racha actual, bots derrotados, etc.</em></p>
+</li>
+<li>
+<p><em>La aplicación dispondrá de un ranking global (leaderboard) de jugadores ordenado por tasa de victorias.</em></p>
+</li>
+<li>
+<p><em>La autenticación se realizará mediante tokens JWT, gestionados por un microservicio de autenticación dedicado.</em></p>
 </li>
 <li>
 <p><em>La aplicación dispondrá de una API que permita a los bots interactuar con ella.</em></p>
@@ -645,6 +657,9 @@ jugar al juego Y, permitiendo tanto la interacción de usuarios humanos como la 
 </li>
 <li>
 <p><em>La API permitirá que un bot juegue contra la aplicación.</em></p>
+</li>
+<li>
+<p><em>La aplicación dispondrá de monitorización de métricas mediante Prometheus y Grafana.</em></p>
 </li>
 </ul>
 </div>
@@ -676,8 +691,12 @@ jugar al juego Y, permitiendo tanto la interacción de usuarios humanos como la 
 <td class="tableblock halign-left valign-top"><p class="tableblock">La aplicación deberá ser fácil de mantener, con código limpio y fácil de modificar o ampliar, siguiendo buenas prácticas de diseño de software.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Fiablilidad</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Fiabilidad</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">La aplicación tendrá que ser fiable y funcionar correctamente ante cualquier situación llevada a cabo por los usuarios. También deberá de estar disponible el mayor tiempo posible.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Seguridad</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El acceso a los recursos protegidos requiere autenticación JWT. Las contraseñas se almacenan hasheadas con bcrypt. Ningún puerto interno está expuesto directamente al exterior.</p></td>
 </tr>
 </tbody>
 </table>
@@ -711,7 +730,12 @@ jugar al juego Y, permitiendo tanto la interacción de usuarios humanos como la 
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Usuarios</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Personas que utilicen la aplicación</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Esperan poder divertirse jugando al juego Y.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Esperan poder divertirse jugando al juego Y, tanto contra bots como contra otros humanos, y consultar sus estadísticas.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Bots externos</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Scripts o programas que usen <code>GET /play</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Esperan una API estable y documentada para competir automáticamente.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Profesor</p></td>
@@ -860,7 +884,7 @@ jugar al juego Y, permitiendo tanto la interacción de usuarios humanos como la 
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Bot externo (competición)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Envía estado YEN + jugada + bot_id al endpoint <code>POST /api/play</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Envía estado YEN en formato JSON al endpoint <code>GET /play?position=&lt;yen&gt;&amp;bot_id=&lt;bot_id&gt;</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Estado del tablero tras la jugada del bot oponente, resultado de la partida</p></td>
 </tr>
 <tr>
@@ -892,7 +916,7 @@ jugar al juego Y, permitiendo tanto la interacción de usuarios humanos como la 
 </table>
 <div class="paragraph">
 <p>El sistema Yovi actúa como intermediario entre los usuarios, los bots externos y el módulo de lógica del juego.
-Los usuarios interactúan a través de la interfaz web mediante HTTP y WebSocket, mientras que los bots lo hacen mediante el endpoint REST <code>/api/play</code>.</p>
+Los usuarios interactúan a través de la interfaz web mediante HTTP y WebSocket, mientras que los bots lo hacen mediante el endpoint REST <code>GET /play</code>.</p>
 </div>
 <hr>
 </div>
@@ -945,7 +969,7 @@ Los usuarios interactúan a través de la interfaz web mediante HTTP y WebSocket
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Bot externo ↔ Gateway</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Peticiones HTTP</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">JSON, <code>POST /api/play</code>, puerto 80</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">JSON, <code>GET /play</code>, puerto 80</p></td>
 </tr>
 </tbody>
 </table>
@@ -983,7 +1007,7 @@ Los usuarios interactúan a través de la interfaz web mediante HTTP y WebSocket
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Petición de partida bot-vs-bot</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP → Gateway → Users Service → Gamey Engine (<code>POST /api/play</code>)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HTTP → Gateway → Users Service → Gamey Engine (<code>GET /play</code>)</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Chat en sala multijugador</p></td>
@@ -1028,7 +1052,7 @@ La estrategia general se basa en los siguientes aspectos:</p>
 <p><strong>Gateway (Spring Boot)</strong>: Punto de entrada HTTP único para el frontend y los bots externos. Valida el token JWT de cada petición y enruta al servicio interno correcto. Las rutas públicas (<code>/auth/*</code>, <code>/status</code>, <code>/actuator/health</code>) no requieren token.</p>
 </li>
 <li>
-<p><strong>Users Service (Node.js/Express)</strong>: API REST que gestiona usuarios, partidas, estadísticas y el endpoint de competición <code>/api/play</code>. Accede a MySQL para persistencia.</p>
+<p><strong>Users Service (Node.js/Express)</strong>: API REST que gestiona usuarios, partidas, estadísticas y el endpoint de competición <code>GET /play</code>. Accede a MySQL para persistencia.</p>
 </li>
 <li>
 <p><strong>Módulo de lógica del juego (Rust/Gamey)</strong>: Calcula el estado de la partida, determina movimientos y comprueba victorias. Se comunica mediante JSON utilizando la notación YEN.</p>
@@ -1133,7 +1157,7 @@ La estrategia general se basa en los siguientes aspectos:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/building-block-overview.png" alt="building block overview" width="817" height="574">
+<img src="./images/building-block-overview.png" alt="building block overview" width="744" height="547">
 </div>
 </div>
 <div class="dlist">
@@ -1177,7 +1201,7 @@ El auth-service desacopla la lógica de JWT del gateway y del users service.</p>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">API REST de usuarios y partidas. Gestiona registro, login, guardado de partidas, historial, estadísticas de usuario (<code>/api/users/:id/stats</code>), leaderboard (<code>/api/leaderboard</code>) y el endpoint <code>/api/play</code>.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">API REST de usuarios y partidas. Gestiona registro, login, guardado de partidas, historial, estadísticas de usuario (<code>/api/users/:id/stats</code>), leaderboard (<code>/api/leaderboard</code>) y el endpoint de competición <code>GET /play</code>.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Gamey Engine</p></td>
@@ -1223,7 +1247,7 @@ El auth-service desacopla la lógica de JWT del gateway y del users service.</p>
 <p>HTTP/JSON interno entre Gateway y Gamey Engine (puerto 4000).</p>
 </li>
 <li>
-<p>HTTP/JSON interno entre Users Service y Gamey Engine (para <code>/api/play</code>).</p>
+<p>HTTP/JSON interno entre Users Service y Gamey Engine (para <code>GET /play</code>).</p>
 </li>
 <li>
 <p>SQL entre Users Service y MySQL (puerto 3306).</p>
@@ -1347,8 +1371,8 @@ El auth-service desacopla la lógica de JWT del gateway y del users service.</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/api/play</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/play</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Users Service</p></td>
 </tr>
 <tr>
@@ -1488,8 +1512,8 @@ El auth-service desacopla la lógica de JWT del gateway y del users service.</p>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Ranking paginado de usuarios ordenado por tasa de victorias (parámetros: <code>limit</code>, <code>offset</code>).</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><code>POST /api/play</code></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Endpoint de competición</strong>: aplica jugada del jugador + respuesta del bot en una sola llamada. Llama internamente a Gamey Engine hasta 3 veces.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>GET /play</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Endpoint de competición</strong>: recibe el estado YEN actual como query param (<code>position</code>) y el <code>bot_id</code> opcional. Pide al bot que elija su jugada y devuelve las coordenadas elegidas. Parámetros: <code>position</code> (JSON YEN), <code>bot_id</code> (por defecto <code>random_bot</code>).</p></td>
 </tr>
 </tbody>
 </table>
@@ -1598,10 +1622,10 @@ cy(row)      = row · rowStep</code></pre>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_post_apiplay_flujo_interno">5.3.3. <code>POST /api/play</code> — Flujo interno</h4>
+<h4 id="_get_play_flujo_interno">5.3.3. <code>GET /play</code> — Flujo interno</h4>
 <div class="imageblock">
 <div class="content">
-<img src="./images/api-play-flow.png" alt="api play flow" width="619" height="479">
+<img src="./images/get-play-flow.png" alt="get play flow" width="617" height="274">
 </div>
 </div>
 <div style="page-break-after: always;"></div>
@@ -1675,7 +1699,7 @@ cy(row)      = row · rowStep</code></pre>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Partida%20Multijugador.png" alt="Partida Multijugador" width="1126" height="1018">
+<img src="./images/Partida%20Multijugador.png" alt="Partida Multijugador" width="1125" height="1018">
 </div>
 </div>
 <hr>
@@ -1732,18 +1756,18 @@ cy(row)      = row · rowStep</code></pre>
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_competición_bot_vs_bot_post_apiplay">6.8. Competición Bot vs Bot (<code>POST /api/play</code>)</h3>
+<h3 id="_competición_bot_vs_bot_get_play">6.8. Competición Bot vs Bot (<code>GET /play</code>)</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Caso</dt>
 <dd>
-<p>Un bot externo (o script de testing) quiere hacer una jugada y recibir la respuesta del bot de la aplicación en una sola llamada HTTP.</p>
+<p>Un bot externo (o script de testing) quiere conocer la jugada que elegiría el bot de la aplicación dado un estado de tablero.</p>
 </dd>
 </dl>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Bot%20vs%20Bot.png" alt="Bot vs Bot" width="1001" height="521">
+<img src="./images/Bot%20vs%20Bot.png" alt="Bot vs Bot" width="935" height="583">
 </div>
 </div>
 <hr>
@@ -1792,7 +1816,7 @@ cy(row)      = row · rowStep</code></pre>
 <h3 id="_infrastructure_level_1">7.1. Infrastructure Level 1</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/deployment-overview.png" alt="deployment overview" width="410" height="680">
+<img src="./images/deployment-overview.png" alt="deployment overview" width="347" height="700">
 </div>
 </div>
 <div class="dlist">
@@ -1891,7 +1915,7 @@ Esto simplifica la configuración de firewall, evita problemas de CORS y habilit
 <h3 id="_infrastructure_level_2_nginx_como_proxy">7.2. Infrastructure Level 2 — Nginx como proxy</h3>
 <div class="imageblock">
 <div class="content">
-<img src="./images/Nginx%20Routing.png" alt="Nginx Routing" width="703" height="257">
+<img src="./images/Nginx%20Routing.png" alt="Nginx Routing" width="663" height="266">
 </div>
 </div>
 <div class="paragraph">
@@ -2190,30 +2214,32 @@ representaciones son geométricamente idénticas.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_api_de_competición_post_apiplay">8.6. API de Competición — <code>POST /api/play</code></h3>
+<h3 id="_api_de_competición_get_play">8.6. API de Competición — <code>GET /play</code></h3>
 <div class="paragraph">
-<p>El endpoint <code>/api/play</code> implementa el patrón <strong>orquestación en el servidor</strong>: el cliente
-envía una jugada y recibe el estado tras las dos jugadas (la suya y la del bot) en una
-sola petición HTTP. Esto es ideal para partidas bot-vs-bot automatizadas.</p>
+<p>El endpoint <code>GET /play</code> permite a bots externos consultar qué jugada elegiría el bot de la aplicación dado un estado de tablero en formato YEN. El cliente envía el estado actual como query parameter y recibe las coordenadas elegidas por el bot.</p>
 </div>
 <div class="paragraph">
-<p>Internamente se encadenan hasta 3 llamadas a Gamey Engine:</p>
+<p>Internamente realiza una sola llamada a Gamey Engine:</p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><code>POST /v1/game/play</code> → aplica la jugada del cliente.</p>
-</li>
-<li>
-<p><code>POST /v1/ybot/choose/{botId}</code> → el bot elige su respuesta.</p>
-</li>
-<li>
-<p><code>POST /v1/game/play</code> → aplica la jugada del bot.</p>
+<p><code>POST /v1/ybot/choose/{bot_id}</code> → el bot elige su jugada y devuelve <code>{ coords }</code>.</p>
 </li>
 </ol>
 </div>
 <div class="paragraph">
-<p>Si el cliente gana en el paso 1, los pasos 2 y 3 se omiten y <code>bot_move</code> es <code>null</code>.</p>
+<p>Parámetros:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>position</code> (obligatorio): estado del tablero en formato YEN serializado como JSON string.</p>
+</li>
+<li>
+<p><code>bot_id</code> (opcional, por defecto <code>random_bot</code>): identificador del bot a usar.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>Bots disponibles: <code>random_bot</code> (aleatorio), <code>greedy_bot</code> (codicioso), <code>minimax_bot</code> (minimax profundidad 2).</p>
@@ -2335,9 +2361,6 @@ de forma que la UI responde inmediatamente. El jugador ve dos botones:</p>
 </li>
 <li>
 <p><strong>Auth Service desacoplado</strong>: la emisión y verificación de tokens está aislada del resto de la lógica de negocio.</p>
-</li>
-<li>
-<p><strong>Orquestación en servidor</strong> (<code>/api/play</code>): el servidor compone múltiples llamadas internas y devuelve un resultado unificado al cliente.</p>
 </li>
 <li>
 <p><strong>Hook de estado</strong> (<code>useWebSocketRoom</code>): encapsula todo el ciclo de vida del WebSocket en un hook React reutilizable.</p>
@@ -2655,6 +2678,10 @@ sin exponer puertos internos al exterior.</p>
 <li>
 <p>Las rutas <code>/auth/*</code> son públicas en el JwtFilter del gateway.</p>
 </li>
+<li>
+<p>Documentación detallada de esta decisión:
+<a href="https://github.com/Arquisoft/yovi_es4c/wiki/Decisiones-Arquitect%C3%B3nicas:-Gateway" class="bare">https://github.com/Arquisoft/yovi_es4c/wiki/Decisiones-Arquitect%C3%B3nicas:-Gateway</a></p>
+</li>
 </ul>
 </div>
 </dd>
@@ -2733,6 +2760,10 @@ El gateway (Spring Boot con MVC bloqueante) no soporta WebSocket de forma nativa
 <li>
 <p>El servidor WS no persiste estado: si se reinicia, las partidas en curso se pierden (riesgo asumido).</p>
 </li>
+<li>
+<p>Documentación detallada de esta decisión:
+<a href="https://github.com/Arquisoft/yovi_es4c/wiki/Decisiones-Arquitectonicas:-Web-Sockets" class="bare">https://github.com/Arquisoft/yovi_es4c/wiki/Decisiones-Arquitectonicas:-Web-Sockets</a></p>
+</li>
 </ul>
 </div>
 </dd>
@@ -2741,7 +2772,7 @@ El gateway (Spring Boot con MVC bloqueante) no soporta WebSocket de forma nativa
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_endpoint_apiplay_en_users_service">9.6. Endpoint <code>/api/play</code> en Users Service</h3>
+<h3 id="_endpoint_get_play_en_users_service">9.6. Endpoint <code>GET /play</code> en Users Service</h3>
 <div class="dlist">
 <dl>
 <dt class="hdlist1">Estado</dt>
@@ -2750,21 +2781,20 @@ El gateway (Spring Boot con MVC bloqueante) no soporta WebSocket de forma nativa
 </dd>
 <dt class="hdlist1">Contexto</dt>
 <dd>
-<p>Se necesita un endpoint de alto nivel para competición bot-vs-bot que aplique una jugada
-del cliente y devuelva la respuesta del bot en una sola llamada.</p>
+<p>Se necesita un endpoint que permita a bots externos consultar qué jugada elegiría el bot de la aplicación dado un estado de tablero en formato YEN.</p>
 </dd>
 <dt class="hdlist1">Alternativas consideradas</dt>
 <dd>
 <div class="ulist">
 <ul>
 <li>
-<p>Implementarlo en el gateway (Java).</p>
+<p>Implementarlo directamente en el gateway (Java).</p>
 </li>
 <li>
 <p>Crearlo como endpoint separado en un nuevo microservicio.</p>
 </li>
 <li>
-<p>Documentarlo solo como secuencia de llamadas que el cliente debe hacer.</p>
+<p>Exponerlo directamente desde Gamey Engine sin pasar por Users Service.</p>
 </li>
 </ul>
 </div>
@@ -2780,19 +2810,19 @@ del cliente y devuelva la respuesta del bot en una sola llamada.</p>
 <tbody>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Centralización</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Users Service ya tiene acceso a la BD (para futura persistencia del resultado) y a Gamey Engine.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Users Service ya gestiona toda la lógica de negocio y tiene acceso a Gamey Engine mediante <code>GAMEY_SERVICE_URL</code>.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Simplicidad</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Node.js con <code>fetch</code> encadena las 3 llamadas internas de forma legible.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El endpoint es un proxy ligero: parsea el YEN del query param y delega en Gamey Engine. Una sola llamada interna.</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">No rompe el gateway</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">El gateway solo añade el proxy de <code>/api/play</code> → users service, sin lógica nueva.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El gateway solo añade el proxy de <code>GET /play</code> → users service, sin lógica nueva.</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Un solo roundtrip</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">El cliente externo hace una llamada y recibe el estado completo; ideal para bots automáticos.</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Interfaz simple para bots</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">El cliente externo hace una llamada GET con query params y recibe las coordenadas elegidas por el bot. Sin body, sin estado.</p></td>
 </tr>
 </tbody>
 </table>
@@ -3128,12 +3158,12 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Motor de juego implementado en Rust + Axum. Valida movimientos (<code>/v1/game/play</code>), calcula jugadas de bot (<code>/v1/ybot/choose/{botId}</code>) y detecta victorias.</em></p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em><code>/api/play</code></em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Endpoint de alto nivel en Users Service para competición bot-vs-bot. Aplica la jugada del cliente y devuelve la respuesta del bot interno en una sola llamada HTTP.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em><code>GET /play</code></em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Endpoint de competición en Users Service. Recibe el estado actual del tablero en formato YEN como query param (<code>position</code>) y el identificador del bot (<code>bot_id</code>, por defecto <code>random_bot</code>). Devuelve las coordenadas <code>{ x, y, z }</code> que elegiría el bot. Internamente llama a <code>POST /v1/ybot/choose/{bot_id}</code> en Gamey Engine.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Users Service</em></p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Microservicio Node.js + Express que gestiona usuarios (registro, login), partidas (guardar, listar), estadísticas de usuario, leaderboard y el endpoint <code>/api/play</code>.</em></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><em>Microservicio Node.js + Express que gestiona usuarios (registro, login), partidas (guardar, listar), estadísticas de usuario, leaderboard y el endpoint de competición <code>GET /play</code>.</em></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><em>Leaderboard</em></p></td>
@@ -3187,7 +3217,7 @@ more precisely down to a level of scenarios that can be discussed and evaluated.
 <div id="footer">
 <div id="footer-text">
 Version 8.2 EN<br>
-Last updated 2026-02-15 13:27:20 +0100
+Last updated 2026-04-06 21:02:52 +0200
 </div>
 </div>
 </body>
