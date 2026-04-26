@@ -94,8 +94,8 @@ app.get('/validate', (req, res) => {
 app.get('/health', (_req, res) => res.json({ status: 'UP' }));
 
 
-if (require.main === module) { /*NOSONAR Punto de entrada de ejecución*/
-  app.listen(PORT, () => console.log(`Auth Service listening on port ${PORT}`));
+if (require.main === module) { 
+  app.listen(PORT));
 }
 
 module.exports = app;

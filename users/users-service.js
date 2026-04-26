@@ -36,9 +36,8 @@ const pool = mysql.createPool({
 });
 
 // URL base del servicio gamey (Rust) — para el endpoint /api/play
-const GAMEY_URL = process.env.GAMEY_SERVICE_URL || 'http://gamey:4000'; //NOSONAR: gamey es el hostname del contenedor Docker del servicio de juego. En local, se puede usar http://localhost:4000
-
-const initializeDatabase = async () => {  /* c8 ignore start*/
+const GAMEY_URL = process.env.GAMEY_SERVICE_URL;
+const initializeDatabase = async () => {  
   let conn;
   try {
     conn = await pool.getConnection();
@@ -74,9 +73,9 @@ const initializeDatabase = async () => {  /* c8 ignore start*/
   } finally {
     if (conn) conn.release();
   }
-}; /* c8 ignore end*/
+}; 
 
-const initDbWithRetry = async (retries = 15, delay = 3000) => { /* c8 ignore start*/
+const initDbWithRetry = async (retries = 15, delay = 3000) => { 
   for (let i = 0; i < retries; i++) {
     try {
       await initializeDatabase();
@@ -91,13 +90,13 @@ const initDbWithRetry = async (retries = 15, delay = 3000) => { /* c8 ignore sta
       }
     }
   }
-}; /* c8 ignore end*/
+};
 
-setTimeout(() => { /* c8 ignore start*/
+setTimeout(() => { 
   initDbWithRetry().catch(err => {
     console.error('Failed to initialize database:', err.message);
   });
-}, 5000); /* c8 ignore end*/
+}, 5000);
 
 // POST /createuser — registers a new user with hashed password
 app.post('/createuser', async (req, res) => {
@@ -506,10 +505,8 @@ app.get('/play', async (req, res) => {
   }
 });
 
-if (require.main === module) {  /*NOSONAR Punto de entrada de ejecución*/
-  app.listen(port, () => {
-    console.log(`User Service listening at http://localhost:${port}`)
-  });
+if (require.main === module) { 
+  app.listen(port);
 }
 app.pool = pool;
 app._bcrypt = bcrypt;

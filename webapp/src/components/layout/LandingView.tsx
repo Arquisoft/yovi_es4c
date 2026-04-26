@@ -6,6 +6,13 @@ interface LandingViewProps {
   onPlayNow: () => void;
 }
 
+const randomDecoColor = (): string => {
+  const r = Math.random();
+  if (r > 0.6) return '#00e5ff';
+  if (r > 0.5) return '#ff3d71';
+  return '#1a2a3a';
+};
+
 export default function LandingView({ onPlayNow }: LandingViewProps) {
   return (
     <Box
@@ -194,8 +201,7 @@ export default function LandingView({ onPlayNow }: LandingViewProps) {
                     width: 18,
                     height: 18,
                     borderRadius: '50%',
-                    // NOSONAR: Math.random() es para decoracion.
-                    backgroundColor: Math.random() > 0.6 ? '#00e5ff' : Math.random() > 0.5 ? '#ff3d71' : '#1a2a3a', //NOSONAR
+                    backgroundColor: randomDecoColor(),
                     border: '1px solid #00e5ff22',
                   }}
                 />
