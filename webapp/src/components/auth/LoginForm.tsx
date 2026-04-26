@@ -14,7 +14,7 @@ import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
 interface LoginFormProps {
-  onLoginSuccess?: (username: string, userId: number) => void;
+  onLoginSuccess?: (username: string, userId: number, token: string) => void;
   onGoToRegister?: () => void;
 }
 
@@ -41,7 +41,7 @@ const LoginForm: React.FC<LoginFormProps> = ({ onLoginSuccess, onGoToRegister })
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem('token', data.token);
-        setTimeout(() => onLoginSuccess?.(username, data.userId), 300);
+        setTimeout(() => onLoginSuccess?.(username, data.userId, data.token), 300);
       } else {
         setError(data.error || 'Credenciales inválidas');
       }

@@ -22,10 +22,11 @@ type Phase = 'selector' | 'bot' | 'mp-lobby';
 interface GameViewProps {
   userId:       number | null;
   username:     string;
+  token?:        string;
   onGameReset?: () => void;
 }
 
-export default function GameView({ userId, username, onGameReset }: GameViewProps) {
+export default function GameView({ userId, username, token, onGameReset }: GameViewProps) {
   const [phase,  setPhase]  = useState<Phase>('selector');
   const [config, setConfig] = useState<GameConfig | null>(null);
 
@@ -73,7 +74,10 @@ export default function GameView({ userId, username, onGameReset }: GameViewProp
       ];
       await fetch(`${API_URL}/api/games`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token ?? localStorage.getItem('token') ?? ''}`
+        },
         body: JSON.stringify({ yen: layout, players: playersByIdx }),
       });
       onGameReset?.();

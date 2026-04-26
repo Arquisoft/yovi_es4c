@@ -20,10 +20,12 @@ function App() {
   const [authView, setAuthView] = useState<AuthView>('login');
   const [appView, setAppView] = useState<AppView>('landing');
   const [historyRefresh, setHistoryRefresh] = useState(0);
+  const [token, setToken] = useState<string>('');
 
-  const handleLoginSuccess = (loggedUsername: string, loggedUserId: number) => {
+  const handleLoginSuccess = (loggedUsername: string, loggedUserId: number, loggedToken: string) => {
     setUsername(loggedUsername);
     setUserId(loggedUserId);
+    setToken(loggedToken);
     setIsAuthenticated(true);
     setAppView('game');
   };
@@ -93,6 +95,7 @@ function App() {
           <GameView
             userId={userId}
             username={username}
+            token={token}
             onGameReset={refreshHistory}
           />
         );
