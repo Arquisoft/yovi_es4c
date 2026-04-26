@@ -22,7 +22,7 @@ Flujo::
 2. El Auth Service verifica contra Users Service y firma un JWT con `{ userId, username }` usando `JWT_SECRET`.
 3. El cliente incluye el token en todas las peticiones posteriores: `Authorization: Bearer <token>`.
 4. El Gateway valida el token en su `JwtFilter` (verificación local, sin roundtrip a BD) y añade `X-User-Id` al request.
-5. Las rutas `/auth/*`, `/status` y `/actuator/health` son públicas y no requieren token.
+5. Las rutas `/auth/*`, `/status` y `/actuator/*` son públicas y no requieren token.
 
 Ventajas del enfoque::
 - **Stateless**: el gateway no necesita consultar la BD para validar cada petición.
@@ -143,7 +143,7 @@ de forma que la UI responde inmediatamente. El jugador ve dos botones:
 - **JWT**: tokens firmados con `JWT_SECRET` compartido entre auth-service y gateway. Expiración configurable (por defecto 1h).
 - **bcrypt**: contraseñas hasheadas con 10 salt rounds en Users Service. Nunca se almacenan en texto plano.
 - **Nginx como punto de entrada único**: los puertos internos no están expuestos al exterior.
-- **Rutas públicas mínimas**: solo `/auth/*`, `/status` y `/actuator/health` son accesibles sin token.
+- **Rutas públicas mínimas**: solo `/auth/*`, `/status` y `/actuator/*` son accesibles sin token.
 - El servidor WebSocket no requiere autenticación formal (partidas por código de sala).
 
 === Patrones de Arquitectura y Diseño

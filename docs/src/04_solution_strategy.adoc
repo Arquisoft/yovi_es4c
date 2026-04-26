@@ -10,7 +10,7 @@ La estrategia general se basa en los siguientes aspectos:
 
 * **Frontend web (TypeScript/React)**: Se encarga de la interacción con los usuarios y la presentación del tablero de juego. Incluye selector de modo, partida vs bot, lobby multijugador con chat, historial, leaderboard y perfil de usuario.
 * **Microservicio de autenticación (auth-service, Node.js)**: Centraliza el login y el registro. Verifica credenciales contra el Users Service y emite tokens JWT firmados. Desacopla la lógica de autenticación del resto del sistema.
-* **Gateway (Spring Boot)**: Punto de entrada HTTP único para el frontend y los bots externos. Valida el token JWT de cada petición y enruta al servicio interno correcto. Las rutas públicas (`/auth/*`, `/status`, `/actuator/health`) no requieren token.
+* **Gateway (Spring Boot)**: Punto de entrada HTTP único para el frontend y los bots externos. Valida el token JWT de cada petición y enruta al servicio interno correcto. Las rutas públicas (`/auth/*`, `/status`, `/actuator/*`) no requieren token.
 * **Users Service (Node.js/Express)**: API REST que gestiona usuarios, partidas, estadísticas y el endpoint de competición `GET /play`. Accede a MySQL para persistencia.
 * **Módulo de lógica del juego (Rust/Gamey)**: Calcula el estado de la partida, determina movimientos y comprueba victorias. Se comunica mediante JSON utilizando la notación YEN.
 * **Servidor WebSocket (ws-server, Node.js)**: Gestiona salas multijugador en tiempo real. No contiene lógica de juego; solo empareja jugadores y retransmite mensajes.

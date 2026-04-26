@@ -61,7 +61,7 @@ Contained Building Blocks::
 | WebApp | SPA que proporciona la interfaz de usuario: selección de modo, tablero de juego, historial, multijugador con chat, leaderboard y perfil.
 | Nginx | Servidor web y proxy inverso: sirve los estáticos de React, redirige `/auth/*` al auth-service, HTTP al gateway y WebSocket al ws-server. TLS en producción.
 | Auth Service | Microservicio de autenticación JWT. Expone `POST /auth/login` y `POST /auth/register`. Verifica credenciales contra users-service y emite tokens JWT firmados.
-| Gateway | Punto de entrada HTTP único con JWT validation. Valida el token `Authorization: Bearer <token>` en cada petición y enruta al servicio correcto (users o gamey). Las rutas `/auth/*`, `/status` y `/actuator/health` son públicas.
+| Gateway | Punto de entrada HTTP único con JWT validation. Valida el token `Authorization: Bearer <token>` en cada petición y enruta al servicio correcto (users o gamey). Las rutas `/auth/*`, `/status` y `/actuator/*` son públicas.
 | Users Service | API REST de usuarios y partidas. Gestiona registro, login, guardado de partidas, historial, estadísticas de usuario (`/api/users/:id/stats`), leaderboard (`/api/leaderboard`) y el endpoint de competición `GET /play`.
 | Gamey Engine | Motor de juego en Rust. Valida movimientos, comprueba victorias y ejecuta los algoritmos de bot.
 | WS-Server | Servidor WebSocket de salas multijugador. Empareja jugadores por código, retransmite movimientos y chat.
@@ -92,7 +92,7 @@ Microservicio Node.js responsable exclusivamente de la autenticación. No accede
 |===
 | Endpoint | Responsabilidad
 | `POST /auth/login` | Valida credenciales contra users-service. Si son correctas, firma y devuelve un JWT con `userId` y `username`. Expira según `JWT_EXPIRES_IN` (por defecto 1h).
-| `POST /auth/register` | Proxy directo a `/createuser` de users-service. Crea el usuario sin emitir token (el usuario debe hacer login a continuación).
+| `POST /auth/register` | Proxy directo a `/createuser` de users-service. Crea el usuario. El cliente realiza login automáticamente tras el registro para obtener el token.
 | `GET /auth/validate` | Verifica un JWT y devuelve su payload. Útil para tests e integraciones internas.
 | `GET /auth/health` | Health check del servicio.
 |===
@@ -104,7 +104,7 @@ El Gateway aplica un filtro Servlet (`JwtFilter`) en todas las rutas salvo las p
 [cols="1,2", options="header"]
 |===
 | Comportamiento | Descripción
-| Rutas públicas | `/auth/*`, `/actuator/health`, `/status` — pasan sin token.
+| Rutas públicas | `/auth/*`, `/actuator/*`, `/status` — pasan sin token.
 | Rutas protegidas | Todas las demás. El filtro extrae el token del header `Authorization: Bearer <token>`, lo verifica con `JWT_SECRET` y añade `X-User-Id` al request forwarded.
 | Token inválido | Devuelve `401 Unauthorized` con mensaje de error JSON.
 |===
@@ -119,7 +119,6 @@ Rutas que expone el gateway:
 | `POST` | `/api/games/seed` | Users Service
 | `GET` | `/api/users/{userId}/stats` | Users Service
 | `GET` | `/api/leaderboard` | Users Service
-| `GET` | `/play` | Users Service
 | `GET` | `/play` | Users Service
 | `GET` | `/status` | Gamey Engine (público)
 | `POST` | `/v1/ybot/choose/{botId}` | Gamey Engine
@@ -212,7 +211,7 @@ NG -> AS: POST /auth/login (sin JWT)
 AS -> US: POST /login (verificar credenciales)
 US --> AS: { userId }
 AS --> WA: { token: "eyJ...", userId, username }
-note right of WA: El token se guarda en memoria React
+note right of WA: El token se guarda en localStorage\ny se pasa como prop a GameView
 
 WA -> NG: GET /api/leaderboard\nAuthorization: Bearer eyJ...
 NG -> GW: HTTP proxy
