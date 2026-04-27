@@ -61,12 +61,15 @@ services:
     image: ghcr.io/arquisoft/yovi_es4c-users:latest
     expose:
       - "3000"
+    ports:
+      - "3000:3000"
     environment:
       - DB_HOST=mysql
       - DB_PORT=3306
       - DB_USER=root
       - DB_PASS=secret
       - DB_NAME=yovi
+      - GAMEY_SERVICE_URL=http://gamey:4000
     depends_on:
       - mysql
     networks:
