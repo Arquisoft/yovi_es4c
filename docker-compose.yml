@@ -17,6 +17,7 @@ services:
       - gateway
       - webapp
       - ws-server
+      - swagger-ui
 
   # ── API Gateway (Spring Boot) ────────────────────────────────────────────
   gateway:
@@ -112,6 +113,20 @@ services:
     image: ghcr.io/arquisoft/yovi_es4c-gamey:latest
     expose:
       - "4000"
+    networks:
+      - monitor-net
+
+  # ── Swagger UI — Documentación OpenAPI ───────────────────────────────────
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: swagger-ui
+    expose:
+      - "8080"
+    environment:
+      - SWAGGER_JSON=/openapi/openapi.yaml
+      - BASE_URL=/docs
+    volumes:
+      - ./users/openapi.yaml:/openapi/openapi.yaml:ro
     networks:
       - monitor-net
 
