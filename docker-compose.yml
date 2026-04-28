@@ -123,10 +123,8 @@ services:
     expose:
       - "8080"
     environment:
-      - SWAGGER_JSON=/openapi/openapi.yaml
+      - SWAGGER_JSON_URL=https://${DOMAIN:-localhost}/openapi.yaml
       - BASE_URL=/docs
-    volumes:
-      - ./users/openapi.yaml:/openapi/openapi.yaml:ro
     networks:
       - monitor-net
 

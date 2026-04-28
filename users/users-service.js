@@ -18,6 +18,10 @@ app.use(metricsMiddleware);
 try {
   const swaggerDocument = YAML.load(fs.readFileSync('./openapi.yaml', 'utf8'));
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  app.get('/openapi.yaml', (_req, res) => {
+  res.setHeader('Content-Type', 'text/yaml; charset=utf-8');
+  res.sendFile(require('path').join(__dirname, 'openapi.yaml'));
+});
 } catch (e) {
   console.log(e);
 }

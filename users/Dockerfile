@@ -6,6 +6,8 @@ RUN npm ci --silent --ignore-scripts
 
 COPY users-service.js .
 
+COPY openapi.yaml .
+
 USER node
 
 EXPOSE 3000
